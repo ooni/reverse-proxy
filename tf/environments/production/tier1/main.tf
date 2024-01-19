@@ -65,7 +65,7 @@ resource "aws_launch_configuration" "app" {
   security_groups = [
     aws_security_group.instance_sg.id,
   ]
-
+  name                 = local.name
   key_name             = var.key_name
   image_id             = jsondecode(data.aws_ssm_parameter.ecs_optimized_ami.value)["image_id"]
   instance_type        = var.instance_type
