@@ -124,7 +124,7 @@ module "ecs_service" {
 
   load_balancer = {
     service = {
-      target_group_arn = module.alb.target_groups["ex_ecs"].arn
+      target_group_arn = module.alb.target_groups["backend_ecs"].arn
       container_name   = local.container_name
       container_port   = local.container_port
     }
@@ -190,13 +190,13 @@ module "alb" {
       protocol = "HTTP"
 
       forward = {
-        target_group_key = "ex_ecs"
+        target_group_key = "backend_ecs"
       }
     }
   }
 
   target_groups = {
-    ex_ecs = {
+    backend_ecs = {
       backend_protocol                  = "HTTP"
       backend_port                      = 80
       target_type                       = "ip"
@@ -279,7 +279,7 @@ module "autoscaling" {
   vpc_zone_identifier = module.vpc.private_subnets
   health_check_type   = "EC2"
   min_size            = 1
-  max_size            = 5
+  max_size            = 2
   desired_capacity    = 1
 
   # https://github.com/hashicorp/terraform-provider-aws/issues/12582
