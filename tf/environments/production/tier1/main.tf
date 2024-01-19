@@ -50,7 +50,7 @@ resource "aws_route_table_association" "a" {
 ### Compute
 
 resource "aws_autoscaling_group" "app" {
-  name                 = "ooni-tier1-production-backend-asg"
+  name_prefix                 = "ooni-tier1-production-backend-asg"
   vpc_zone_identifier  = aws_subnet.main[*].id
   min_size             = var.asg_min
   max_size             = var.asg_max
@@ -66,7 +66,7 @@ resource "aws_launch_configuration" "app" {
   security_groups = [
     aws_security_group.instance_sg.id,
   ]
-  name                 = "ooni-tier1-production-backend-lc"
+  name_prefix                 = "ooni-tier1-production-backend-lc"
   key_name             = var.key_name
   image_id             = jsondecode(data.aws_ssm_parameter.ecs_optimized_ami.value)["image_id"]
   instance_type        = var.instance_type
