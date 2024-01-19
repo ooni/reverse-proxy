@@ -34,8 +34,8 @@ module "ecs_cluster" {
   default_capacity_provider_use_fargate = false
   autoscaling_capacity_providers = {
     # On-demand instances
-    ex_1 = {
-      auto_scaling_group_arn         = module.autoscaling["ex_1"].autoscaling_group_arn
+    small = {
+      auto_scaling_group_arn         = module.autoscaling["small"].autoscaling_group_arn
       managed_termination_protection = "ENABLED"
 
       managed_scaling = {
@@ -51,8 +51,8 @@ module "ecs_cluster" {
       }
     }
     # Spot instances
-    ex_2 = {
-      auto_scaling_group_arn         = module.autoscaling["ex_2"].autoscaling_group_arn
+    micro = {
+      auto_scaling_group_arn         = module.autoscaling["micro"].autoscaling_group_arn
       managed_termination_protection = "ENABLED"
 
       managed_scaling = {
@@ -93,8 +93,8 @@ module "ecs_service" {
   requires_compatibilities = ["EC2"]
   capacity_provider_strategy = {
     # On-demand instances
-    ex_1 = {
-      capacity_provider = module.ecs_cluster.autoscaling_capacity_providers["ex_1"].name
+    small = {
+      capacity_provider = module.ecs_cluster.autoscaling_capacity_providers["small"].name
       weight            = 1
       base              = 1
     }
@@ -226,7 +226,7 @@ module "autoscaling" {
 
   for_each = {
     # On-demand instances
-    ex_1 = {
+    small = {
       instance_type              = "t3.small"
       use_mixed_instances_policy = false
       mixed_instances_policy     = {}
@@ -237,7 +237,7 @@ module "autoscaling" {
       })
     }
     # Spot instances
-    ex_2 = {
+    micro = {
       instance_type              = "t3.micro"
       use_mixed_instances_policy = true
       mixed_instances_policy = {
@@ -276,7 +276,7 @@ module "autoscaling" {
   health_check_type   = "EC2"
   min_size            = 1
   max_size            = 5
-  desired_capacity    = 2
+  desired_capacity    = 1
 
   # https://github.com/hashicorp/terraform-provider-aws/issues/12582
   autoscaling_group_tags = {
