@@ -1,5 +1,5 @@
 provider "aws" {
-  region = local.region
+  region = var.aws_region
   access_key = var.aws_access_key
   secret_key = var.aws_secret_access_key
 }
@@ -7,12 +7,8 @@ provider "aws" {
 data "aws_availability_zones" "available" {}
 
 locals {
-  region = "eu-central-1"
   environment = "production"
   name   = "ooni-tier1-${local.environment}"
-
-  vpc_cidr = "10.0.0.0/16"
-  azs      = slice(data.aws_availability_zones.available.names, 0, 3)
 
   tags = {
     Name       = local.name
@@ -20,59 +16,142 @@ locals {
   }
 }
 
-################################################################################
-# Cluster
-################################################################################
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+}
 
-module "ecs_cluster" {
-  source = "terraform-aws-modules/ecs/aws//modules/cluster"
+resource "aws_subnet" "main" {
+  count             = var.az_count
+  cidr_block        = cidrsubnet(aws_vpc.main.cidr_block, 8, count.index)
+  availability_zone = data.aws_availability_zones.available.names[count.index]
+  vpc_id            = aws_vpc.main.id
+}
 
-  cluster_name = local.name
+resource "aws_internet_gateway" "gw" {
+  vpc_id = aws_vpc.main.id
+}
 
-  # Capacity provider - autoscaling groups
-  default_capacity_provider_use_fargate = false
-  autoscaling_capacity_providers = {
-    # On-demand instances
-    small = {
-      auto_scaling_group_arn         = module.autoscaling["small"].autoscaling_group_arn
-      managed_termination_protection = "ENABLED"
+resource "aws_route_table" "r" {
+  vpc_id = aws_vpc.main.id
 
-      managed_scaling = {
-        maximum_scaling_step_size = 3
-        minimum_scaling_step_size = 1
-        status                    = "ENABLED"
-        target_capacity           = 60
-      }
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.gw.id
+  }
+}
 
-      default_capacity_provider_strategy = {
-        weight = 60
-        base   = 20
-      }
-    }
-    # Spot instances
-    micro = {
-      auto_scaling_group_arn         = module.autoscaling["micro"].autoscaling_group_arn
-      managed_termination_protection = "ENABLED"
+resource "aws_route_table_association" "a" {
+  count          = var.az_count
+  subnet_id      = element(aws_subnet.main[*].id, count.index)
+  route_table_id = aws_route_table.r.id
+}
 
-      managed_scaling = {
-        maximum_scaling_step_size = 3
-        minimum_scaling_step_size = 1
-        status                    = "ENABLED"
-        target_capacity           = 90
-      }
+### Compute
 
-      default_capacity_provider_strategy = {
-        weight = 40
-      }
-    }
+resource "aws_autoscaling_group" "app" {
+  name                 = "ooni-tier1-production-backend-asg"
+  vpc_zone_identifier  = aws_subnet.main[*].id
+  min_size             = var.asg_min
+  max_size             = var.asg_max
+  desired_capacity     = var.asg_desired
+  launch_configuration = aws_launch_configuration.app.name
+}
+
+data "aws_ssm_parameter" "ecs_optimized_ami" {
+  name = "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended"
+}
+
+resource "aws_launch_configuration" "app" {
+  security_groups = [
+    aws_security_group.instance_sg.id,
+  ]
+
+  key_name             = var.key_name
+  image_id             = jsondecode(data.aws_ssm_parameter.ecs_optimized_ami.value)["image_id"]
+  instance_type        = var.instance_type
+  iam_instance_profile = aws_iam_instance_profile.app.name
+  user_data            = templatefile("${path.module}/templates/ecs-setup.sh.tftpl", {
+      ecs_cluster_name = local.name,
+      ecs_cluster_tags = local.tags,
+      datadog_api_key  = var.datadog_api_key,
+  })
+  associate_public_ip_address = true
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+### Security
+
+resource "aws_security_group" "lb_sg" {
+  description = "controls access to the application ELB"
+
+  vpc_id = aws_vpc.main.id
+  name   = "tf-ecs-lbsg"
+
+  ingress {
+    protocol    = "tcp"
+    from_port   = 80
+    to_port     = 80
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port = 0
+    to_port   = 0
+    protocol  = "-1"
+
+    cidr_blocks = [
+      "0.0.0.0/0",
+    ]
+  }
+  
+  tags = local.tags
+}
+
+resource "aws_security_group" "instance_sg" {
+  description = "controls direct access to application instances"
+  vpc_id      = aws_vpc.main.id
+  name        = "tf-ecs-instsg"
+
+  ingress {
+    protocol  = "tcp"
+    from_port = 22
+    to_port   = 22
+
+    cidr_blocks = [
+      var.admin_cidr_ingress,
+    ]
+  }
+
+  ingress {
+    protocol  = "tcp"
+    from_port = 32768
+    to_port   = 61000
+
+    security_groups = [
+      aws_security_group.lb_sg.id,
+    ]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags = local.tags
 }
 
-################################################################################
-# Service
-################################################################################
+## ECS
+
+resource "aws_ecs_cluster" "main" {
+  name = "terraform_ooni_ecs_cluster"
+  tags = local.tags
+}
+
 
 locals {
   container_image = "ooni/dataapi:latest"
@@ -80,257 +159,166 @@ locals {
   container_port = 80
 }
 
-# TODO(art): Look into the destruction of the capacity_provider as there seems
-# to be a logic issue in how this works in terraform:
-# https://github.com/hashicorp/terraform-provider-aws/issues/18849
-# https://github.com/hashicorp/terraform-provider-aws/issues/4852
-# https://github.com/hashicorp/terraform-provider-aws/issues/11409
-module "ecs_service" {
-
-  source = "terraform-aws-modules/ecs/aws//modules/service"
-
-  # Service
-  name        = local.name
-  cluster_arn = module.ecs_cluster.arn
-
-  # Task Definition
-  requires_compatibilities = ["EC2"]
-  capacity_provider_strategy = {
-    # On-demand instances
-    small = {
-      capacity_provider = module.ecs_cluster.autoscaling_capacity_providers["small"].name
-      weight            = 1
-      base              = 1
-    }
-  }
-
-  volume = {
-    my-vol = {}
-  }
-
-  # Container definition(s)
-  container_definitions = {
-    (local.container_name) = {
-      image = local.container_image,
-      port_mappings = [
-        {
-          name          =   local.container_name,
-          containerPort = 80,
-          protocol      = "tcp"
-        }
-      ]
-    }
-  }
-
-  load_balancer = {
-    service = {
-      target_group_arn = module.alb.target_groups["backend_ecs"].arn
-      container_name   = local.container_name
-      container_port   = local.container_port
-    }
-  }
-
-  subnet_ids = module.vpc.private_subnets
-  security_group_rules = {
-    alb_http_ingress = {
-      type                     = "ingress"
-      from_port                = local.container_port
-      to_port                  = local.container_port
-      protocol                 = "tcp"
-      description              = "Service port"
-      source_security_group_id = module.alb.security_group_id
-    }
-  }
+resource "aws_ecs_task_definition" "dataapi" {
+  family = "ooni_dataapi_td"
+  container_definitions = templatefile("${path.module}/templates/task_definition.json", {
+    image_url        = local.container_image,
+    container_name   = local.container_name,
+    container_port   = local.container_port,
+    log_group_region = var.aws_region,
+    log_group_name   = aws_cloudwatch_log_group.app.name
+  })
 
   tags = local.tags
 }
 
-################################################################################
-# Supporting Resources
-################################################################################
+resource "aws_ecs_service" "dataapi" {
+  name            = "tf-ooni-ecs-dataapi"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.dataapi.arn
+  desired_count   = var.service_desired
+  iam_role        = aws_iam_role.ecs_service.name
 
-# https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html#ecs-optimized-ami-linux
-data "aws_ssm_parameter" "ecs_optimized_ami" {
-  name = "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended"
-}
-
-module "alb" {
-  source  = "terraform-aws-modules/alb/aws"
-  version = "~> 9.0"
-
-  name = local.name
-
-  load_balancer_type = "application"
-
-  vpc_id  = module.vpc.vpc_id
-  subnets = module.vpc.public_subnets
-
-  # For example only
-  enable_deletion_protection = false
-
-  # Security Group
-  security_group_ingress_rules = {
-    all_http = {
-      from_port   = 80
-      to_port     = 80
-      ip_protocol = "tcp"
-      cidr_ipv4   = "0.0.0.0/0"
-    }
-  }
-  security_group_egress_rules = {
-    all = {
-      ip_protocol = "-1"
-      cidr_ipv4   = module.vpc.vpc_cidr_block
-    }
+  load_balancer {
+    target_group_arn = aws_alb_target_group.dataapi.id
+    container_name   = local.container_name
+    container_port   = "80"
   }
 
-  listeners = {
-    backend_http = {
-      port     = 80
-      protocol = "HTTP"
-
-      forward = {
-        target_group_key = "backend_ecs"
-      }
-    }
-  }
-
-  target_groups = {
-    backend_ecs = {
-      backend_protocol                  = "HTTP"
-      backend_port                      = 80
-      target_type                       = "ip"
-      deregistration_delay              = 5
-      load_balancing_cross_zone_enabled = true
-
-      health_check = {
-        enabled             = true
-        healthy_threshold   = 5
-        interval            = 30
-        matcher             = "200"
-        path                = "/"
-        port                = "traffic-port"
-        protocol            = "HTTP"
-        timeout             = 5
-        unhealthy_threshold = 2
-      }
-
-      # Theres nothing to attach here in this definition. Instead,
-      # ECS will attach the IPs of the tasks to this target group
-      create_attachment = false
-    }
-  }
+  depends_on = [
+    aws_iam_role_policy.ecs_service,
+    aws_alb_listener.front_end,
+  ]
 
   tags = local.tags
 }
 
-module "autoscaling" {
-  source  = "terraform-aws-modules/autoscaling/aws"
-  version = "~> 6.5"
+## IAM
 
-  for_each = {
-    # On-demand instances
-    small = {
-      instance_type              = "t3.small"
-      use_mixed_instances_policy = false
-      mixed_instances_policy     = {}
-      user_data                  = templatefile("${path.module}/templates/ecs-setup.sh.tftpl", {
-        ecs_cluster_name = local.name,
-        ecs_cluster_tags = local.tags,
-        datadog_api_key  = var.datadog_api_key,
-      })
-    }
-    # Spot instances
-    micro = {
-      instance_type              = "t3.micro"
-      use_mixed_instances_policy = true
-      mixed_instances_policy = {
-        instances_distribution = {
-          on_demand_base_capacity                  = 0
-          on_demand_percentage_above_base_capacity = 0
-          spot_allocation_strategy                 = "price-capacity-optimized"
-        }
-      }
-      user_data                  = templatefile("${path.module}/templates/ecs-setup.sh.tftpl", {
-        ecs_cluster_name = local.name,
-        ecs_cluster_tags = local.tags,
-        datadog_api_key  = var.datadog_api_key,
-      })
-    }
-  }
-
-  name = "${local.name}-${each.key}"
-
-  image_id      = jsondecode(data.aws_ssm_parameter.ecs_optimized_ami.value)["image_id"]
-  instance_type = each.value.instance_type
-
-  security_groups                 = [module.autoscaling_sg.security_group_id]
-  user_data                       = base64encode(each.value.user_data)
-  ignore_desired_capacity_changes = true
-
-  create_iam_instance_profile = true
-  iam_role_name               = local.name
-  iam_role_description        = "ECS role for ${local.name}"
-  iam_role_policies = {
-    AmazonEC2ContainerServiceforEC2Role = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
-    AmazonSSMManagedInstanceCore        = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-  }
-
-  vpc_zone_identifier = module.vpc.private_subnets
-  health_check_type   = "EC2"
-  min_size            = 1
-  max_size            = 2
-  desired_capacity    = 1
-
-  # https://github.com/hashicorp/terraform-provider-aws/issues/12582
-  autoscaling_group_tags = {
-    AmazonECSManaged = true
-  }
-
-  # Required for  managed_termination_protection = "ENABLED"
-  protect_from_scale_in = true
-
-  # Spot instances
-  use_mixed_instances_policy = each.value.use_mixed_instances_policy
-  mixed_instances_policy     = each.value.mixed_instances_policy
+resource "aws_iam_role" "ecs_service" {
+  name = "tf_ooni_ecs_role"
 
   tags = local.tags
-}
 
-module "autoscaling_sg" {
-  source  = "terraform-aws-modules/security-group/aws"
-  version = "~> 5.0"
-
-  name        = local.name
-  description = "Autoscaling group security group"
-  vpc_id      = module.vpc.vpc_id
-
-  computed_ingress_with_source_security_group_id = [
+  assume_role_policy = <<EOF
+{
+  "Version": "2008-10-17",
+  "Statement": [
     {
-      rule                     = "http-80-tcp"
-      source_security_group_id = module.alb.security_group_id
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ecs.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
     }
   ]
-  number_of_computed_ingress_with_source_security_group_id = 1
+}
+EOF
+}
 
-  egress_rules = ["all-all"]
+resource "aws_iam_role_policy" "ecs_service" {
+  name = "tf_ooni_ecs_policy"
+  role = aws_iam_role.ecs_service.name
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:Describe*",
+        "elasticloadbalancing:DeregisterInstancesFromLoadBalancer",
+        "elasticloadbalancing:DeregisterTargets",
+        "elasticloadbalancing:Describe*",
+        "elasticloadbalancing:RegisterInstancesWithLoadBalancer",
+        "elasticloadbalancing:RegisterTargets"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_instance_profile" "app" {
+  name = "tf-ecs-instprofile"
+  role = aws_iam_role.app_instance.name
 
   tags = local.tags
 }
 
-module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 5.0"
-
-  name = local.name
-  cidr = local.vpc_cidr
-
-  azs             = local.azs
-  private_subnets = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 4, k)]
-  public_subnets  = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 48)]
-
-  enable_nat_gateway = true
-  single_nat_gateway = true
+resource "aws_iam_role" "app_instance" {
+  name = "tf-ecs-ooni-instance-role"
 
   tags = local.tags
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "instance" {
+  name = "TfEcsOONIInstanceRole"
+  role = aws_iam_role.app_instance.name
+  policy = templatefile("${path.module}/templates/instance_profile_policy.json", {
+    app_log_group_arn = aws_cloudwatch_log_group.app.arn,
+    ecs_log_group_arn = aws_cloudwatch_log_group.ecs.arn
+  })
+
+}
+
+## ALB
+
+resource "aws_alb_target_group" "dataapi" {
+  name     = "tf-ooni-ecs-dataapi"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.main.id
+
+  tags = local.tags
+}
+
+resource "aws_alb" "main" {
+  name            = "tf-ooni-alb-ecs"
+  subnets         = aws_subnet.main[*].id
+  security_groups = [aws_security_group.lb_sg.id]
+
+  tags = local.tags
+}
+
+resource "aws_alb_listener" "front_end" {
+  load_balancer_arn = aws_alb.main.id
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    target_group_arn = aws_alb_target_group.dataapi.id
+    type             = "forward"
+  }
+
+  tags = local.tags
+}
+
+## CloudWatch Logs
+
+resource "aws_cloudwatch_log_group" "ecs" {
+  name = "tf-ecs-group/ecs-agent"
+}
+
+resource "aws_cloudwatch_log_group" "app" {
+  name = "tf-ecs-group/app-dataapi"
 }
