@@ -161,7 +161,7 @@ locals {
 }
 
 resource "aws_ecs_task_definition" "dataapi" {
-  family = "ooni_dataapi_td"
+  family = "ooni-dataapi-production-td"
   container_definitions = templatefile("${path.module}/templates/task_definition.json", {
     image_url        = local.container_image,
     container_name   = local.container_name,
@@ -174,7 +174,7 @@ resource "aws_ecs_task_definition" "dataapi" {
 }
 
 resource "aws_ecs_service" "dataapi" {
-  name            = "tf-ooni-ecs-dataapi"
+  name            = "ooni-ecs-dataapi"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.dataapi.arn
   desired_count   = var.service_desired
