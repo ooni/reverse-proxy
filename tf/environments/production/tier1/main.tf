@@ -39,7 +39,7 @@ module "ecs_cluster" {
       managed_termination_protection = "ENABLED"
 
       managed_scaling = {
-        maximum_scaling_step_size = 5
+        maximum_scaling_step_size = 3
         minimum_scaling_step_size = 1
         status                    = "ENABLED"
         target_capacity           = 60
@@ -56,8 +56,8 @@ module "ecs_cluster" {
       managed_termination_protection = "ENABLED"
 
       managed_scaling = {
-        maximum_scaling_step_size = 15
-        minimum_scaling_step_size = 5
+        maximum_scaling_step_size = 3
+        minimum_scaling_step_size = 1
         status                    = "ENABLED"
         target_capacity           = 90
       }
@@ -227,7 +227,7 @@ module "autoscaling" {
   for_each = {
     # On-demand instances
     ex_1 = {
-      instance_type              = "t3.large"
+      instance_type              = "t3.small"
       use_mixed_instances_policy = false
       mixed_instances_policy     = {}
       user_data                  = templatefile("${path.module}/templates/ecs-setup.sh.tftpl", {
@@ -238,7 +238,7 @@ module "autoscaling" {
     }
     # Spot instances
     ex_2 = {
-      instance_type              = "t3.medium"
+      instance_type              = "t3.micro"
       use_mixed_instances_policy = true
       mixed_instances_policy = {
         instances_distribution = {
@@ -246,17 +246,6 @@ module "autoscaling" {
           on_demand_percentage_above_base_capacity = 0
           spot_allocation_strategy                 = "price-capacity-optimized"
         }
-
-        override = [
-          {
-            instance_type     = "m4.large"
-            weighted_capacity = "2"
-          },
-          {
-            instance_type     = "t3.large"
-            weighted_capacity = "1"
-          },
-        ]
       }
       user_data                  = templatefile("${path.module}/templates/ecs-setup.sh.tftpl", {
         ecs_cluster_name = local.name,
