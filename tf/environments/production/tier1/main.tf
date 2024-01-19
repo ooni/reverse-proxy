@@ -185,7 +185,7 @@ module "alb" {
   }
 
   listeners = {
-    ex_http = {
+    backend_http = {
       port     = 80
       protocol = "HTTP"
 
