@@ -16,7 +16,6 @@ locals {
 
   tags = {
     Name       = local.name
-    Example    = local.name
     Repository = "https://github.com/ooni/devops"
   }
 }
@@ -81,6 +80,11 @@ locals {
   container_port = 80
 }
 
+# TODO(art): Look into the destruction of the capacity_provider as there seems
+# to be a logic issue in how this works in terraform:
+# https://github.com/hashicorp/terraform-provider-aws/issues/18849
+# https://github.com/hashicorp/terraform-provider-aws/issues/4852
+# https://github.com/hashicorp/terraform-provider-aws/issues/11409
 module "ecs_service" {
 
   source = "terraform-aws-modules/ecs/aws//modules/service"
