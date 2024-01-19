@@ -24,7 +24,7 @@ locals {
 ################################################################################
 
 module "ecs_cluster" {
-  source = "terraform-aws-modules/ecs/aws/modules/cluster"
+  source = "terraform-aws-modules/ecs/aws//modules/cluster"
 
   cluster_name = local.name
 
@@ -74,7 +74,7 @@ module "ecs_cluster" {
 ################################################################################
 
 module "ecs_service" {
-  source = "terraform-aws-modules/ecs/aws/modules/service"
+  source = "terraform-aws-modules/ecs/aws//modules/service"
 
   # Service
   name        = local.name
