@@ -9,7 +9,7 @@ data "aws_availability_zones" "available" {}
 locals {
   environment = "production"
   name   = "ooni-tier1-${local.environment}"
-  ecs_cluster_name = "terraform_ooni_ecs_cluster"
+  ecs_cluster_name = "ooni-ecs-cluster"
 
   tags = {
     Name       = local.name
@@ -197,7 +197,7 @@ resource "aws_ecs_service" "dataapi" {
 ## IAM
 
 resource "aws_iam_role" "ecs_service" {
-  name = "tf_ooni_ecs_role"
+  name = "ooni_ecs_role"
 
   tags = local.tags
 
@@ -219,7 +219,7 @@ EOF
 }
 
 resource "aws_iam_role_policy" "ecs_service" {
-  name = "tf_ooni_ecs_policy"
+  name = "ooni_ecs_policy"
   role = aws_iam_role.ecs_service.name
 
   policy = <<EOF
@@ -285,7 +285,7 @@ resource "aws_iam_role_policy" "instance" {
 ## ALB
 
 resource "aws_alb_target_group" "dataapi" {
-  name     = "tf-ooni-ecs-dataapi"
+  name     = "ooni-ecs-dataapi"
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.main.id
@@ -294,7 +294,7 @@ resource "aws_alb_target_group" "dataapi" {
 }
 
 resource "aws_alb" "main" {
-  name            = "tf-ooni-alb-ecs"
+  name            = "ooni-alb-ecs"
   subnets         = aws_subnet.main[*].id
   security_groups = [aws_security_group.lb_sg.id]
 
