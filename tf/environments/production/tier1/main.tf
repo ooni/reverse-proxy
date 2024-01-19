@@ -73,7 +73,14 @@ module "ecs_cluster" {
 # Service
 ################################################################################
 
+locals {
+  container_image = "ooni/dataapi:latest"
+  container_name = "ooni_dataapi"
+  container_port = 80
+}
+
 module "ecs_service" {
+
   source = "terraform-aws-modules/ecs/aws//modules/service"
 
   # Service
@@ -98,10 +105,10 @@ module "ecs_service" {
   # Container definition(s)
   container_definitions = {
     (local.container_name) = {
-      image = "ooni/dataapi:latest",
+      image = local.container_image,
       port_mappings = [
         {
-          name          =   "ooni_dataapi",
+          name          =   local.container_name,
           containerPort = 80,
           protocol      = "tcp"
         }
