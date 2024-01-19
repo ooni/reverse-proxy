@@ -9,7 +9,7 @@ data "aws_availability_zones" "available" {}
 locals {
   environment = "production"
   name   = "ooni-tier1-${local.environment}"
-  ecs_cluster_name = local.ecs_cluster_name
+  ecs_cluster_name = "terraform_ooni_ecs_cluster"
 
   tags = {
     Name       = local.name
@@ -149,7 +149,7 @@ resource "aws_security_group" "instance_sg" {
 ## ECS
 
 resource "aws_ecs_cluster" "main" {
-  name = "terraform_ooni_ecs_cluster"
+  name = local.ecs_cluster_name
   tags = local.tags
 }
 
