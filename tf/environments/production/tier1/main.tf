@@ -9,6 +9,7 @@ data "aws_availability_zones" "available" {}
 locals {
   environment = "production"
   name   = "ooni-tier1-${local.environment}"
+  ecs_cluster_name = local.ecs_cluster_name
 
   tags = {
     Name       = local.name
@@ -71,7 +72,7 @@ resource "aws_launch_configuration" "app" {
   instance_type        = var.instance_type
   iam_instance_profile = aws_iam_instance_profile.app.name
   user_data            = templatefile("${path.module}/templates/ecs-setup.sh.tftpl", {
-      ecs_cluster_name = local.name,
+      ecs_cluster_name = local.ecs_cluster_name,
       ecs_cluster_tags = local.tags,
       datadog_api_key  = var.datadog_api_key,
   })
