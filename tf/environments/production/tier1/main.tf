@@ -1,5 +1,7 @@
 provider "aws" {
   region = local.region
+  access_key = var.aws_access_key
+  secret_key = var.aws_secret_access_key
 }
 
 data "aws_availability_zones" "available" {}
@@ -231,7 +233,7 @@ module "autoscaling" {
       user_data                  = templatefile("${path.module}/templates/ecs-setup.sh.tftpl", {
         ecs_cluster_name = local.name,
         ecs_cluster_tags = local.tags,
-        datadog_api_key  = vars.datadog_api_key,
+        datadog_api_key  = var.datadog_api_key,
       })
     }
     # Spot instances
@@ -259,7 +261,7 @@ module "autoscaling" {
       user_data                  = templatefile("${path.module}/templates/ecs-setup.sh.tftpl", {
         ecs_cluster_name = local.name,
         ecs_cluster_tags = local.tags,
-        datadog_api_key  = vars.datadog_api_key,
+        datadog_api_key  = var.datadog_api_key,
       })
     }
   }
