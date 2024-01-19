@@ -228,16 +228,11 @@ module "autoscaling" {
       instance_type              = "t3.large"
       use_mixed_instances_policy = false
       mixed_instances_policy     = {}
-      user_data                  = <<-EOT
-        #!/bin/bash
-
-        cat <<'EOF' >> /etc/ecs/ecs.config
-        ECS_CLUSTER=${local.name}
-        ECS_LOGLEVEL=debug
-        ECS_CONTAINER_INSTANCE_TAGS=${jsonencode(local.tags)}
-        ECS_ENABLE_TASK_IAM_ROLE=true
-        EOF
-      EOT
+      user_data                  = templatefile("${path.module}/templates/ecs-setup.sh.tftpl", {
+        ecs_cluster_name = local.name,
+        ecs_cluster_tags = local.tags,
+        datadog_api_key  = vars.datadog_api_key,
+      })
     }
     # Spot instances
     ex_2 = {
@@ -261,17 +256,11 @@ module "autoscaling" {
           },
         ]
       }
-      user_data = <<-EOT
-        #!/bin/bash
-
-        cat <<'EOF' >> /etc/ecs/ecs.config
-        ECS_CLUSTER=${local.name}
-        ECS_LOGLEVEL=debug
-        ECS_CONTAINER_INSTANCE_TAGS=${jsonencode(local.tags)}
-        ECS_ENABLE_TASK_IAM_ROLE=true
-        ECS_ENABLE_SPOT_INSTANCE_DRAINING=true
-        EOF
-      EOT
+      user_data                  = templatefile("${path.module}/templates/ecs-setup.sh.tftpl", {
+        ecs_cluster_name = local.name,
+        ecs_cluster_tags = local.tags,
+        datadog_api_key  = vars.datadog_api_key,
+      })
     }
   }
 
