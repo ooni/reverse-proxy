@@ -245,7 +245,8 @@ resource "aws_ecs_service" "dataapi" {
   force_new_deployment = true
 
   triggers = {
-    redeployment = timestamp()
+    # see: https://github.com/hashicorp/terraform-provider-aws/issues/28070#issuecomment-1824780763
+    redeployment = plantimestamp()
   }
 
   tags = local.tags
