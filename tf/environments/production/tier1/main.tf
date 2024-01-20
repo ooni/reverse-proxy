@@ -106,6 +106,14 @@ resource "aws_autoscaling_group" "app" {
     id = aws_launch_template.app.id
     version = "$Latest"
   }
+
+  instance_refresh {
+    strategy = "Rolling"
+    preferences {
+      min_healthy_percentage = 50
+    }
+  }
+
 }
 
 
