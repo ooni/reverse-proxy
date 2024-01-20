@@ -155,7 +155,7 @@ resource "aws_security_group" "lb_sg" {
       "0.0.0.0/0",
     ]
   }
-  
+
   tags = local.tags
 }
 

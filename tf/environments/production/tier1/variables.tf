@@ -30,7 +30,7 @@ variable "asg_min" {
 
 variable "asg_max" {
   description = "Max numbers of servers in ASG"
-  default     = "2"
+  default     = "4"
 }
 
 variable "asg_desired" {
@@ -40,7 +40,7 @@ variable "asg_desired" {
 
 variable "service_desired" {
   description = "Desired numbers of instances in the ecs service"
-  default     = "1"
+  default     = "2"
 }
 
 variable "admin_cidr_ingress" {
