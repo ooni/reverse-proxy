@@ -87,11 +87,11 @@ resource "aws_launch_template" "app" {
     }
   }
 
-
-
   tag_specifications {
     resource_type = "instance"
-    tags = local.tags
+    tags = {
+      Name: "ooni-tier1-production-backend"
+    }
   }
 }
 
