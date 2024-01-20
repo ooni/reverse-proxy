@@ -317,7 +317,7 @@ resource "aws_iam_role" "app_instance" {
         "Service": "ec2.amazonaws.com"
       },
       "Action": "sts:AssumeRole"
-    },
+    }
   ]
 }
 EOF
