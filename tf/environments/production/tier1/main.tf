@@ -66,7 +66,7 @@ resource "aws_launch_configuration" "app" {
   security_groups = [
     aws_security_group.instance_sg.id,
   ]
-  name_prefix                 = "ooni-tier1-production-backend-lc"
+  name_prefix          = "ooni-tier1-production-backend-lc"
   key_name             = var.key_name
   image_id             = jsondecode(data.aws_ssm_parameter.ecs_optimized_ami.value)["image_id"]
   instance_type        = var.instance_type
@@ -179,6 +179,9 @@ resource "aws_ecs_service" "dataapi" {
   task_definition = aws_ecs_task_definition.dataapi.arn
   desired_count   = var.service_desired
   iam_role        = aws_iam_role.ecs_service.name
+
+  deployment_minimum_healthy_percent = 50
+  deployment_maximum_percent         = 100
 
   load_balancer {
     target_group_arn = aws_alb_target_group.dataapi.id
