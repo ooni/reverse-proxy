@@ -318,15 +318,6 @@ resource "aws_iam_role" "app_instance" {
       },
       "Action": "sts:AssumeRole"
     },
-    {
-        "Sid": "CloudWatchLogsFullAccess",
-        "Effect": "Allow",
-        "Action": [
-            "logs:*",
-            "cloudwatch:GenerateQuery"
-        ],
-        "Resource": "*"
-    }
   ]
 }
 EOF

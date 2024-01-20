@@ -17,16 +17,13 @@
         ]
       },
       {
-        "Sid": "allowLoggingToCloudWatch",
+        "Sid": "CloudWatchLogsFullAccess",
         "Effect": "Allow",
         "Action": [
-          "logs:CreateLogStream",
-          "logs:PutLogEvents"
+          "logs:*",
+          "cloudwatch:GenerateQuery"
         ],
-        "Resource": [
-          "${app_log_group_arn}",
-          "${ecs_log_group_arn}"
-        ]
+        "Resource": "*"
       }
     ]
   }
