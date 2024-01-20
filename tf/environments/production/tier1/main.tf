@@ -57,7 +57,7 @@ resource "aws_autoscaling_group" "app" {
   desired_capacity     = var.asg_desired
 
   launch_template      {
-    id = aws_launch_template.dataapi.id
+    id = aws_launch_template.app.id
     version = "$Latest"
   }
 }
@@ -66,7 +66,7 @@ data "aws_ssm_parameter" "ecs_optimized_ami" {
   name = "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended"
 }
 
-resource "aws_launch_template" "backend" {
+resource "aws_launch_template" "app" {
   name_prefix          = "ooni-tier1-production-backend-lc"
 
   key_name             = var.key_name

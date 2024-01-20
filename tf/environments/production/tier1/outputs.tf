@@ -2,8 +2,8 @@ output "instance_security_group" {
   value = aws_security_group.instance_sg.id
 }
 
-output "launch_configuration" {
-  value = aws_launch_configuration.app.id
+output "launch_template" {
+  value = aws_launch_template.app.id
 }
 
 output "asg_name" {
