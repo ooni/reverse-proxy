@@ -55,33 +55,74 @@ resource "aws_autoscaling_group" "app" {
   min_size             = var.asg_min
   max_size             = var.asg_max
   desired_capacity     = var.asg_desired
-  launch_configuration = aws_launch_configuration.app.name
+
+  launch_template      {
+    id = aws_launch_template.dataapi.id
+    version = "$Latest"
+  }
 }
 
 data "aws_ssm_parameter" "ecs_optimized_ami" {
   name = "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended"
 }
 
-resource "aws_launch_configuration" "app" {
-  security_groups = [
-    aws_security_group.instance_sg.id,
-  ]
+resource "aws_launch_template" "backend" {
   name_prefix          = "ooni-tier1-production-backend-lc"
+
   key_name             = var.key_name
   image_id             = jsondecode(data.aws_ssm_parameter.ecs_optimized_ami.value)["image_id"]
   instance_type        = var.instance_type
-  iam_instance_profile = aws_iam_instance_profile.app.name
+
   user_data            = templatefile("${path.module}/templates/ecs-setup.sh.tftpl", {
       ecs_cluster_name = local.ecs_cluster_name,
       ecs_cluster_tags = local.tags,
       datadog_api_key  = var.datadog_api_key,
   })
-  associate_public_ip_address = true
 
-  lifecycle {
-    create_before_destroy = true
+  instance_initiated_shutdown_behavior = "terminate"
+
+  iam_instance_profile {
+    name = aws_iam_instance_profile.app.arn
   }
+
+  network_interfaces {
+    associate_public_ip_address = true
+    delete_on_termination =  true
+  }
+  block_device_mappings {
+    ebs {
+      delete_on_termination = true
+    }
+  }
+
+  vpc_security_group_ids = [
+    aws_security_group.instance_sg.id,
+  ]
+
+  tags = local.tags
 }
+
+#resource "aws_launch_configuration" "app" {
+#  security_groups = [
+#    aws_security_group.instance_sg.id,
+#  ]
+#
+#  name_prefix          = "ooni-tier1-production-backend-lc"
+#  key_name             = var.key_name
+#  image_id             = jsondecode(data.aws_ssm_parameter.ecs_optimized_ami.value)["image_id"]
+#  instance_type        = var.instance_type
+#  iam_instance_profile = aws_iam_instance_profile.app.name
+#  user_data            = templatefile("${path.module}/templates/ecs-setup.sh.tftpl", {
+#      ecs_cluster_name = local.ecs_cluster_name,
+#      ecs_cluster_tags = local.tags,
+#      datadog_api_key  = var.datadog_api_key,
+#  })
+#  associate_public_ip_address = true
+#
+#  lifecycle {
+#    create_before_destroy = true
+#  }
+#}
 
 ### Security
 
