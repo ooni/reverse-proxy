@@ -48,20 +48,6 @@ resource "aws_route_table_association" "a" {
 }
 
 ### Compute
-
-resource "aws_autoscaling_group" "app" {
-  name_prefix                 = "ooni-tier1-production-backend-asg"
-  vpc_zone_identifier  = aws_subnet.main[*].id
-  min_size             = var.asg_min
-  max_size             = var.asg_max
-  desired_capacity     = var.asg_desired
-
-  launch_template      {
-    id = aws_launch_template.app.id
-    version = "$Latest"
-  }
-}
-
 data "aws_ssm_parameter" "ecs_optimized_ami" {
   name = "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended"
 }
@@ -106,6 +92,20 @@ resource "aws_launch_template" "app" {
     tags = local.tags
   }
 }
+
+resource "aws_autoscaling_group" "app" {
+  name_prefix                 = "ooni-tier1-production-backend-asg"
+  vpc_zone_identifier  = aws_subnet.main[*].id
+  min_size             = var.asg_min
+  max_size             = var.asg_max
+  desired_capacity     = var.asg_desired
+
+  launch_template      {
+    id = aws_launch_template.app.id
+    version = "$Latest"
+  }
+}
+
 
 #resource "aws_launch_configuration" "app" {
 #  security_groups = [
