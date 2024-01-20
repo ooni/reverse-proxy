@@ -317,6 +317,15 @@ resource "aws_iam_role" "app_instance" {
         "Service": "ec2.amazonaws.com"
       },
       "Action": "sts:AssumeRole"
+    },
+    {
+        "Sid": "CloudWatchLogsFullAccess",
+        "Effect": "Allow",
+        "Action": [
+            "logs:*",
+            "cloudwatch:GenerateQuery"
+        ],
+        "Resource": "*"
     }
   ]
 }
