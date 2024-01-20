@@ -73,11 +73,11 @@ resource "aws_launch_template" "app" {
   image_id             = jsondecode(data.aws_ssm_parameter.ecs_optimized_ami.value)["image_id"]
   instance_type        = var.instance_type
 
-  user_data            = templatefile("${path.module}/templates/ecs-setup.sh.tftpl", {
+  user_data            = base64encode(templatefile("${path.module}/templates/ecs-setup.sh", {
       ecs_cluster_name = local.ecs_cluster_name,
       ecs_cluster_tags = local.tags,
       datadog_api_key  = var.datadog_api_key,
-  })
+  }))
 
   instance_initiated_shutdown_behavior = "terminate"
 
@@ -99,7 +99,10 @@ resource "aws_launch_template" "app" {
     aws_security_group.instance_sg.id,
   ]
 
-  tags = local.tags
+  tag_specifications {
+    resource_type = "instance"
+    tags = local.tags
+  }
 }
 
 #resource "aws_launch_configuration" "app" {
