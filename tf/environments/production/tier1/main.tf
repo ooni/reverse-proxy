@@ -68,7 +68,7 @@ resource "aws_launch_template" "app" {
   instance_initiated_shutdown_behavior = "terminate"
 
   iam_instance_profile {
-    name = aws_iam_instance_profile.app.arn
+    name = aws_iam_instance_profile.app.name
   }
 
   network_interfaces {
