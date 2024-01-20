@@ -80,6 +80,8 @@ resource "aws_launch_template" "app" {
   }
 
   block_device_mappings {
+    device_name = "/dev/sdf"
+
     ebs {
       delete_on_termination = true
     }
