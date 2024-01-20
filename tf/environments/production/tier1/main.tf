@@ -65,6 +65,7 @@ resource "aws_launch_template" "app" {
       datadog_api_key  = var.datadog_api_key,
   }))
 
+  update_default_version = true
   instance_initiated_shutdown_behavior = "terminate"
 
   iam_instance_profile {
