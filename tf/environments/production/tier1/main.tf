@@ -242,6 +242,12 @@ resource "aws_ecs_service" "dataapi" {
     aws_alb_listener.front_end,
   ]
 
+  force_new_deployment = true
+
+  triggers = {
+    redeployment = timestamp()
+  }
+
   tags = local.tags
 }
 
