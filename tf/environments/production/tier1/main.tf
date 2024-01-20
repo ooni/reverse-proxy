@@ -174,7 +174,7 @@ resource "aws_ecs_task_definition" "dataapi" {
 }
 
 resource "aws_ecs_service" "dataapi" {
-  name            = "ooni-ecs-dataapi"
+  name            = "ooni-ecs-dataapi-production"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.dataapi.arn
   desired_count   = var.service_desired
