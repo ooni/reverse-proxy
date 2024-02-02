@@ -32,6 +32,19 @@ module "terraform_state_backend" {
   force_destroy                      = false
 }
 
+## Ansible inventory
+
+resource "local_file" "ansible_inventory" {
+  content  = templatefile("${path.module}/templates/ansible-inventory.tpl", {
+    clickhouse_servers = [
+      local.clickhouse_hostname
+    ]
+  })
+    filename = "${path.module}/ansible/inventory.ini"
+}
+
+## AWS Setup
+
 provider "aws" {
   region     = var.aws_region
   access_key = var.aws_access_key_id

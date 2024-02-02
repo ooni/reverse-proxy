@@ -1,0 +1,23 @@
+---
+- name: Configure ClickHouse servers using a template
+  hosts: clickhouse_servers
+  user: admin
+  become: yes
+  vars:
+    clickhouse_reader_password: "{{ lookup('env', 'CLICKHOUSE_READER_PASSWORD') }}"
+  tasks:
+    - name: Configure ClickHouse users from template
+      template:
+        src: templates/ooni_users.xml
+        dest: /etc/clickhouse-server/users.d/ooni_users.xml
+        owner: clickhouse
+        group: clickhouse
+        mode: '0640'
+      notify:
+        - restart clickhouse-server
+
+  handlers:
+    - name: restart clickhouse-server
+      service:
+        name: clickhouse-server
+        state: restarted
