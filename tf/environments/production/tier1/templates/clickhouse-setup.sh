@@ -1,5 +1,6 @@
 #!/bin/bash
 export DEBIAN_FRONTEND=noninteractive
+sudo hostnamectl set-hostname --static ${hostname}
 
 # Install datadog agent
 DD_API_KEY=${datadog_api_key} DD_SITE="datadoghq.eu" bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
@@ -19,9 +20,9 @@ sudo systemctl enable clickhouse-server
 
 # Configure the ebs data volume
 sudo service clickhouse-server stop
-sudo mkfs.ext4 -q -F /dev/sdf
+sudo mkfs.ext4 -q -F ${device_name}
 sudo mkdir -p /var/lib/clickhouse
-sudo mount /dev/sdf /var/lib/clickhouse
-echo '/dev/sdf /var/lib/clickhouse ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab
+sudo mount ${device_name} /var/lib/clickhouse
+echo "${device_name} /var/lib/clickhouse ext4 defaults,nofail 0 2" | sudo tee -a /etc/fstab
 sudo chown -R clickhouse:clickhouse /var/lib/clickhouse
 sudo service clickhouse-server start

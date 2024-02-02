@@ -49,6 +49,12 @@ resource "aws_route_table_association" "a" {
 
 
 ### EC2
+
+locals {
+  clickhouse_hostname = "clickhouse.tier1.prod.ooni.nu"
+  clickhouse_device_name = "/dev/sdf"
+}
+
 data "aws_ami" "debian_ami" {
   most_recent = true
 
@@ -82,6 +88,8 @@ resource "aws_instance" "clickhouse_server_prod_tier1" {
 
   user_data = templatefile("${path.module}/templates/clickhouse-setup.sh", {
       datadog_api_key  = var.datadog_api_key,
+      hostname = locals.clickhouse_hostname,
+      device_name = locals.clickhouse_device_name
   })
  
   tags = local.tags
@@ -95,7 +103,7 @@ resource "aws_ebs_volume" "clickhouse_data_volume" {
 }
 
 resource "aws_volume_attachment" "clickhouse_data_volume_attachment" {
-  device_name = "/dev/sdf"
+  device_name = locals.clickhouse_device_name
   volume_id   = aws_ebs_volume.clickhouse_data_volume.id
   instance_id = aws_instance.clickhouse_server_prod_tier1.id
   force_detach = true
@@ -109,7 +117,7 @@ resource "aws_eip" "clickhouse_ip" {
 
 resource "aws_route53_record" "clickhouse_dns" {
   zone_id = "Z035992527R8VEIX2UVO0" # ooni.nu hosted zone
-  name    = "clickhouse.tier1.prod.ooni.nu"
+  name    = local.clickhouse_hostname
   type    = "A"
   ttl     = "300"
   records = [aws_eip.clickhouse_ip.public_ip]
