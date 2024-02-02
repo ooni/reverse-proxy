@@ -1,10 +1,18 @@
 # Store terraform state in s3
 terraform {
-  backend "s3" {
-    bucket = "ooni-secrets"
-    key    = "terraform/production/terraform-production.tfstate"
-    region = "eu-central-1"
+  #backend "s3" {
+  #  bucket = "ooni-secrets"
+  #  key    = "terraform/production/terraform-production.tfstate"
+  #  region = "eu-central-1"
+  #}
+
+  cloud {
+      organization = "ooni"
+      workspaces {
+          name = "production-tier1"
+      }
   }
+
 }
 
 provider "aws" {
