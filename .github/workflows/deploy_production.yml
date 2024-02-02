@@ -69,7 +69,8 @@ jobs:
       id: plan
       run: |
         echo "terraform_plan<<EOF" >> "$GITHUB_OUTPUT"
-        terraform plan -no-color >> "$GITHUB_OUTPUT"
+        echo "$ terraform plan" >> "$GITHUB_OUTPUT"
+        terraform plan -no-color || echo "failed to run terraform plan" >> "$GITHUB_OUTPUT"
         echo "EOF" >> "$GITHUB_OUTPUT"
       continue-on-error: true
 
@@ -77,7 +78,8 @@ jobs:
       id: apply
       run: |
         echo "terraform_apply<<EOF" >> "$GITHUB_OUTPUT"
-        terraform apply -auto-approve -no-color >> "$GITHUB_OUTPUT"
+        echo "$ terraform apply -auto-approve" >> "$GITHUB_OUTPUT"
+        terraform apply -auto-approve -no-color || echo "failed to run terraform apply" >> "$GITHUB_OUTPUT"
         echo "EOF" >> "$GITHUB_OUTPUT"
       continue-on-error: true
 
