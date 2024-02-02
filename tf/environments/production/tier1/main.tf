@@ -72,6 +72,7 @@ resource "aws_instance" "clickhouse_server_prod_tier1" {
 
   associate_public_ip_address = true
 
+  subnet_id      = element(aws_subnet.main[*].id, count.index)
   vpc_security_group_ids = [aws_security_group.clickhouse_sg.id]
 
   root_block_device {
