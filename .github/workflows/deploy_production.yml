@@ -11,6 +11,22 @@ env:
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
 jobs:
+  ansible:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.tf_actions_working_dir }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.11'
+    - name: Install Ansible
+      run: pip install ansible
+    - name: Run Ansible Playbook
+      run: ansible-playbook ansible/playbook.yml -i inventory.ini
+
   terraform:
     runs-on: ubuntu-latest
     if: ${{ !startsWith(github.event.head_commit.message, 'skip-terraform:') }}
@@ -69,7 +85,7 @@ jobs:
         echo "git_commit<<EOF" >> "$GITHUB_OUTPUT"
         git config --global user.email "nothuman@ooni.org"
         git config --global user.name "OONI Github Actions Bot"
-        git add ${{ env.tf_actions_working_dir }} >> "$GITHUB_OUTPUT"
+        git add . >> "$GITHUB_OUTPUT"
         git commit -m "skip-terraform: autoupdate terraform outputs" || echo "No changes to commit" >> "$GITHUB_OUTPUT"
         git push origin HEAD:${{ github.head_ref }} >> "$GITHUB_OUTPUT"
         echo "EOF" >> "$GITHUB_OUTPUT"
