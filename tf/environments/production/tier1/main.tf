@@ -49,9 +49,24 @@ resource "aws_route_table_association" "a" {
 
 
 ### EC2
+data "aws_ami" "debian_ami" {
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["debian-12-amd64-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["136693071363"] # Debian's official AWS account ID
+}
 
 resource "aws_instance" "clickhouse_server_prod_tier1" {
-  ami                 = "debian-12-amd64-20231013-1532"
+  ami                 = data.aws_ami.debian_ami.id
   instance_type       = "r5.xlarge"
   key_name            = var.key_name
 
