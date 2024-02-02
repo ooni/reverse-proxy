@@ -47,7 +47,104 @@ resource "aws_route_table_association" "a" {
   route_table_id = aws_route_table.r.id
 }
 
-### Compute
+
+### EC2
+
+data "aws_ssm_parameter" "ec2_debian_ami" {
+  name = "debian-12-amd64-20231013-1532"
+}
+
+resource "aws_instance" "clickhouse_server_tier1" {
+  ami                 = data.aws_ssm_parameter.ec2_debian_ami.value
+  instance_type       = "r5.xlarge"
+  key_name            = var.key_name
+
+  associate_public_ip_address = true
+
+  vpc_security_group_ids = [aws_security_group.clickhouse_sg.id]
+
+  root_block_device {
+    volume_type = "gp3"
+    volume_size = 10
+  }
+
+  user_data = <<-EOF
+                #!/bin/bash
+                sudo apt-get install -y apt-transport-https ca-certificates dirmngr
+                GNUPGHOME=$(mktemp -d)
+                sudo GNUPGHOME="$GNUPGHOME" gpg --no-default-keyring --keyring /usr/share/keyrings/clickhouse-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 8919F6BD2B48D754
+                sudo rm -rf "$GNUPGHOME"
+                sudo chmod +r /usr/share/keyrings/clickhouse-keyring.gpg
+                echo "deb [signed-by=/usr/share/keyrings/clickhouse-keyring.gpg] https://packages.clickhouse.com/deb stable main" | sudo tee \
+                    /etc/apt/sources.list.d/clickhouse.list
+                sudo apt-get update
+                sudo apt install -y clickhouse-server clickhouse-client
+                sudo systemctl start clickhouse-server
+                sudo systemctl enable clickhouse-server
+
+                sudo service clickhouse-server stop
+                sudo mkfs -t ext4 /dev/xvdf
+                sudo mkdir -p /var/lib/clickhouse
+                sudo mount /dev/xvdf /var/lib/clickhouse
+                echo '/dev/xvdf /var/lib/clickhouse ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab
+                sudo chown -R clickhouse:clickhouse /var/lib/clickhouse
+                sudo service clickhouse-server start
+              EOF
+  
+  tags = local.tags
+}
+
+resource "aws_ebs_volume" "clickhouse_data_volume" {
+  availability_zone = aws_instance.clickhouse_server.availability_zone
+  size              = 1024 # 1 TB
+  type              = "gp3" # SSD-based volume type, provides up to 16,000 IOPS and 1,000 MiB/s throughput
+  tags = local.tags
+}
+
+resource "aws_volume_attachment" "clickhouse_data_volume_attachment" {
+  device_name = "/dev/sdf"
+  volume_id   = aws_ebs_volume.clickhouse_data_volume.id
+  instance_id = aws_instance.clickhouse_server.id
+  force_detach = true
+}
+
+resource "aws_eip" "clickhouse_ip" {
+  instance = aws_instance.clickhouse_server.id
+
+  tags = local.tags
+}
+
+resource "aws_route53_record" "clickhouse_dns" {
+  zone_id = "Z035992527R8VEIX2UVO0" # ooni.nu hosted zone
+  name    = "clickhouse.tier1.prod.ooni.nu"
+  type    = "A"
+  ttl     = "300"
+  records = [aws_eip.clickhouse_ip.public_ip]
+}
+
+resource "aws_security_group" "clickhouse_sg" {
+  name        = "clickhouse_sg"
+  description = "Allow Clickhouse traffic"
+
+  ingress {
+    from_port   = 8123
+    to_port     = 8123
+    protocol    = "tcp"
+    cidr_blocks = ["93.65.174.0/24"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = local.tags
+}
+
+### Compute for ECS
+
 data "aws_ssm_parameter" "ecs_optimized_ami" {
   name = "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended"
 }
@@ -119,28 +216,6 @@ resource "aws_autoscaling_group" "app" {
 
 }
 
-
-#resource "aws_launch_configuration" "app" {
-#  security_groups = [
-#    aws_security_group.instance_sg.id,
-#  ]
-#
-#  name_prefix          = "ooni-tier1-production-backend-lc"
-#  key_name             = var.key_name
-#  image_id             = jsondecode(data.aws_ssm_parameter.ecs_optimized_ami.value)["image_id"]
-#  instance_type        = var.instance_type
-#  iam_instance_profile = aws_iam_instance_profile.app.name
-#  user_data            = templatefile("${path.module}/templates/ecs-setup.sh.tftpl", {
-#      ecs_cluster_name = local.ecs_cluster_name,
-#      ecs_cluster_tags = local.tags,
-#      datadog_api_key  = var.datadog_api_key,
-#  })
-#  associate_public_ip_address = true
-#
-#  lifecycle {
-#    create_before_destroy = true
-#  }
-#}
 
 ### Security
 
