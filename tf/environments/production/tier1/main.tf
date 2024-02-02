@@ -118,6 +118,8 @@ resource "aws_security_group" "clickhouse_sg" {
   name        = "clickhouse_sg"
   description = "Allow Clickhouse traffic"
 
+  vpc_id = aws_vpc.main.id
+
   ingress {
     from_port   = 8123
     to_port     = 8123
