@@ -52,7 +52,14 @@ jobs:
         echo "terraform_plan<<EOF" >> "$GITHUB_OUTPUT"
         terraform plan -no-color >> "$GITHUB_OUTPUT"
         echo "EOF" >> "$GITHUB_OUTPUT"
+      continue-on-error: true
 
+    - name: Terraform Apply
+      id: apply
+      run: |
+        echo "terraform_apply<<EOF" >> "$GITHUB_OUTPUT"
+        terraform apply -no-color >> "$GITHUB_OUTPUT"
+        echo "EOF" >> "$GITHUB_OUTPUT"
       continue-on-error: true
 
     - uses: actions/github-script@v6
@@ -77,6 +84,16 @@ jobs:
 
           \`\`\`\n
           ${{ steps.plan.outputs.terraform_plan }}
+          \`\`\`
+
+          </details>
+
+          #### Apply 📖\`${{ steps.apply.outcome }}\`
+
+          <details><summary>Show Apply</summary>
+
+          \`\`\`\n
+          ${{ steps.apply.outputs.terraform_apply }}
           \`\`\`
 
           </details>
