@@ -88,8 +88,8 @@ resource "aws_instance" "clickhouse_server_prod_tier1" {
 
   user_data = templatefile("${path.module}/templates/clickhouse-setup.sh", {
       datadog_api_key  = var.datadog_api_key,
-      hostname = locals.clickhouse_hostname,
-      device_name = locals.clickhouse_device_name
+      hostname = local.clickhouse_hostname,
+      device_name = local.clickhouse_device_name
   })
  
   tags = local.tags
@@ -103,7 +103,7 @@ resource "aws_ebs_volume" "clickhouse_data_volume" {
 }
 
 resource "aws_volume_attachment" "clickhouse_data_volume_attachment" {
-  device_name = locals.clickhouse_device_name
+  device_name = local.clickhouse_device_name
   volume_id   = aws_ebs_volume.clickhouse_data_volume.id
   instance_id = aws_instance.clickhouse_server_prod_tier1.id
   force_detach = true
