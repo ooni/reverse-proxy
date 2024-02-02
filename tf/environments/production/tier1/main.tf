@@ -54,7 +54,7 @@ data "aws_ssm_parameter" "ec2_debian_ami" {
   name = "debian-12-amd64-20231013-1532"
 }
 
-resource "aws_instance" "clickhouse_server_tier1" {
+resource "aws_instance" "clickhouse_server_prod_tier1" {
   ami                 = data.aws_ssm_parameter.ec2_debian_ami.value
   instance_type       = "r5.xlarge"
   key_name            = var.key_name
@@ -76,7 +76,7 @@ resource "aws_instance" "clickhouse_server_tier1" {
 }
 
 resource "aws_ebs_volume" "clickhouse_data_volume" {
-  availability_zone = aws_instance.clickhouse_server.availability_zone
+  availability_zone = aws_instance.clickhouse_server_prod_tier1.availability_zone
   size              = 1024 # 1 TB
   type              = "gp3" # SSD-based volume type, provides up to 16,000 IOPS and 1,000 MiB/s throughput
   tags = local.tags
@@ -85,12 +85,12 @@ resource "aws_ebs_volume" "clickhouse_data_volume" {
 resource "aws_volume_attachment" "clickhouse_data_volume_attachment" {
   device_name = "/dev/sdf"
   volume_id   = aws_ebs_volume.clickhouse_data_volume.id
-  instance_id = aws_instance.clickhouse_server.id
+  instance_id = aws_instance.clickhouse_server_prod_tier1.id
   force_detach = true
 }
 
 resource "aws_eip" "clickhouse_ip" {
-  instance = aws_instance.clickhouse_server.id
+  instance = aws_instance.clickhouse_server_prod_tier1.id
 
   tags = local.tags
 }
