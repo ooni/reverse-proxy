@@ -72,7 +72,7 @@ resource "aws_instance" "clickhouse_server_prod_tier1" {
 
   associate_public_ip_address = true
 
-  subnet_id      = aws_subnet.main[*].id
+  subnet_id      = aws_subnet.main[0].id
   vpc_security_group_ids = [aws_security_group.clickhouse_sg.id]
 
   root_block_device {
