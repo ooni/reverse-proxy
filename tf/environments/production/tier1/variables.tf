@@ -1,6 +1,6 @@
-variable datadog_api_key {}
-variable aws_access_key {}
-variable aws_secret_access_key {}
+variable "datadog_api_key" {}
+variable "aws_access_key" {}
+variable "aws_secret_access_key" {}
 
 variable "aws_region" {
   description = "The AWS region to create things in."

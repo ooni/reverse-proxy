@@ -1,5 +1,14 @@
+# Store terraform state in s3
+terraform {
+  backend "s3" {
+    bucket = "ooni-secrets"
+    key    = "terraform/production/terraform-production.tfstate"
+    region = var.aws_region
+  }
+}
+
 provider "aws" {
-  region = var.aws_region
+  region     = var.aws_region
   access_key = var.aws_access_key
   secret_key = var.aws_secret_access_key
 }
@@ -7,8 +16,8 @@ provider "aws" {
 data "aws_availability_zones" "available" {}
 
 locals {
-  environment = "production"
-  name   = "ooni-tier1-${local.environment}"
+  environment      = "production"
+  name             = "ooni-tier1-${local.environment}"
   ecs_cluster_name = "ooni-ecs-cluster"
 
   tags = {
@@ -51,7 +60,7 @@ resource "aws_route_table_association" "a" {
 ### EC2
 
 locals {
-  clickhouse_hostname = "clickhouse.tier1.prod.ooni.nu"
+  clickhouse_hostname    = "clickhouse.tier1.prod.ooni.nu"
   clickhouse_device_name = "/dev/sdf"
 }
 
@@ -72,13 +81,13 @@ data "aws_ami" "debian_ami" {
 }
 
 resource "aws_instance" "clickhouse_server_prod_tier1" {
-  ami                 = data.aws_ami.debian_ami.id
-  instance_type       = "r5.xlarge"
-  key_name            = var.key_name
+  ami           = data.aws_ami.debian_ami.id
+  instance_type = "r5.xlarge"
+  key_name      = var.key_name
 
   associate_public_ip_address = true
 
-  subnet_id      = aws_subnet.main[0].id
+  subnet_id              = aws_subnet.main[0].id
   vpc_security_group_ids = [aws_security_group.clickhouse_sg.id]
 
   root_block_device {
@@ -87,25 +96,25 @@ resource "aws_instance" "clickhouse_server_prod_tier1" {
   }
 
   user_data = templatefile("${path.module}/templates/clickhouse-setup.sh", {
-      datadog_api_key  = var.datadog_api_key,
-      hostname = local.clickhouse_hostname,
-      device_name = local.clickhouse_device_name
+    datadog_api_key = var.datadog_api_key,
+    hostname        = local.clickhouse_hostname,
+    device_name     = local.clickhouse_device_name
   })
- 
+
   tags = local.tags
 }
 
 resource "aws_ebs_volume" "clickhouse_data_volume" {
   availability_zone = aws_instance.clickhouse_server_prod_tier1.availability_zone
-  size              = 1024 # 1 TB
+  size              = 1024  # 1 TB
   type              = "gp3" # SSD-based volume type, provides up to 16,000 IOPS and 1,000 MiB/s throughput
-  tags = local.tags
+  tags              = local.tags
 }
 
 resource "aws_volume_attachment" "clickhouse_data_volume_attachment" {
-  device_name = local.clickhouse_device_name
-  volume_id   = aws_ebs_volume.clickhouse_data_volume.id
-  instance_id = aws_instance.clickhouse_server_prod_tier1.id
+  device_name  = local.clickhouse_device_name
+  volume_id    = aws_ebs_volume.clickhouse_data_volume.id
+  instance_id  = aws_instance.clickhouse_server_prod_tier1.id
   force_detach = true
 }
 
@@ -163,19 +172,19 @@ data "aws_ssm_parameter" "ecs_optimized_ami" {
 }
 
 resource "aws_launch_template" "app" {
-  name_prefix          = "ooni-tier1-production-backend-lt"
+  name_prefix = "ooni-tier1-production-backend-lt"
 
-  key_name             = var.key_name
-  image_id             = jsondecode(data.aws_ssm_parameter.ecs_optimized_ami.value)["image_id"]
-  instance_type        = var.instance_type
+  key_name      = var.key_name
+  image_id      = jsondecode(data.aws_ssm_parameter.ecs_optimized_ami.value)["image_id"]
+  instance_type = var.instance_type
 
-  user_data            = base64encode(templatefile("${path.module}/templates/ecs-setup.sh", {
-      ecs_cluster_name = local.ecs_cluster_name,
-      ecs_cluster_tags = local.tags,
-      datadog_api_key  = var.datadog_api_key,
+  user_data = base64encode(templatefile("${path.module}/templates/ecs-setup.sh", {
+    ecs_cluster_name = local.ecs_cluster_name,
+    ecs_cluster_tags = local.tags,
+    datadog_api_key  = var.datadog_api_key,
   }))
 
-  update_default_version = true
+  update_default_version               = true
   instance_initiated_shutdown_behavior = "terminate"
 
   iam_instance_profile {
@@ -184,7 +193,7 @@ resource "aws_launch_template" "app" {
 
   network_interfaces {
     associate_public_ip_address = true
-    delete_on_termination =  true
+    delete_on_termination       = true
     security_groups = [
       aws_security_group.instance_sg.id,
     ]
@@ -201,20 +210,20 @@ resource "aws_launch_template" "app" {
   tag_specifications {
     resource_type = "instance"
     tags = {
-      Name: "ooni-tier1-production-backend"
+      Name : "ooni-tier1-production-backend"
     }
   }
 }
 
 resource "aws_autoscaling_group" "app" {
-  name_prefix                 = "ooni-tier1-production-backend-asg"
-  vpc_zone_identifier  = aws_subnet.main[*].id
-  min_size             = var.asg_min
-  max_size             = var.asg_max
-  desired_capacity     = var.asg_desired
+  name_prefix         = "ooni-tier1-production-backend-asg"
+  vpc_zone_identifier = aws_subnet.main[*].id
+  min_size            = var.asg_min
+  max_size            = var.asg_max
+  desired_capacity    = var.asg_desired
 
-  launch_template      {
-    id = aws_launch_template.app.id
+  launch_template {
+    id      = aws_launch_template.app.id
     version = "$Latest"
   }
 
@@ -303,8 +312,8 @@ resource "aws_ecs_cluster" "main" {
 
 locals {
   container_image = "ooni/dataapi:latest"
-  container_name = "ooni_dataapi"
-  container_port = 80
+  container_name  = "ooni_dataapi"
+  container_port  = 80
 }
 
 resource "aws_ecs_task_definition" "dataapi" {
