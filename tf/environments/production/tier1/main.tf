@@ -122,6 +122,16 @@ resource "aws_security_group" "clickhouse_sg" {
   vpc_id = aws_vpc.main.id
 
   ingress {
+    protocol  = "tcp"
+    from_port = 22
+    to_port   = 22
+
+    cidr_blocks = [
+      var.admin_cidr_ingress,
+    ]
+  }
+
+  ingress {
     from_port   = 8123
     to_port     = 8123
     protocol    = "tcp"
