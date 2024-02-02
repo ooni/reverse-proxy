@@ -37,6 +37,7 @@ jobs:
         working-directory: ${{ env.tf_actions_working_dir }}
 
     permissions:
+      contents: write
       pull-requests: write
     env:
       TF_VAR_aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -45,6 +46,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
+
     - uses: hashicorp/setup-terraform@v3
       with:
         terraform_wrapper: false
@@ -70,7 +74,7 @@ jobs:
       run: |
         echo "terraform_plan<<EOF" >> "$GITHUB_OUTPUT"
         echo "$ terraform plan" >> "$GITHUB_OUTPUT"
-        terraform plan -no-color || echo "failed to run terraform plan" >> "$GITHUB_OUTPUT"
+        terraform plan -no-color >> "$GITHUB_OUTPUT"
         echo "EOF" >> "$GITHUB_OUTPUT"
       continue-on-error: true
 
@@ -79,7 +83,7 @@ jobs:
       run: |
         echo "terraform_apply<<EOF" >> "$GITHUB_OUTPUT"
         echo "$ terraform apply -auto-approve" >> "$GITHUB_OUTPUT"
-        terraform apply -auto-approve -no-color || echo "failed to run terraform apply" >> "$GITHUB_OUTPUT"
+        terraform apply -auto-approve -no-color >> "$GITHUB_OUTPUT"
         echo "EOF" >> "$GITHUB_OUTPUT"
       continue-on-error: true
 
@@ -91,8 +95,12 @@ jobs:
         git config --global user.name "OONI Github Actions Bot"
         git add . >> "$GITHUB_OUTPUT"
         git commit -m "skip-terraform: autoupdate terraform outputs" || echo "No changes to commit" >> "$GITHUB_OUTPUT"
-        git push origin HEAD:${{ github.head_ref }} >> "$GITHUB_OUTPUT"
+        git push origin HEAD:${{ github.event.pull_request && github.head_ref || github.ref_name }} >> "$GITHUB_OUTPUT"
         echo "EOF" >> "$GITHUB_OUTPUT"
+      env:
+        GITHUB_REF: ${{ github.ref }}
+        GITHUB_HEAD_REF: ${{ github.head_ref }}
+      continue-on-error: true
 
     - uses: actions/github-script@v6
       with:
