@@ -77,7 +77,7 @@ jobs:
       id: apply
       run: |
         echo "terraform_apply<<EOF" >> "$GITHUB_OUTPUT"
-        terraform apply -no-color >> "$GITHUB_OUTPUT"
+        terraform apply -auto-approve -no-color >> "$GITHUB_OUTPUT"
         echo "EOF" >> "$GITHUB_OUTPUT"
       continue-on-error: true
 
