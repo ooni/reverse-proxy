@@ -3,13 +3,13 @@ terraform {
   backend "s3" {
     bucket = "ooni-secrets"
     key    = "terraform/production/terraform-production.tfstate"
-    region = var.aws_region
+    region = "eu-central-1"
   }
 }
 
 provider "aws" {
   region     = var.aws_region
-  access_key = var.aws_access_key
+  access_key = var.aws_access_key_id
   secret_key = var.aws_secret_access_key
 }
 
