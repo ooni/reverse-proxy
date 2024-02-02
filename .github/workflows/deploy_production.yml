@@ -24,8 +24,10 @@ jobs:
         python-version: '3.11'
     - name: Install Ansible
       run: pip install ansible
-    - name: Run Ansible Playbook
-      run: ansible-playbook ansible/playbook.yml -i inventory.ini
+    # TODO(art): need to finish setting it up so that the SSH keys are
+    # provisioned to the host
+    #- name: Run Ansible Playbook
+    #  run: ansible-playbook ansible/playbook.yml -i inventory.ini
 
   terraform:
     runs-on: ubuntu-latest
