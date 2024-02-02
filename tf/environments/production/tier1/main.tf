@@ -50,12 +50,8 @@ resource "aws_route_table_association" "a" {
 
 ### EC2
 
-data "aws_ssm_parameter" "ec2_debian_ami" {
-  name = "debian-12-amd64-20231013-1532"
-}
-
 resource "aws_instance" "clickhouse_server_prod_tier1" {
-  ami                 = data.aws_ssm_parameter.ec2_debian_ami.value
+  ami                 = "debian-12-amd64-20231013-1532"
   instance_type       = "r5.xlarge"
   key_name            = var.key_name
 
