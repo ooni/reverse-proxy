@@ -139,7 +139,12 @@ resource "aws_instance" "clickhouse_server_prod_tier1" {
     device_name     = local.clickhouse_device_name
   })
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    {
+      Name = "clickhouse-${local.tags["Name"]}"
+    }
+  )
 }
 
 resource "aws_ebs_volume" "clickhouse_data_volume" {
