@@ -32,25 +32,31 @@ jobs:
       run: |
         mkdir -p ~/.ssh/
         chmod 700 ~/.ssh/
-        echo "{{ $secrets.AWS_SSH_KEY }}" > ~/.ssh/ooni-devops-prod.pem
+        echo "${{ secrets.AWS_SSH_KEY }}" > ~/.ssh/ooni-devops-prod.pem
         chmod 600 ~/.ssh/ooni-devops-prod.pem
 
     - name: Run Ansible Playbook
       id: playbook
+      env:
+        # TODO(art): write a known_hosts file from terraform to avoid this
+        ANSIBLE_HOST_KEY_CHECKING: "False"
       run: |
-        {
-          echo "ansible_playbook<<EOF"
-          echo "$ ansible-playbook playbook.yml -i inventory.ini"
-          ansible-playbook playbook.yml -i inventory.ini --key-file ~/.ssh/ooni-devops-prod.pem
-          echo "EOF"
-        } >> "$GITHUB_OUTPUT"
+        echo "ansible_playbook<<EOF" >> "$GITHUB_OUTPUT"
+        echo "\$ ansible-playbook playbook.yml -i inventory.ini" >> "$GITHUB_OUTPUT"
+        ansible-playbook playbook.yml -i inventory.ini --key-file ~/.ssh/ooni-devops-prod.pem 2>&1 | tee -a "$GITHUB_OUTPUT"
+        echo "EOF" >> "$GITHUB_OUTPUT"
       continue-on-error: true
+
+    #- name: Setup tmate session
+    #  uses: mxschmitt/action-tmate@v3
 
     - uses: actions/github-script@v6
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-          const body = `### Ansible Run Output 🤖
+          const script = require('./scripts/ghactions/comment-on-pr.js');
+          const commentTitle = "Ansible Run Output";
+          const commentBody = `
           #### Ansible playbook output 📖\`${{ steps.apply.outcome }}\`
 
           <details><summary>Show Apply</summary>
@@ -69,36 +75,7 @@ jobs:
           | Workflow          | ${{ github.workflow }}            |
           | Last updated      | ${(new Date()).toUTCString()}     |
           `;
-
-          const prNumber = context.payload.pull_request.number
-
-          if (prNumber) {
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-            })
-            const existingBotComment = comments.find(comment => {
-              return comment.user.type === 'Bot' && comment.body.includes('### Ansible Run Output')
-            })
-
-            if (existingBotComment) {
-              github.rest.issues.updateComment({
-                issue_number: prNumber,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existingBotComment.id,
-                body
-              })
-            } else {
-              github.rest.issues.createComment({
-                issue_number: prNumber,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body
-              })
-            }
-          }
+          await script({github, context, core, commentTitle, commentBody});
 
   terraform:
     runs-on: ubuntu-latest
@@ -185,7 +162,9 @@ jobs:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-          const body = `### Terraform Run Output 🤖
+          const script = require('./scripts/ghactions/comment-on-pr.js');
+          const commentTitle = "Terraform Run Output";
+          const commentBody = `
           #### Format and Style 🖌\`${{ steps.fmt.outcome }}\`
           #### Initialization ⚙️\`${{ steps.init.outcome }}\`
           #### Validation 🤖${{ steps.validate.outcome }}\`
@@ -225,33 +204,4 @@ jobs:
           | Workflow          | ${{ github.workflow }}            |
           | Last updated      | ${(new Date()).toUTCString()}     |
           `;
-
-          const prNumber = context.payload.pull_request.number
-
-          if (prNumber) {
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-            })
-            const existingBotComment = comments.find(comment => {
-              return comment.user.type === 'Bot' && comment.body.includes('### Terraform Run Output')
-            })
-
-            if (existingBotComment) {
-              github.rest.issues.updateComment({
-                issue_number: prNumber,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existingBotComment.id,
-                body
-              })
-            } else {
-              github.rest.issues.createComment({
-                issue_number: prNumber,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body
-              })
-            }
-          }
+          await script({github, context, core, commentTitle, commentBody});
