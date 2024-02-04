@@ -36,10 +36,12 @@ jobs:
     - name: Run Ansible Playbook
       id: playbook
       run: |
-        echo "ansible_playbook<<EOF" >> "$GITHUB_OUTPUT"
-        echo "$ anisble-playbook ansible/playbook.yml -i inventory.ini" >> "$GITHUB_OUTPUT"
-        ansible-playbook ansible/playbook.yml -i inventory.ini --key-file ~/.ssh/ooni-devops-prod.pem >> "$GITHUB_OUTPUT"
-        echo "EOF" >> "$GITHUB_OUTPUT"
+        {
+          echo "ansible_playbook<<EOF"
+          echo "$ anisble-playbook ansible/playbook.yml -i inventory.ini"
+          ansible-playbook ansible/playbook.yml -i inventory.ini --key-file ~/.ssh/ooni-devops-prod.pem
+          echo "EOF"
+        } >> "$GITHUB_OUTPUT"
       continue-on-error: true
 
     - uses: actions/github-script@v6
@@ -132,39 +134,47 @@ jobs:
     - name: Terraform Validate
       id: validate
       run: |
-        echo "terraform_validate<<EOF" >> "$GITHUB_OUTPUT"
-        terraform validate -no-color >> "$GITHUB_OUTPUT"
-        echo "EOF" >> "$GITHUB_OUTPUT"
+        {
+          echo "terraform_validate<<EOF"
+          terraform validate -no-color
+          echo "EOF"
+        } >> "$GITHUB_OUTPUT"
 
     - name: Terraform Plan
       id: plan
       run: |
-        echo "terraform_plan<<EOF" >> "$GITHUB_OUTPUT"
-        echo "$ terraform plan" >> "$GITHUB_OUTPUT"
-        terraform plan -no-color >> "$GITHUB_OUTPUT"
-        echo "EOF" >> "$GITHUB_OUTPUT"
+        {
+          echo "terraform_plan<<EOF"
+          echo "$ terraform plan"
+          terraform plan -no-color
+          echo "EOF"
+        } >> "$GITHUB_OUTPUT"
       continue-on-error: true
 
     - name: Terraform Apply
       id: apply
       run: |
-        echo "terraform_apply<<EOF" >> "$GITHUB_OUTPUT"
-        echo "$ terraform apply -auto-approve" >> "$GITHUB_OUTPUT"
-        terraform apply -auto-approve -no-color >> "$GITHUB_OUTPUT"
-        echo "EOF" >> "$GITHUB_OUTPUT"
+        {
+          echo "terraform_apply<<EOF"
+          echo "$ terraform apply -auto-approve"
+          terraform apply -auto-approve -no-color
+          echo "EOF"
+        } >> "$GITHUB_OUTPUT"
       continue-on-error: true
 
     # TODO(art): this should only run on master merge
     #- name: Commit and Push Terraform Outputs
     #  id: commit
     #  run: |
-    #    echo "git_commit<<EOF" >> "$GITHUB_OUTPUT"
-    #    git config --global user.email "nothuman@ooni.org"
-    #    git config --global user.name "OONI Github Actions Bot"
-    #    git add . >> "$GITHUB_OUTPUT"
-    #    git commit -m "skip-terraform: autoupdate terraform outputs" || echo "No changes to commit" >> "$GITHUB_OUTPUT"
-    #    git push origin HEAD:${{ github.event.pull_request && github.head_ref || github.ref_name }} >> "$GITHUB_OUTPUT"
-    #    echo "EOF" >> "$GITHUB_OUTPUT"
+    #    {
+    #      echo "git_commit<<EOF"
+    #      git config --global user.email "nothuman@ooni.org"
+    #      git config --global user.name "OONI Github Actions Bot"
+    #      git add .
+    #      git commit -m "skip-terraform: autoupdate terraform outputs" || echo "No changes to commit"
+    #      git push origin HEAD:${{ github.event.pull_request && github.head_ref || github.ref_name }}
+    #      echo "EOF"
+    #    } >> "$GITHUB_OUTPUT"
     #  env:
     #    GITHUB_REF: ${{ github.ref }}
     #    GITHUB_HEAD_REF: ${{ github.head_ref }}
