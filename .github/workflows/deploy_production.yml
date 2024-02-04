@@ -16,7 +16,9 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ${{ env.tf_actions_working_dir }}
+        working-directory: ${{ env.tf_actions_working_dir }}/ansible
+    permissions:
+      pull-requests: write
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python
@@ -38,8 +40,8 @@ jobs:
       run: |
         {
           echo "ansible_playbook<<EOF"
-          echo "$ anisble-playbook ansible/playbook.yml -i inventory.ini"
-          ansible-playbook ansible/playbook.yml -i inventory.ini --key-file ~/.ssh/ooni-devops-prod.pem
+          echo "$ ansible-playbook playbook.yml -i inventory.ini"
+          ansible-playbook playbook.yml -i inventory.ini --key-file ~/.ssh/ooni-devops-prod.pem
           echo "EOF"
         } >> "$GITHUB_OUTPUT"
       continue-on-error: true
@@ -104,7 +106,6 @@ jobs:
     defaults:
       run:
         working-directory: ${{ env.tf_actions_working_dir }}
-
     permissions:
       contents: write
       pull-requests: write
@@ -212,16 +213,6 @@ jobs:
 
           \`\`\`\n
           ${{ steps.apply.outputs.terraform_apply }}
-          \`\`\`
-
-          </details>
-
-          #### Commit \`${{ steps.apply.outcome }}\`
-
-          <details><summary>Show Commit</summary>
-
-          \`\`\`\n
-          ${{ steps.commit.outputs.git_commit }}
           \`\`\`
 
           </details>
