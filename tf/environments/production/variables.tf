@@ -15,8 +15,10 @@ variable "az_count" {
 
 variable "key_name" {
   description = "Name of AWS key pair"
-  default     = "ec2-arturo"
+  default     = "ooni-devops-prod"
 }
+
+
 
 variable "instance_type" {
   default     = "t2.micro"
