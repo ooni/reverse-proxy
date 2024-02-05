@@ -41,7 +41,7 @@ resource "local_file" "ansible_inventory" {
 
   content = templatefile("${path.module}/templates/ansible-inventory.tpl", {
     clickhouse_servers = [
-      local.clickhouse_hostname
+      aws_route53_record.clickhouse_dns.name
     ]
   })
   filename = "${path.module}/ansible/inventory.ini"
@@ -59,6 +59,20 @@ resource "null_resource" "ansible_update_known_hosts" {
   }
 }
 
+# Local variable definitions
+locals {
+  environment      = "production"
+  name             = "ooni-tier1-${local.environment}"
+  ecs_cluster_name = "ooni-ecs-cluster"
+  dns_zone_ooni_nu = "Z035992527R8VEIX2UVO0" # ooni.nu hosted zone
+  dns_zone_ooni_io = "Z02418652BOD91LFA5S9X" # ooni.io hosted zone
+
+  tags = {
+    Name       = local.name
+    Repository = "https://github.com/ooni/devops"
+  }
+}
+
 ## AWS Setup
 
 provider "aws" {
@@ -69,16 +83,7 @@ provider "aws" {
 
 data "aws_availability_zones" "available" {}
 
-locals {
-  environment      = "production"
-  name             = "ooni-tier1-${local.environment}"
-  ecs_cluster_name = "ooni-ecs-cluster"
 
-  tags = {
-    Name       = local.name
-    Repository = "https://github.com/ooni/devops"
-  }
-}
 
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
@@ -181,14 +186,6 @@ resource "aws_eip" "clickhouse_ip" {
   instance = aws_instance.clickhouse_server_prod_tier1.id
 
   tags = local.tags
-}
-
-resource "aws_route53_record" "clickhouse_dns" {
-  zone_id = "Z035992527R8VEIX2UVO0" # ooni.nu hosted zone
-  name    = local.clickhouse_hostname
-  type    = "A"
-  ttl     = "300"
-  records = [aws_eip.clickhouse_ip.public_ip]
 }
 
 resource "aws_security_group" "clickhouse_sg" {
@@ -535,6 +532,78 @@ resource "aws_alb_listener" "front_end" {
   }
 
   tags = local.tags
+}
+
+resource "aws_alb_listener" "front_end_https" {
+  load_balancer_arn = aws_alb.main.id
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = aws_acm_certificate_validation.dataapi.certificate_arn
+
+  default_action {
+    target_group_arn = aws_alb_target_group.dataapi.id
+    type             = "forward"
+  }
+
+  tags = local.tags
+}
+
+# Route53
+
+resource "aws_route53_record" "clickhouse_dns" {
+  zone_id = local.dns_zone_ooni_nu
+  name    = local.clickhouse_hostname
+  type    = "A"
+  ttl     = "300"
+  records = [aws_eip.clickhouse_ip.public_ip]
+}
+
+resource "aws_route53_record" "alb_dns" {
+  zone_id = local.dns_zone_ooni_io
+  name    = "dataapi.tier1.prod.ooni.io"
+  type    = "A"
+
+  alias {
+    name                   = aws_alb.main.dns_name
+    zone_id                = aws_alb.main.zone_id
+    evaluate_target_health = true
+  }
+}
+
+# ACM TLS
+
+resource "aws_acm_certificate" "dataapi" {
+  domain_name       = "dataapi.tier1.prod.ooni.io"
+  validation_method = "DNS"
+
+  tags = local.tags
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_route53_record" "dataapi_cert_validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.dataapi.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = local.dns_zone_ooni_io
+}
+
+resource "aws_acm_certificate_validation" "dataapi" {
+  certificate_arn         = aws_acm_certificate.dataapi.arn
+  validation_record_fqdns = [for record in aws_route53_record.dataapi_cert_validation : record.fqdn]
 }
 
 ## CloudWatch Logs
