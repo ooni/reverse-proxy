@@ -38,8 +38,7 @@ jobs:
     - name: Run Ansible Playbook
       id: playbook
       env:
-        # TODO(art): write a known_hosts file from terraform to avoid this
-        ANSIBLE_HOST_KEY_CHECKING: "False"
+        ANSIBLE_SSH_ARGS: "-o UserKnownHostsFile=known_hosts"
       run: |
         echo "ansible_playbook<<EOF" >> "$GITHUB_OUTPUT"
         echo "\$ ansible-playbook playbook.yml -i inventory.ini" >> "$GITHUB_OUTPUT"
