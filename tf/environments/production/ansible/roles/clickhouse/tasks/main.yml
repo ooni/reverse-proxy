@@ -45,10 +45,6 @@
     state: present
     filename: clickhouse
 
-- name: Update the package cache
-  ansible.builtin.apt:
-    update_cache: yes
-
 - name: Install ClickHouse server and client
   ansible.builtin.apt:
     name:
@@ -56,6 +52,7 @@
       - clickhouse-client={{ clickhouse_pkg_ver }}
       - clickhouse-common-static={{ clickhouse_pkg_ver }}
     state: present
+    update_cache: yes
   vars:
     clickhouse_pkg_ver: 24.1.*
 
