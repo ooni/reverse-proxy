@@ -83,8 +83,6 @@ provider "aws" {
 
 data "aws_availability_zones" "available" {}
 
-
-
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
 }
@@ -372,17 +370,15 @@ resource "aws_ecs_cluster" "main" {
 
 
 locals {
-  container_image = "ooni/dataapi:latest"
-  container_name  = "ooni_dataapi"
-  container_port  = 80
+  container_name = "ooni_dataapi"
 }
 
 resource "aws_ecs_task_definition" "dataapi" {
   family = "ooni-dataapi-production-td"
   container_definitions = templatefile("${path.module}/templates/task_definition.json", {
-    image_url        = local.container_image,
+    image_url        = "ooni/dataapi:${var.ooni_service_config.dataapi_version}",
     container_name   = local.container_name,
-    container_port   = local.container_port,
+    container_port   = 80,
     log_group_region = var.aws_region,
     log_group_name   = aws_cloudwatch_log_group.app.name
   })

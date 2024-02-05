@@ -1,6 +1,12 @@
-variable "datadog_api_key" {}
-variable "aws_access_key_id" {}
-variable "aws_secret_access_key" {}
+variable "datadog_api_key" {
+  sensitive = true
+}
+variable "aws_access_key_id" {
+  sensitive = true
+}
+variable "aws_secret_access_key" {
+  sensitive = true
+}
 
 variable "aws_region" {
   description = "The AWS region to create things in."
@@ -18,7 +24,15 @@ variable "key_name" {
   default     = "ooni-devops-prod"
 }
 
-
+variable "ooni_service_config" {
+  type = object({
+    dataapi_version = string
+  })
+  default = {
+    dataapi_version = "latest"
+  }
+  description = "configuration for ooni services"
+}
 
 variable "instance_type" {
   default     = "t2.micro"
