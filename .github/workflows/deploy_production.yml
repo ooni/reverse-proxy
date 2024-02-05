@@ -53,7 +53,6 @@ jobs:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-          const script = require('./scripts/ghactions/comment-on-pr.js');
           const commentTitle = "Ansible Run Output";
           const ansiblePlaybookOutput = `${{ steps.playbook.outputs.ansible_playbook}}`;
           const parts = ansiblePlaybookOutput.split("/^PLAY RECAP \*+/");
@@ -84,6 +83,9 @@ jobs:
           | Workflow          |  ${{ github.workflow }}            |
           | Last updated      |  ${(new Date()).toUTCString()}     |
           `;
+
+          // Call the script to write the comment
+          const script = require('./scripts/ghactions/comment-on-pr.js');
           await script({github, context, core, commentTitle, commentBody});
 
   terraform:
@@ -166,7 +168,6 @@ jobs:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-          const script = require('./scripts/ghactions/comment-on-pr.js');
           const terraformPlanOutput = `${{ steps.plan.outputs.terraform_plan }}`;
           const terraformApplyOutput = `${{ steps.apply.outputs.terraform_apply }}`;
 
@@ -218,4 +219,7 @@ jobs:
           | Workflow          |  ${{ github.workflow }}            |
           | Last updated      |  ${ (new Date()).toUTCString() }   |
           `;
+
+          // Call the script to write the comment
+          const script = require('./scripts/ghactions/comment-on-pr.js');
           await script({github, context, core, commentTitle, commentBody});
