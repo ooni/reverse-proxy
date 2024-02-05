@@ -66,9 +66,9 @@ jobs:
           ${ansiblePlaybookRecap}
           \`\`\`
 
-          #### Ansible playbook output 📖\`${{ steps.apply.outcome }}\`
+          #### Ansible playbook output 📖\`${{ steps.playbook.outcome }}\`
 
-          <details><summary>Show Apply</summary>
+          <details><summary>Show Execution</summary>
 
           \`\`\`\n
           ${ansiblePlaybookOutput}
@@ -178,7 +178,7 @@ jobs:
           const commentBody = `
           #### Format and Style 🖌\`${{ steps.fmt.outcome }}\`
           #### Initialization ⚙️\`${{ steps.init.outcome }}\`
-          #### Validation 🤖${{ steps.validate.outcome }}\`
+          #### Validation 🤖\`${{ steps.validate.outcome }}\`
           <details><summary>Validation Output</summary>
 
           \`\`\`\n
