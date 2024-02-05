@@ -16,10 +16,16 @@
           - ca-certificates
           - dirmngr
 
+    - name: Check if ClickHouse GPG keyring exists
+      ansible.builtin.stat:
+        path: /usr/share/keyrings/clickhouse-keyring.gpg
+      register: keyring_check
+
     - name: Create a temporary directory for GPG
       ansible.builtin.tempfile:
         state: directory
       register: gnupg_temp_dir
+      when: not keyring_check.stat.exists
 
     - name: Import ClickHouse GPG key
       ansible.builtin.command:
@@ -28,11 +34,13 @@
         creates: "/usr/share/keyrings/clickhouse-keyring.gpg"
       environment:
         GNUPGHOME: "{{ gnupg_temp_dir.path }}"
+      when: not keyring_check.stat.exists
 
     - name: Remove temporary directory
       ansible.builtin.file:
         path: "{{ gnupg_temp_dir.path }}"
         state: absent
+      when: not keyring_check.stat.exists
 
     - name: Ensure the keyring is readable
       ansible.builtin.file:
