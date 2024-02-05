@@ -56,7 +56,7 @@ jobs:
           const script = require('./scripts/ghactions/comment-on-pr.js');
           const commentTitle = "Ansible Run Output";
           const ansiblePlaybookOutput = `${{ steps.playbook.outputs.ansible_playbook}}`;
-          const parts = playbookOutput.split("/^PLAY RECAP \*+/");
+          const parts = ansiblePlaybookOutput.split("/^PLAY RECAP \*+/");
           const ansiblePlaybookRecap = parts.length > 1 ? parts[1].trim() : '';
 
           const commentBody = `
