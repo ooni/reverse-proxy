@@ -561,7 +561,7 @@ resource "aws_route53_record" "clickhouse_dns" {
 
 resource "aws_route53_record" "alb_dns" {
   zone_id = local.dns_zone_ooni_io
-  name    = "dataapi.tier1.prod.ooni.io"
+  name    = "dataapi.prod.ooni.io"
   type    = "A"
 
   alias {
@@ -574,7 +574,7 @@ resource "aws_route53_record" "alb_dns" {
 # ACM TLS
 
 resource "aws_acm_certificate" "dataapi" {
-  domain_name       = "dataapi.tier1.prod.ooni.io"
+  domain_name       = "dataapi.prod.ooni.io"
   validation_method = "DNS"
 
   tags = local.tags
