@@ -35,12 +35,28 @@ module "terraform_state_backend" {
 ## Ansible inventory
 
 resource "local_file" "ansible_inventory" {
+  depends_on = [
+    aws_route53_record.clickhouse_dns
+  ]
+
   content  = templatefile("${path.module}/templates/ansible-inventory.tpl", {
     clickhouse_servers = [
       local.clickhouse_hostname
     ]
   })
-    filename = "${path.module}/ansible/inventory.ini"
+  filename = "${path.module}/ansible/inventory.ini"
+}
+
+resource "null_resource" "ansible_update_known_hosts" {
+  depends_on = [ local_file.ansible_inventory ]
+
+  provisioner "local-exec" {
+    command = "./scripts/update_known_hosts.sh"
+    environment = {
+      INVENTORY_FILE = "ansible/inventory.ini"
+      KNOWN_HOSTS_FILE = "ansible/known_hosts"
+    }
+  }
 }
 
 ## AWS Setup
