@@ -294,9 +294,7 @@ resource "aws_autoscaling_group" "app" {
 
     triggers = ["tag"]
   }
-
 }
-
 
 ### Security
 
