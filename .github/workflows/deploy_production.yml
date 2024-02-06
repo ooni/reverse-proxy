@@ -2,7 +2,7 @@ on:
   pull_request:
     branches:
       - main
-      - tf-actions
+      - staging
     #paths:
     #  - 'tf/environments/production/**'
 env:
@@ -20,73 +20,73 @@ jobs:
     permissions:
       pull-requests: write
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.11'
-    - name: Install Ansible
-      run: pip install ansible
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.11"
+      - name: Install Ansible
+        run: pip install ansible
 
-    - name: Write devops ssh key to .ssh
-      run: |
-        mkdir -p ~/.ssh/
-        chmod 700 ~/.ssh/
-        echo "${{ secrets.AWS_SSH_KEY }}" > ~/.ssh/ooni-devops-prod.pem
-        chmod 600 ~/.ssh/ooni-devops-prod.pem
+      - name: Write devops ssh key to .ssh
+        run: |
+          mkdir -p ~/.ssh/
+          chmod 700 ~/.ssh/
+          echo "${{ secrets.AWS_SSH_KEY }}" > ~/.ssh/ooni-devops-prod.pem
+          chmod 600 ~/.ssh/ooni-devops-prod.pem
 
-    - name: Run Ansible Playbook
-      id: playbook
-      env:
-        ANSIBLE_SSH_ARGS: "-o UserKnownHostsFile=known_hosts"
-      run: |
-        echo "ansible_playbook<<EOF" >> "$GITHUB_OUTPUT"
-        echo "\$ ansible-playbook playbook.yml -i inventory.ini" >> "$GITHUB_OUTPUT"
-        ansible-playbook playbook.yml -i inventory.ini --key-file ~/.ssh/ooni-devops-prod.pem 2>&1 | tee -a "$GITHUB_OUTPUT"
-        echo "EOF" >> "$GITHUB_OUTPUT"
-      continue-on-error: true
+      - name: Run Ansible Playbook
+        id: playbook
+        env:
+          ANSIBLE_SSH_ARGS: "-o UserKnownHostsFile=known_hosts"
+        run: |
+          echo "ansible_playbook<<EOF" >> "$GITHUB_OUTPUT"
+          echo "\$ ansible-playbook playbook.yml -i inventory.ini" >> "$GITHUB_OUTPUT"
+          ansible-playbook playbook.yml -i inventory.ini --key-file ~/.ssh/ooni-devops-prod.pem 2>&1 | tee -a "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+        continue-on-error: true
 
-    #- name: Setup tmate session
-    #  uses: mxschmitt/action-tmate@v3
+      #- name: Setup tmate session
+      #  uses: mxschmitt/action-tmate@v3
 
-    - uses: actions/github-script@v6
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          const commentTitle = "Ansible Run Output";
-          const ansiblePlaybookOutput = `${{ steps.playbook.outputs.ansible_playbook}}`;
-          const parts = ansiblePlaybookOutput.split(/^PLAY RECAP \*+/);
-          const ansiblePlaybookRecap = parts.length > 1 ? parts[1].trim() : '';
+      - uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const commentTitle = "Ansible Run Output";
+            const ansiblePlaybookOutput = `${{ steps.playbook.outputs.ansible_playbook}}`;
+            const parts = ansiblePlaybookOutput.split(/^PLAY RECAP \*+/);
+            const ansiblePlaybookRecap = parts.length > 1 ? parts[1].trim() : '';
 
-          const commentBody = `
-          #### Ansible Playbook Recap 🔍
+            const commentBody = `
+            #### Ansible Playbook Recap 🔍
 
-          \`\`\`\n
-          ${ansiblePlaybookRecap}
-          \`\`\`
+            \`\`\`\n
+            ${ansiblePlaybookRecap}
+            \`\`\`
 
-          #### Ansible playbook output 📖\`${{ steps.playbook.outcome }}\`
+            #### Ansible playbook output 📖\`${{ steps.playbook.outcome }}\`
 
-          <details><summary>Show Execution</summary>
+            <details><summary>Show Execution</summary>
 
-          \`\`\`\n
-          ${ansiblePlaybookOutput}
-          \`\`\`
+            \`\`\`\n
+            ${ansiblePlaybookOutput}
+            \`\`\`
 
-          </details>
+            </details>
 
-          |                   |                                    |
-          |-------------------|------------------------------------|
-          | Pusher            | @${{ github.actor }}               |
-          | Action            |  ${{ github.event_name }}          |
-          | Working Directory |  ${{ env.tf_actions_working_dir }} |
-          | Workflow          |  ${{ github.workflow }}            |
-          | Last updated      |  ${(new Date()).toUTCString()}     |
-          `;
+            |                   |                                    |
+            |-------------------|------------------------------------|
+            | Pusher            | @${{ github.actor }}               |
+            | Action            |  ${{ github.event_name }}          |
+            | Working Directory |  ${{ env.tf_actions_working_dir }} |
+            | Workflow          |  ${{ github.workflow }}            |
+            | Last updated      |  ${(new Date()).toUTCString()}     |
+            `;
 
-          // Call the script to write the comment
-          const script = require('./scripts/ghactions/comment-on-pr.js');
-          await script({github, context, core, commentTitle, commentBody});
+            // Call the script to write the comment
+            const script = require('./scripts/ghactions/comment-on-pr.js');
+            await script({github, context, core, commentTitle, commentBody});
 
   terraform:
     runs-on: ubuntu-latest
@@ -103,123 +103,123 @@ jobs:
       TF_VAR_datadog_api_key: ${{ secrets.DATADOG_API_KEY}}
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 2
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
-    - uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_wrapper: false
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
 
-    - name: Terraform fmt
-      id: fmt
-      run: terraform fmt -check
-      continue-on-error: true
+      - name: Terraform fmt
+        id: fmt
+        run: terraform fmt -check
+        continue-on-error: true
 
-    - name: Terraform Init
-      id: init
-      run: terraform init
+      - name: Terraform Init
+        id: init
+        run: terraform init
 
-    - name: Terraform Validate
-      id: validate
-      run: |
-        echo "terraform_validate<<EOF" >> "$GITHUB_OUTPUT"
-        echo "\$ terraform validate" >> "$GITHUB_OUTPUT"
-        terraform validate -no-color | tee -a "$GITHUB_OUTPUT"
-        echo "EOF" >> "$GITHUB_OUTPUT"
+      - name: Terraform Validate
+        id: validate
+        run: |
+          echo "terraform_validate<<EOF" >> "$GITHUB_OUTPUT"
+          echo "\$ terraform validate" >> "$GITHUB_OUTPUT"
+          terraform validate -no-color | tee -a "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
 
-    - name: Terraform Plan
-      id: plan
-      run: |
-        echo "terraform_plan<<EOF" >> "$GITHUB_OUTPUT"
-        echo "\$ terraform plan" >> "$GITHUB_OUTPUT"
-        terraform plan -no-color | tee -a "$GITHUB_OUTPUT"
-        echo "EOF" >> "$GITHUB_OUTPUT"
-      continue-on-error: true
+      - name: Terraform Plan
+        id: plan
+        run: |
+          echo "terraform_plan<<EOF" >> "$GITHUB_OUTPUT"
+          echo "\$ terraform plan" >> "$GITHUB_OUTPUT"
+          terraform plan -no-color | tee -a "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+        continue-on-error: true
 
-    - name: Terraform Apply
-      id: apply
-      run: |
-        echo "terraform_apply<<EOF" >> "$GITHUB_OUTPUT"
-        echo "\$ terraform apply -auto-approve" >> "$GITHUB_OUTPUT"
-        terraform apply -auto-approve -no-color | tee -a "$GITHUB_OUTPUT"
-        echo "EOF" >> "$GITHUB_OUTPUT"
-      continue-on-error: true
+      - name: Terraform Apply
+        id: apply
+        run: |
+          echo "terraform_apply<<EOF" >> "$GITHUB_OUTPUT"
+          echo "\$ terraform apply -auto-approve" >> "$GITHUB_OUTPUT"
+          terraform apply -auto-approve -no-color | tee -a "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+        continue-on-error: true
 
-    # TODO(art): this should only run on master merge
-    #- name: Commit and Push Terraform Outputs
-    #  id: commit
-    #  run: |
-    #    {
-    #      echo "git_commit<<EOF"
-    #      git config --global user.email "nothuman@ooni.org"
-    #      git config --global user.name "OONI Github Actions Bot"
-    #      git add .
-    #      git commit -m "skip-terraform: autoupdate terraform outputs" || echo "No changes to commit"
-    #      git push origin HEAD:${{ github.event.pull_request && github.head_ref || github.ref_name }}
-    #      echo "EOF"
-    #    } >> "$GITHUB_OUTPUT"
-    #  env:
-    #    GITHUB_REF: ${{ github.ref }}
-    #    GITHUB_HEAD_REF: ${{ github.head_ref }}
-    #  continue-on-error: true
+      # TODO(art): this should only run on master merge
+      #- name: Commit and Push Terraform Outputs
+      #  id: commit
+      #  run: |
+      #    {
+      #      echo "git_commit<<EOF"
+      #      git config --global user.email "nothuman@ooni.org"
+      #      git config --global user.name "OONI Github Actions Bot"
+      #      git add .
+      #      git commit -m "skip-terraform: autoupdate terraform outputs" || echo "No changes to commit"
+      #      git push origin HEAD:${{ github.event.pull_request && github.head_ref || github.ref_name }}
+      #      echo "EOF"
+      #    } >> "$GITHUB_OUTPUT"
+      #  env:
+      #    GITHUB_REF: ${{ github.ref }}
+      #    GITHUB_HEAD_REF: ${{ github.head_ref }}
+      #  continue-on-error: true
 
-    - uses: actions/github-script@v6
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          const terraformPlanOutput = `${{ steps.plan.outputs.terraform_plan }}`;
-          const terraformApplyOutput = `${{ steps.apply.outputs.terraform_apply }}`;
+      - uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const terraformPlanOutput = `${{ steps.plan.outputs.terraform_plan }}`;
+            const terraformApplyOutput = `${{ steps.apply.outputs.terraform_apply }}`;
 
-          const terraformPlanPlanLine = terraformPlanOutput.split('\n').find(line => line.startsWith('Plan:'));
-          const terraformApplyPlanLine = terraformApplyOutput.split('\n').find(line => line.startsWith('Plan:'));
-          const terraformApplyApplyLine = terraformApplyOutput.split('\n').find(line => line.startsWith('Apply complete!'));
+            const terraformPlanPlanLine = terraformPlanOutput.split('\n').find(line => line.startsWith('Plan:'));
+            const terraformApplyPlanLine = terraformApplyOutput.split('\n').find(line => line.startsWith('Plan:'));
+            const terraformApplyApplyLine = terraformApplyOutput.split('\n').find(line => line.startsWith('Apply complete!'));
 
-          const commentTitle = "Terraform Run Output";
-          const commentBody = `
-          #### Format and Style 🖌\`${{ steps.fmt.outcome }}\`
-          #### Initialization ⚙️\`${{ steps.init.outcome }}\`
-          #### Validation 🤖\`${{ steps.validate.outcome }}\`
-          <details><summary>Validation Output</summary>
+            const commentTitle = "Terraform Run Output";
+            const commentBody = `
+            #### Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+            #### Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Validation 🤖\`${{ steps.validate.outcome }}\`
+            <details><summary>Validation Output</summary>
 
-          \`\`\`\n
-          ${{ steps.validate.outputs.terraform_validate }}
-          \`\`\`
+            \`\`\`\n
+            ${{ steps.validate.outputs.terraform_validate }}
+            \`\`\`
 
-          </details>
+            </details>
 
-          #### Plan 📖\`${{ steps.plan.outcome }}\`
-          * **${terraformPlanPlanLine}**
+            #### Plan 📖\`${{ steps.plan.outcome }}\`
+            * **${terraformPlanPlanLine}**
 
-          <details><summary>Show Plan</summary>
+            <details><summary>Show Plan</summary>
 
-          \`\`\`\n
-          ${terraformPlanOutput}
-          \`\`\`
+            \`\`\`\n
+            ${terraformPlanOutput}
+            \`\`\`
 
-          </details>
+            </details>
 
-          #### Apply 📖\`${{ steps.apply.outcome }}\`
-          * **${terraformApplyPlanLine}**
-          * **${terraformApplyApplyLine}**
+            #### Apply 📖\`${{ steps.apply.outcome }}\`
+            * **${terraformApplyPlanLine}**
+            * **${terraformApplyApplyLine}**
 
-          <details><summary>Show Apply</summary>
+            <details><summary>Show Apply</summary>
 
-          \`\`\`\n
-          ${terraformApplyOutput}
-          \`\`\`
+            \`\`\`\n
+            ${terraformApplyOutput}
+            \`\`\`
 
-          </details>
+            </details>
 
-          |                   |                                    |
-          |-------------------|------------------------------------|
-          | Pusher            | @${{ github.actor }}               |
-          | Action            |  ${{ github.event_name }}          |
-          | Working Directory |  ${{ env.tf_actions_working_dir }} |
-          | Workflow          |  ${{ github.workflow }}            |
-          | Last updated      |  ${ (new Date()).toUTCString() }   |
-          `;
+            |                   |                                    |
+            |-------------------|------------------------------------|
+            | Pusher            | @${{ github.actor }}               |
+            | Action            |  ${{ github.event_name }}          |
+            | Working Directory |  ${{ env.tf_actions_working_dir }} |
+            | Workflow          |  ${{ github.workflow }}            |
+            | Last updated      |  ${ (new Date()).toUTCString() }   |
+            `;
 
-          // Call the script to write the comment
-          const script = require('./scripts/ghactions/comment-on-pr.js');
-          await script({github, context, core, commentTitle, commentBody});
+            // Call the script to write the comment
+            const script = require('./scripts/ghactions/comment-on-pr.js');
+            await script({github, context, core, commentTitle, commentBody});
