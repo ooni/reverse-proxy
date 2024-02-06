@@ -1,10 +1,15 @@
+# For docs on this see:
+# * https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
+# * https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
+# * https://docs.github.com/en/webhooks/webhook-events-and-payloads?actionType=synchronize#pull_request
 on:
   pull_request:
-    branches:
-      - main
-      - staging
-    #paths:
-    #  - 'tf/environments/production/**'
+    types:
+      - opened
+      - synchronize # when commits are pushed to the PR
+      - reopened
+      - edited # title or body of a pull request was edited, or the base branch of a pull request was changed
+
 env:
   tf_actions_working_dir: "./tf/environments/production"
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
