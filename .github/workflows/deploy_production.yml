@@ -46,6 +46,7 @@ jobs:
           echo "EOF" >> "$GITHUB_OUTPUT"
         continue-on-error: true
 
+      # This can be uncommmented to make it possible to ssh into the container to debug the run
       #- name: Setup tmate session
       #  uses: mxschmitt/action-tmate@v3
 
@@ -145,24 +146,6 @@ jobs:
           terraform apply -auto-approve -no-color | tee -a "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
         continue-on-error: true
-
-      # TODO(art): this should only run on master merge
-      #- name: Commit and Push Terraform Outputs
-      #  id: commit
-      #  run: |
-      #    {
-      #      echo "git_commit<<EOF"
-      #      git config --global user.email "nothuman@ooni.org"
-      #      git config --global user.name "OONI Github Actions Bot"
-      #      git add .
-      #      git commit -m "skip-terraform: autoupdate terraform outputs" || echo "No changes to commit"
-      #      git push origin HEAD:${{ github.event.pull_request && github.head_ref || github.ref_name }}
-      #      echo "EOF"
-      #    } >> "$GITHUB_OUTPUT"
-      #  env:
-      #    GITHUB_REF: ${{ github.ref }}
-      #    GITHUB_HEAD_REF: ${{ github.head_ref }}
-      #  continue-on-error: true
 
       - uses: actions/github-script@v6
         with:
