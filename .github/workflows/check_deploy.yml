@@ -4,6 +4,8 @@
 # * https://docs.github.com/en/webhooks/webhook-events-and-payloads?actionType=synchronize#pull_request
 on:
   push:
+    branches:
+      - main
   pull_request:
     types:
       - opened
