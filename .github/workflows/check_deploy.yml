@@ -3,6 +3,7 @@
 # * https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
 # * https://docs.github.com/en/webhooks/webhook-events-and-payloads?actionType=synchronize#pull_request
 on:
+  push:
   pull_request:
     types:
       - opened
@@ -47,8 +48,8 @@ jobs:
           ANSIBLE_SSH_ARGS: "-o UserKnownHostsFile=known_hosts"
         run: |
           echo "ansible_playbook<<EOF" >> "$GITHUB_OUTPUT"
-          echo "\$ ansible-playbook playbook.yml -i inventory.ini" >> "$GITHUB_OUTPUT"
-          ansible-playbook playbook.yml -i inventory.ini --key-file ~/.ssh/ooni-devops-prod.pem 2>&1 | tee -a "$GITHUB_OUTPUT"
+          echo "\$ ansible-playbook playbook.yml --check --diff -i inventory.ini" >> "$GITHUB_OUTPUT"
+          ansible-playbook playbook.yml --check --diff -i inventory.ini --key-file ~/.ssh/ooni-devops-prod.pem 2>&1 | tee -a "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
         continue-on-error: true
 
@@ -147,14 +148,15 @@ jobs:
           echo "EOF" >> "$GITHUB_OUTPUT"
         continue-on-error: true
 
-      - name: Terraform Apply
-        id: apply
-        run: |
-          echo "terraform_apply<<EOF" >> "$GITHUB_OUTPUT"
-          echo "\$ terraform apply -auto-approve" >> "$GITHUB_OUTPUT"
-          terraform apply -auto-approve -no-color | tee -a "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
-        continue-on-error: true
+      # Temporarily disabled, probably should be moved to a deploy action with stricted checks
+      #- name: Terraform Apply
+      #  id: apply
+      #  run: |
+      #    echo "terraform_apply<<EOF" >> "$GITHUB_OUTPUT"
+      #    echo "\$ terraform apply -auto-approve" >> "$GITHUB_OUTPUT"
+      #    terraform apply -auto-approve -no-color | tee -a "$GITHUB_OUTPUT"
+      #    echo "EOF" >> "$GITHUB_OUTPUT"
+      #  continue-on-error: true
 
       - uses: actions/github-script@v6
         with:
