@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euxo pipefail
 # Restore schema and sampled dumps to running clickhouse instance
 # This script is to be run manually from with CWD set to contains the dumps and
 # schema files generated from `dump-tables-ch.sh`
