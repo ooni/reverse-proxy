@@ -190,18 +190,6 @@ jobs:
 
             </details>
 
-            #### Apply 📖\`${{ steps.apply.outcome }}\`
-            * **${terraformApplyPlanLine}**
-            * **${terraformApplyApplyLine}**
-
-            <details><summary>Show Apply</summary>
-
-            \`\`\`\n
-            ${terraformApplyOutput}
-            \`\`\`
-
-            </details>
-
             |                   |                                    |
             |-------------------|------------------------------------|
             | Pusher            | @${{ github.actor }}               |
