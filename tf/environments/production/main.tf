@@ -15,10 +15,6 @@ terraform {
 # immediately proceeding to "terraform apply". The S3 backend must
 # be bootstrapped according to the simple yet essential procedure in
 # https://github.com/cloudposse/terraform-aws-tfstate-backend#usage
-# You cannot create a new backend by simply defining this and then
-# immediately proceeding to "terraform apply". The S3 backend must
-# be bootstrapped according to the simple yet essential procedure in
-# https://github.com/cloudposse/terraform-aws-tfstate-backend#usage
 module "terraform_state_backend" {
   source     = "cloudposse/tfstate-backend/aws"
   version    = "1.4.0"
@@ -166,16 +162,42 @@ resource "aws_instance" "clickhouse_server_prod_tier1" {
   )
 }
 
-resource "aws_ebs_volume" "clickhouse_data_volume" {
-  availability_zone = aws_instance.clickhouse_server_prod_tier1.availability_zone
-  size              = 1024  # 1 TB
-  type              = "gp3" # SSD-based volume type, provides up to 16,000 IOPS and 1,000 MiB/s throughput
-  tags              = local.tags
+# We care to ensure this data volume is not destroyed across re-applies. To do
+# that you can either run first an apply with this commented out and then
+# specify the data volume below. You can also just create a data volume with the
+# appropriate tag manually and then edit the section below to indicate the name.
+# If you do that, you will then have to manually also run:
+# $ terraform state rm aws_ebs_volume.clickhouse_data_volume
+#resource "aws_ebs_volume" "clickhouse_data_volume" {
+#  availability_zone = aws_instance.clickhouse_server_prod_tier1.availability_zone
+#  size              = 1024  # 1 TB
+#  type              = "gp3" # SSD-based volume type, provides up to 16,000 IOPS and 1,000 MiB/s throughput
+#  tags = merge(local.tags, {
+#    Name = "ooni-tier1-prod-clickhouse-vol1"
+#  })
+#
+#  lifecycle {
+#    prevent_destroy = true
+#  }
+#}
+
+data "aws_ebs_volume" "clickhouse_data_volume" {
+  most_recent = true
+
+  filter {
+    name   = "tag:Name"
+    values = ["ooni-tier1-prod-clickhouse-vol1"]
+  }
+
+  filter {
+    name   = "availability-zone"
+    values = [aws_instance.clickhouse_server_prod_tier1.availability_zone]
+  }
 }
 
 resource "aws_volume_attachment" "clickhouse_data_volume_attachment" {
   device_name  = local.clickhouse_device_name
-  volume_id    = aws_ebs_volume.clickhouse_data_volume.id
+  volume_id    = data.aws_ebs_volume.clickhouse_data_volume.id
   instance_id  = aws_instance.clickhouse_server_prod_tier1.id
   force_detach = true
 }
