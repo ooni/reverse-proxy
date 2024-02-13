@@ -1,21 +1,87 @@
-provider "aws" {
-  region = var.aws_region
-  access_key = var.aws_access_key
-  secret_key = var.aws_secret_access_key
+# Store terraform state in s3
+terraform {
+  backend "s3" {
+    region  = "eu-central-1"
+    bucket  = "ooni-production-terraform-state"
+    key     = "terraform.tfstate"
+    profile = ""
+    encrypt = "true"
+
+    dynamodb_table = "ooni-production-terraform-state-lock"
+  }
 }
 
-data "aws_availability_zones" "available" {}
+# You cannot create a new backend by simply defining this and then
+# immediately proceeding to "terraform apply". The S3 backend must
+# be bootstrapped according to the simple yet essential procedure in
+# https://github.com/cloudposse/terraform-aws-tfstate-backend#usage
+# You cannot create a new backend by simply defining this and then
+# immediately proceeding to "terraform apply". The S3 backend must
+# be bootstrapped according to the simple yet essential procedure in
+# https://github.com/cloudposse/terraform-aws-tfstate-backend#usage
+module "terraform_state_backend" {
+  source     = "cloudposse/tfstate-backend/aws"
+  version    = "1.4.0"
+  namespace  = "ooni"
+  stage      = "production"
+  name       = "terraform"
+  attributes = ["state"]
 
+  #terraform_backend_config_file_path = "."
+  terraform_backend_config_file_name = "backend.tf"
+  force_destroy                      = false
+}
+
+## Ansible inventory
+
+resource "local_file" "ansible_inventory" {
+  depends_on = [
+    aws_route53_record.clickhouse_dns
+  ]
+
+  content = templatefile("${path.module}/templates/ansible-inventory.tpl", {
+    clickhouse_servers = [
+      aws_route53_record.clickhouse_dns.name
+    ]
+  })
+  filename = "${path.module}/ansible/inventory.ini"
+}
+
+resource "null_resource" "ansible_update_known_hosts" {
+  depends_on = [local_file.ansible_inventory]
+
+  provisioner "local-exec" {
+    command = "./scripts/update_known_hosts.sh"
+    environment = {
+      INVENTORY_FILE   = "ansible/inventory.ini"
+      KNOWN_HOSTS_FILE = "ansible/known_hosts"
+    }
+  }
+}
+
+# Local variable definitions
 locals {
-  environment = "production"
-  name   = "ooni-tier1-${local.environment}"
+  environment      = "production"
+  name             = "ooni-tier1-${local.environment}"
   ecs_cluster_name = "ooni-ecs-cluster"
+  dns_zone_ooni_nu = "Z035992527R8VEIX2UVO0" # ooni.nu hosted zone
+  dns_zone_ooni_io = "Z02418652BOD91LFA5S9X" # ooni.io hosted zone
 
   tags = {
     Name       = local.name
     Repository = "https://github.com/ooni/devops"
   }
 }
+
+## AWS Setup
+
+provider "aws" {
+  region     = var.aws_region
+  access_key = var.aws_access_key_id
+  secret_key = var.aws_secret_access_key
+}
+
+data "aws_availability_zones" "available" {}
 
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
@@ -51,7 +117,7 @@ resource "aws_route_table_association" "a" {
 ### EC2
 
 locals {
-  clickhouse_hostname = "clickhouse.tier1.prod.ooni.nu"
+  clickhouse_hostname    = "clickhouse.tier1.prod.ooni.nu"
   clickhouse_device_name = "/dev/sdf"
 }
 
@@ -72,13 +138,13 @@ data "aws_ami" "debian_ami" {
 }
 
 resource "aws_instance" "clickhouse_server_prod_tier1" {
-  ami                 = data.aws_ami.debian_ami.id
-  instance_type       = "r5.xlarge"
-  key_name            = var.key_name
+  ami           = data.aws_ami.debian_ami.id
+  instance_type = "r5.xlarge"
+  key_name      = var.key_name
 
   associate_public_ip_address = true
 
-  subnet_id      = aws_subnet.main[0].id
+  subnet_id              = aws_subnet.main[0].id
   vpc_security_group_ids = [aws_security_group.clickhouse_sg.id]
 
   root_block_device {
@@ -87,25 +153,30 @@ resource "aws_instance" "clickhouse_server_prod_tier1" {
   }
 
   user_data = templatefile("${path.module}/templates/clickhouse-setup.sh", {
-      datadog_api_key  = var.datadog_api_key,
-      hostname = local.clickhouse_hostname,
-      device_name = local.clickhouse_device_name
+    datadog_api_key = var.datadog_api_key,
+    hostname        = local.clickhouse_hostname,
+    device_name     = local.clickhouse_device_name
   })
- 
-  tags = local.tags
+
+  tags = merge(
+    local.tags,
+    {
+      Name = "clickhouse-${local.tags["Name"]}"
+    }
+  )
 }
 
 resource "aws_ebs_volume" "clickhouse_data_volume" {
   availability_zone = aws_instance.clickhouse_server_prod_tier1.availability_zone
-  size              = 1024 # 1 TB
+  size              = 1024  # 1 TB
   type              = "gp3" # SSD-based volume type, provides up to 16,000 IOPS and 1,000 MiB/s throughput
-  tags = local.tags
+  tags              = local.tags
 }
 
 resource "aws_volume_attachment" "clickhouse_data_volume_attachment" {
-  device_name = local.clickhouse_device_name
-  volume_id   = aws_ebs_volume.clickhouse_data_volume.id
-  instance_id = aws_instance.clickhouse_server_prod_tier1.id
+  device_name  = local.clickhouse_device_name
+  volume_id    = aws_ebs_volume.clickhouse_data_volume.id
+  instance_id  = aws_instance.clickhouse_server_prod_tier1.id
   force_detach = true
 }
 
@@ -113,14 +184,6 @@ resource "aws_eip" "clickhouse_ip" {
   instance = aws_instance.clickhouse_server_prod_tier1.id
 
   tags = local.tags
-}
-
-resource "aws_route53_record" "clickhouse_dns" {
-  zone_id = "Z035992527R8VEIX2UVO0" # ooni.nu hosted zone
-  name    = local.clickhouse_hostname
-  type    = "A"
-  ttl     = "300"
-  records = [aws_eip.clickhouse_ip.public_ip]
 }
 
 resource "aws_security_group" "clickhouse_sg" {
@@ -163,19 +226,19 @@ data "aws_ssm_parameter" "ecs_optimized_ami" {
 }
 
 resource "aws_launch_template" "app" {
-  name_prefix          = "ooni-tier1-production-backend-lt"
+  name_prefix = "ooni-tier1-production-backend-lt"
 
-  key_name             = var.key_name
-  image_id             = jsondecode(data.aws_ssm_parameter.ecs_optimized_ami.value)["image_id"]
-  instance_type        = var.instance_type
+  key_name      = var.key_name
+  image_id      = jsondecode(data.aws_ssm_parameter.ecs_optimized_ami.value)["image_id"]
+  instance_type = var.instance_type
 
-  user_data            = base64encode(templatefile("${path.module}/templates/ecs-setup.sh", {
-      ecs_cluster_name = local.ecs_cluster_name,
-      ecs_cluster_tags = local.tags,
-      datadog_api_key  = var.datadog_api_key,
+  user_data = base64encode(templatefile("${path.module}/templates/ecs-setup.sh", {
+    ecs_cluster_name = local.ecs_cluster_name,
+    ecs_cluster_tags = local.tags,
+    datadog_api_key  = var.datadog_api_key,
   }))
 
-  update_default_version = true
+  update_default_version               = true
   instance_initiated_shutdown_behavior = "terminate"
 
   iam_instance_profile {
@@ -184,7 +247,7 @@ resource "aws_launch_template" "app" {
 
   network_interfaces {
     associate_public_ip_address = true
-    delete_on_termination =  true
+    delete_on_termination       = true
     security_groups = [
       aws_security_group.instance_sg.id,
     ]
@@ -201,20 +264,20 @@ resource "aws_launch_template" "app" {
   tag_specifications {
     resource_type = "instance"
     tags = {
-      Name: "ooni-tier1-production-backend"
+      Name : "ooni-tier1-production-backend"
     }
   }
 }
 
 resource "aws_autoscaling_group" "app" {
-  name_prefix                 = "ooni-tier1-production-backend-asg"
-  vpc_zone_identifier  = aws_subnet.main[*].id
-  min_size             = var.asg_min
-  max_size             = var.asg_max
-  desired_capacity     = var.asg_desired
+  name_prefix         = "ooni-tier1-production-backend-asg"
+  vpc_zone_identifier = aws_subnet.main[*].id
+  min_size            = var.asg_min
+  max_size            = var.asg_max
+  desired_capacity    = var.asg_desired
 
-  launch_template      {
-    id = aws_launch_template.app.id
+  launch_template {
+    id      = aws_launch_template.app.id
     version = "$Latest"
   }
 
@@ -226,9 +289,7 @@ resource "aws_autoscaling_group" "app" {
 
     triggers = ["tag"]
   }
-
 }
-
 
 ### Security
 
@@ -242,6 +303,13 @@ resource "aws_security_group" "lb_sg" {
     protocol    = "tcp"
     from_port   = 80
     to_port     = 80
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    protocol    = "tcp"
+    from_port   = 443
+    to_port     = 443
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -302,17 +370,15 @@ resource "aws_ecs_cluster" "main" {
 
 
 locals {
-  container_image = "ooni/dataapi:latest"
   container_name = "ooni_dataapi"
-  container_port = 80
 }
 
 resource "aws_ecs_task_definition" "dataapi" {
   family = "ooni-dataapi-production-td"
   container_definitions = templatefile("${path.module}/templates/task_definition.json", {
-    image_url        = local.container_image,
+    image_url        = "ooni/dataapi:${var.ooni_service_config.dataapi_version}",
     container_name   = local.container_name,
-    container_port   = local.container_port,
+    container_port   = 80,
     log_group_region = var.aws_region,
     log_group_name   = aws_cloudwatch_log_group.app.name
   })
@@ -469,6 +535,78 @@ resource "aws_alb_listener" "front_end" {
   }
 
   tags = local.tags
+}
+
+resource "aws_alb_listener" "front_end_https" {
+  load_balancer_arn = aws_alb.main.id
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = aws_acm_certificate_validation.dataapi.certificate_arn
+
+  default_action {
+    target_group_arn = aws_alb_target_group.dataapi.id
+    type             = "forward"
+  }
+
+  tags = local.tags
+}
+
+# Route53
+
+resource "aws_route53_record" "clickhouse_dns" {
+  zone_id = local.dns_zone_ooni_nu
+  name    = local.clickhouse_hostname
+  type    = "A"
+  ttl     = "300"
+  records = [aws_eip.clickhouse_ip.public_ip]
+}
+
+resource "aws_route53_record" "alb_dns" {
+  zone_id = local.dns_zone_ooni_io
+  name    = "dataapi.prod.ooni.io"
+  type    = "A"
+
+  alias {
+    name                   = aws_alb.main.dns_name
+    zone_id                = aws_alb.main.zone_id
+    evaluate_target_health = true
+  }
+}
+
+# ACM TLS
+
+resource "aws_acm_certificate" "dataapi" {
+  domain_name       = "dataapi.prod.ooni.io"
+  validation_method = "DNS"
+
+  tags = local.tags
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_route53_record" "dataapi_cert_validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.dataapi.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = local.dns_zone_ooni_io
+}
+
+resource "aws_acm_certificate_validation" "dataapi" {
+  certificate_arn         = aws_acm_certificate.dataapi.arn
+  validation_record_fqdns = [for record in aws_route53_record.dataapi_cert_validation : record.fqdn]
 }
 
 ## CloudWatch Logs

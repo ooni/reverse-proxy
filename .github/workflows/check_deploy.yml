@@ -1,0 +1,219 @@
+# For docs on this see:
+# * https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
+# * https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
+# * https://docs.github.com/en/webhooks/webhook-events-and-payloads?actionType=synchronize#pull_request
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types:
+      - opened
+      - synchronize # when commits are pushed to the PR
+      - reopened
+      - edited # title or body of a pull request was edited, or the base branch of a pull request was changed
+
+env:
+  tf_actions_working_dir: "./tf/environments/production"
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+jobs:
+  ansible:
+    needs: terraform
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.tf_actions_working_dir }}/ansible
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Ansible
+        run: |
+          sudo apt update
+          sudo apt install software-properties-common
+          sudo add-apt-repository --yes --update ppa:ansible/ansible-9
+          sudo apt install -y ansible
+
+      - name: Write devops ssh key to .ssh
+        run: |
+          mkdir -p ~/.ssh/
+          chmod 700 ~/.ssh/
+          echo "${{ secrets.AWS_SSH_KEY }}" > ~/.ssh/ooni-devops-prod.pem
+          chmod 600 ~/.ssh/ooni-devops-prod.pem
+
+      - name: Run Ansible Playbook
+        id: playbook
+        env:
+          ANSIBLE_SSH_ARGS: "-o UserKnownHostsFile=known_hosts"
+        run: |
+          echo "ansible_playbook<<EOF" >> "$GITHUB_OUTPUT"
+          echo "\$ ansible-playbook playbook.yml --check --diff -i inventory.ini" >> "$GITHUB_OUTPUT"
+          ansible-playbook playbook.yml --check --diff -i inventory.ini --key-file ~/.ssh/ooni-devops-prod.pem 2>&1 | tee -a "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+        continue-on-error: true
+
+      # This can be uncommmented to make it possible to ssh into the container to debug the run
+      #- name: Setup tmate session
+      #  uses: mxschmitt/action-tmate@v3
+
+      - uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const commentTitle = "Ansible Run Output";
+            const ansiblePlaybookOutput = `${{ steps.playbook.outputs.ansible_playbook}}`;
+            const parts = ansiblePlaybookOutput.split(/PLAY RECAP \*+/);
+            const ansiblePlaybookRecap = parts.length > 1 ? parts[1].trim() : '';
+
+            const commentBody = `
+            #### Ansible Playbook Recap 🔍
+
+            \`\`\`\n
+            ${ansiblePlaybookRecap}
+            \`\`\`
+
+            #### Ansible playbook output 📖\`${{ steps.playbook.outcome }}\`
+
+            <details><summary>Show Execution</summary>
+
+            \`\`\`\n
+            ${ansiblePlaybookOutput}
+            \`\`\`
+
+            </details>
+
+            |                   |                                    |
+            |-------------------|------------------------------------|
+            | Pusher            | @${{ github.actor }}               |
+            | Action            |  ${{ github.event_name }}          |
+            | Working Directory |  ${{ env.tf_actions_working_dir }} |
+            | Workflow          |  ${{ github.workflow }}            |
+            | Last updated      |  ${(new Date()).toUTCString()}     |
+            `;
+
+            // Call the script to write the comment
+            const script = require('./scripts/ghactions/comment-on-pr.js');
+            await script({github, context, core, commentTitle, commentBody});
+
+  terraform:
+    runs-on: ubuntu-latest
+    if: ${{ !startsWith(github.event.head_commit.message, 'skip-terraform:') }}
+    defaults:
+      run:
+        working-directory: ${{ env.tf_actions_working_dir }}
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      TF_VAR_aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      TF_VAR_aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      TF_VAR_datadog_api_key: ${{ secrets.DATADOG_API_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Terraform
+        run: |
+          wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" \
+              | sudo tee /etc/apt/sources.list.d/hashicorp.list
+          sudo apt update && sudo apt install terraform
+
+      - name: Terraform fmt
+        id: fmt
+        run: terraform fmt -check
+        continue-on-error: true
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+
+      - name: Terraform Validate
+        id: validate
+        run: |
+          echo "terraform_validate<<EOF" >> "$GITHUB_OUTPUT"
+          echo "\$ terraform validate" >> "$GITHUB_OUTPUT"
+          terraform validate -no-color | tee -a "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          echo "terraform_plan<<EOF" >> "$GITHUB_OUTPUT"
+          echo "\$ terraform plan" >> "$GITHUB_OUTPUT"
+          terraform plan -no-color | tee -a "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+        continue-on-error: true
+
+      # Temporarily disabled, probably should be moved to a deploy action with stricter checks
+      #- name: Terraform Apply
+      #  id: apply
+      #  run: |
+      #    echo "terraform_apply<<EOF" >> "$GITHUB_OUTPUT"
+      #    echo "\$ terraform apply -auto-approve" >> "$GITHUB_OUTPUT"
+      #    terraform apply -auto-approve -no-color | tee -a "$GITHUB_OUTPUT"
+      #    echo "EOF" >> "$GITHUB_OUTPUT"
+      #  continue-on-error: true
+
+      - uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const terraformPlanOutput = `${{ steps.plan.outputs.terraform_plan }}`;
+            const terraformApplyOutput = `${{ steps.apply.outputs.terraform_apply }}`;
+
+            const terraformPlanPlanLine = terraformPlanOutput.split('\n').find(line => line.startsWith('Plan:'));
+            const terraformApplyPlanLine = terraformApplyOutput.split('\n').find(line => line.startsWith('Plan:'));
+            const terraformApplyApplyLine = terraformApplyOutput.split('\n').find(line => line.startsWith('Apply complete!'));
+
+            const commentTitle = "Terraform Run Output";
+            const commentBody = `
+            #### Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+            #### Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Validation 🤖\`${{ steps.validate.outcome }}\`
+            <details><summary>Validation Output</summary>
+
+            \`\`\`\n
+            ${{ steps.validate.outputs.terraform_validate }}
+            \`\`\`
+
+            </details>
+
+            #### Plan 📖\`${{ steps.plan.outcome }}\`
+            * **${terraformPlanPlanLine}**
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`\n
+            ${terraformPlanOutput}
+            \`\`\`
+
+            </details>
+
+            #### Apply 📖\`${{ steps.apply.outcome }}\`
+            * **${terraformApplyPlanLine}**
+            * **${terraformApplyApplyLine}**
+
+            <details><summary>Show Apply</summary>
+
+            \`\`\`\n
+            ${terraformApplyOutput}
+            \`\`\`
+
+            </details>
+
+            |                   |                                    |
+            |-------------------|------------------------------------|
+            | Pusher            | @${{ github.actor }}               |
+            | Action            |  ${{ github.event_name }}          |
+            | Working Directory |  ${{ env.tf_actions_working_dir }} |
+            | Workflow          |  ${{ github.workflow }}            |
+            | Last updated      |  ${ (new Date()).toUTCString() }   |
+            `;
+
+            // Call the script to write the comment
+            const script = require('./scripts/ghactions/comment-on-pr.js');
+            await script({github, context, core, commentTitle, commentBody});
