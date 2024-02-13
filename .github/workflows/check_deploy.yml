@@ -150,7 +150,7 @@ jobs:
           echo "EOF" >> "$GITHUB_OUTPUT"
         continue-on-error: true
 
-      # Temporarily disabled, probably should be moved to a deploy action with stricted checks
+      # Temporarily disabled, probably should be moved to a deploy action with stricter checks
       #- name: Terraform Apply
       #  id: apply
       #  run: |
