@@ -3,9 +3,6 @@
 # * https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
 # * https://docs.github.com/en/webhooks/webhook-events-and-payloads?actionType=synchronize#pull_request
 on:
-  push:
-    branches:
-      - main
   pull_request:
     types:
       - opened
