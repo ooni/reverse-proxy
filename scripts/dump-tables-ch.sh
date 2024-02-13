@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euxo pipefail
 # This is to be run manually on the clickhouse host to dump schemas and table dumps
 # You may want to make some tweaks to the dumping rules in order avoid dumping
 # too much data (eg. fastpath)
