@@ -71,3 +71,4 @@
     mode: '0640'
   notify:
     - restart clickhouse-server
+

@@ -12,3 +12,4 @@
       service:
         name: clickhouse-server
         state: restarted
+

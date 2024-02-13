@@ -9,3 +9,4 @@ ${hostname}
 %{ for hostname in clickhouse_servers ~}
 ${hostname}
 %{ endfor ~}
+

@@ -9,3 +9,4 @@ sudo mkdir -p /var/lib/clickhouse
 sudo mount ${device_name} /var/lib/clickhouse
 echo "${device_name} /var/lib/clickhouse ext4 defaults,nofail 0 2" | sudo tee -a /etc/fstab
 sudo chown -R clickhouse:clickhouse /var/lib/clickhouse
+

@@ -6,10 +6,10 @@ set -euxo pipefail
 
 # To run you can ovverride the INVENTORY_FILE and KNOWN_HOSTS_FILE variables
 # with a specific path
-# You can also force the update by settting it to true: 
+# You can also force the update by settting it to true:
 # export FORCE_UPDATE=true ./update_known_hosts.sh
 INVENTORY_FILE="${INVENTORY_FILE:-ansible/inventory.ini}"
-KNOWN_HOSTS_FILE="${KNOWN_HOSTS_FILE:-ansible/known_hosts}" 
+KNOWN_HOSTS_FILE="${KNOWN_HOSTS_FILE:-ansible/known_hosts}"
 FORCE_UPDATE="${FORCE_UPDATE:-false}"
 
 # fetch SSH host keys and update known_hosts
@@ -34,3 +34,4 @@ while read -r line; do
     fi
 # only look at the [all] group
 done < <(awk '/^\[/{p=0}/\[all\]/{p=1}p' $INVENTORY_FILE | grep -v '\[' | awk '{print $1}')
+
