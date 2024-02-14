@@ -14,3 +14,6 @@ output "elb_hostname" {
   value = aws_alb.main.dns_name
 }
 
+output "db_instance_endpoint" {
+  value = aws_db_instance.ooni_pg.endpoint
+}

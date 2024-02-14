@@ -34,11 +34,6 @@ variable "ooni_service_config" {
   description = "configuration for ooni services"
 }
 
-variable "instance_type" {
-  default     = "t2.micro"
-  description = "AWS instance type"
-}
-
 variable "asg_min" {
   description = "Min numbers of servers in ASG"
   default     = "1"

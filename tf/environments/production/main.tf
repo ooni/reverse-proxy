@@ -241,6 +241,54 @@ resource "aws_security_group" "clickhouse_sg" {
   tags = local.tags
 }
 
+### AWS RDS for PostgreSQL
+resource "aws_security_group" "pg_sg" {
+  description = "controls access to postgresql database"
+
+  vpc_id = aws_vpc.main.id
+  name   = "tf-ecs-lbsg"
+
+  ingress {
+    protocol    = "tcp"
+    from_port   = 5432
+    to_port     = 5342
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port = 0
+    to_port   = 0
+    protocol  = "-1"
+
+    cidr_blocks = [
+      "0.0.0.0/0",
+    ]
+  }
+
+  tags = local.tags
+}
+
+resource "aws_db_instance" "ooni_pg" {
+  allocated_storage       = "10"
+  max_allocated_storage   = "100"
+  storage_type            = "gp2"
+  engine                  = "postgres"
+  engine_version          = "16.1"
+  instance_class          = "db.t3.micro"
+  username                = "oonipg"
+  password                = ""
+  parameter_group_name    = "default.postgres16"
+  db_subnet_group_name    = aws_vpc.main.id
+  vpc_security_group_ids  = [aws_security_group.pg_sg.id]
+  skip_final_snapshot     = true
+  backup_retention_period = 7
+  publicly_accessible     = false
+
+  # Enable deletion protection in production
+  deletion_protection = true
+}
+
+
 ### Compute for ECS
 
 data "aws_ssm_parameter" "ecs_optimized_ami" {
@@ -252,7 +300,7 @@ resource "aws_launch_template" "app" {
 
   key_name      = var.key_name
   image_id      = jsondecode(data.aws_ssm_parameter.ecs_optimized_ami.value)["image_id"]
-  instance_type = var.instance_type
+  instance_type = "t2.micro"
 
   user_data = base64encode(templatefile("${path.module}/templates/ecs-setup.sh", {
     ecs_cluster_name = local.ecs_cluster_name,
@@ -286,7 +334,7 @@ resource "aws_launch_template" "app" {
   tag_specifications {
     resource_type = "instance"
     tags = {
-      Name : "ooni-tier1-production-backend"
+      Name = "ooni-tier1-production-backend"
     }
   }
 }
