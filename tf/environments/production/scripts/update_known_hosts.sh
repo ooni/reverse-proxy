@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euxo pipefail
+set -euo pipefail
 # This script updates the known_hosts file with the SSH host keys of all hosts
 # in the ansible inventory. It should be run after the hosts have been added to
 # the inventory as part of terraform provisioning process.
