@@ -297,7 +297,9 @@ resource "aws_db_instance" "ooni_pg" {
 
   # Enable deletion protection in production
   deletion_protection = true
-  apply_immediately   = true
+
+  # Comment this out in production
+  # apply_immediately = true
 }
 
 
