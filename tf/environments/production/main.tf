@@ -268,6 +268,15 @@ resource "aws_security_group" "pg_sg" {
   tags = local.tags
 }
 
+resource "aws_db_subnet_group" "main" {
+  name       = "ooni-main"
+  subnet_ids = aws_vpc.main.id
+
+  tags = {
+    Name = "Main"
+  }
+}
+
 resource "aws_db_instance" "ooni_pg" {
   allocated_storage       = "10"
   max_allocated_storage   = "100"
@@ -278,7 +287,7 @@ resource "aws_db_instance" "ooni_pg" {
   username                = "oonipg"
   password                = ""
   parameter_group_name    = "default.postgres16"
-  db_subnet_group_name    = aws_vpc.main.id
+  db_subnet_group_name    = aws_db_subnet_group.main.name
   vpc_security_group_ids  = [aws_security_group.pg_sg.id]
   skip_final_snapshot     = true
   backup_retention_period = 7
