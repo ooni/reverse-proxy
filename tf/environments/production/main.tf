@@ -284,6 +284,7 @@ resource "aws_db_instance" "ooni_pg" {
   engine                  = "postgres"
   engine_version          = "16.1"
   instance_class          = "db.t3.micro"
+  identifier              = "ooni-postgresql-tier0-prod"
   db_name                 = "oonipg"
   username                = "oonipg"
   password                = var.ooni_pg_password
@@ -295,7 +296,7 @@ resource "aws_db_instance" "ooni_pg" {
   publicly_accessible     = false
 
   # Enable deletion protection in production
-  deletion_protection = true
+  deletion_protection = false
 }
 
 
