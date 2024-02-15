@@ -270,7 +270,7 @@ resource "aws_security_group" "pg_sg" {
 
 resource "aws_db_subnet_group" "main" {
   name       = "ooni-main"
-  subnet_ids = aws_vpc.main.id
+  subnet_ids = [aws_subnet.main[0].id]
 
   tags = {
     Name = "Main"
