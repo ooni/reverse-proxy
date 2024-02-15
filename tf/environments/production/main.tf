@@ -632,6 +632,14 @@ resource "aws_route53_record" "clickhouse_dns" {
   records = [aws_eip.clickhouse_ip.public_ip]
 }
 
+resource "aws_route53_record" "postgres_dns" {
+  zone_id = local.dns_zone_ooni_nu
+  name    = "postgres.tier0.prod.ooni.nu"
+  type    = "A"
+  ttl     = "300"
+  records = [aws_db_instance.ooni_pg.endpoint]
+}
+
 resource "aws_route53_record" "alb_dns" {
   zone_id = local.dns_zone_ooni_io
   name    = "dataapi.prod.ooni.io"
