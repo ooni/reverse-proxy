@@ -293,7 +293,7 @@ resource "aws_db_instance" "ooni_pg" {
   vpc_security_group_ids  = [aws_security_group.pg_sg.id]
   skip_final_snapshot     = true
   backup_retention_period = 7
-  publicly_accessible     = false
+  publicly_accessible     = true
 
   # Enable deletion protection in production
   deletion_protection = true
