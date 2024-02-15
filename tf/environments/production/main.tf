@@ -279,6 +279,7 @@ resource "aws_db_subnet_group" "main" {
   }
 }
 
+### PostgreSQL database
 resource "aws_db_instance" "ooni_pg" {
   allocated_storage       = "10"
   max_allocated_storage   = "100"
