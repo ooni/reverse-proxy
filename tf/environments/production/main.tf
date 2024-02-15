@@ -296,7 +296,8 @@ resource "aws_db_instance" "ooni_pg" {
   publicly_accessible     = false
 
   # Enable deletion protection in production
-  deletion_protection = false
+  deletion_protection = true
+  apply_immediately   = true
 }
 
 
