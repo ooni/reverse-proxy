@@ -285,7 +285,6 @@ resource "aws_db_instance" "ooni_pg" {
   engine_version          = "16.1"
   instance_class          = "db.t3.micro"
   identifier              = "ooni-postgresql-tier0-prod"
-  db_name                 = "oonipg"
   username                = "oonipg"
   password                = var.ooni_pg_password
   parameter_group_name    = "default.postgres16"
