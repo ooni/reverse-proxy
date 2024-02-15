@@ -246,7 +246,7 @@ resource "aws_security_group" "pg_sg" {
   description = "controls access to postgresql database"
 
   vpc_id = aws_vpc.main.id
-  name   = "tf-ecs-lbsg"
+  name   = "ooni-tier0-prod-postgres-sg"
 
   ingress {
     protocol    = "tcp"
