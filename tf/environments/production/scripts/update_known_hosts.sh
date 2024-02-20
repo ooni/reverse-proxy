@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euxo pipefail
+set -euo pipefail
 # This script updates the known_hosts file with the SSH host keys of all hosts
 # in the ansible inventory. It should be run after the hosts have been added to
 # the inventory as part of terraform provisioning process.
@@ -19,7 +19,7 @@ update_known_hosts() {
         echo "Forcing update of known_hosts for $host"
     # Check if the host already exists in known_hosts
     elif grep -q -F "$host" "$KNOWN_HOSTS_FILE"; then
-        echo "$host already exists in known_hosts at `$KNOWN_HOSTS_FILE`"
+        echo "$host already exists in known_hosts at $KNOWN_HOSTS_FILE"
         return
     fi
     # store new keys

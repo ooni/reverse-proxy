@@ -80,7 +80,9 @@ provider "aws" {
 data "aws_availability_zones" "available" {}
 
 resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_hostnames = true
+  enable_dns_support   = true
 }
 
 resource "aws_subnet" "main" {
@@ -241,6 +243,69 @@ resource "aws_security_group" "clickhouse_sg" {
   tags = local.tags
 }
 
+### AWS RDS for PostgreSQL
+resource "aws_security_group" "pg_sg" {
+  description = "controls access to postgresql database"
+
+  vpc_id = aws_vpc.main.id
+  name   = "ooni-tier0-prod-postgres-sg"
+
+  ingress {
+    protocol    = "tcp"
+    from_port   = 5432
+    to_port     = 5432
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port = 0
+    to_port   = 0
+    protocol  = "-1"
+
+    cidr_blocks = [
+      "0.0.0.0/0",
+    ]
+  }
+
+  tags = local.tags
+}
+
+resource "aws_db_subnet_group" "main" {
+  name       = "ooni-main"
+  subnet_ids = [aws_subnet.main[0].id, aws_subnet.main[1].id]
+
+  tags = {
+    Name = "Main"
+  }
+}
+
+### PostgreSQL database
+resource "aws_db_instance" "ooni_pg" {
+  allocated_storage       = "10"
+  max_allocated_storage   = "100"
+  storage_type            = "gp2"
+  engine                  = "postgres"
+  engine_version          = "16.1"
+  instance_class          = "db.t3.micro"
+  identifier              = "ooni-postgresql-tier0-prod"
+  db_name                 = "oonipg"
+  username                = "oonipg"
+  password                = var.ooni_pg_password
+  parameter_group_name    = "default.postgres16"
+  db_subnet_group_name    = aws_db_subnet_group.main.name
+  vpc_security_group_ids  = [aws_security_group.pg_sg.id]
+  skip_final_snapshot     = true
+  backup_retention_period = 7
+  publicly_accessible     = true
+
+  # Enable deletion protection in production
+  deletion_protection = true
+
+  # Comment this out in production
+  # apply_immediately = true
+}
+
+
 ### Compute for ECS
 
 data "aws_ssm_parameter" "ecs_optimized_ami" {
@@ -252,7 +317,7 @@ resource "aws_launch_template" "app" {
 
   key_name      = var.key_name
   image_id      = jsondecode(data.aws_ssm_parameter.ecs_optimized_ami.value)["image_id"]
-  instance_type = var.instance_type
+  instance_type = "t2.micro"
 
   user_data = base64encode(templatefile("${path.module}/templates/ecs-setup.sh", {
     ecs_cluster_name = local.ecs_cluster_name,
@@ -286,7 +351,7 @@ resource "aws_launch_template" "app" {
   tag_specifications {
     resource_type = "instance"
     tags = {
-      Name : "ooni-tier1-production-backend"
+      Name = "ooni-tier1-production-backend"
     }
   }
 }
@@ -582,6 +647,14 @@ resource "aws_route53_record" "clickhouse_dns" {
   type    = "A"
   ttl     = "300"
   records = [aws_eip.clickhouse_ip.public_ip]
+}
+
+resource "aws_route53_record" "postgres_dns" {
+  zone_id = local.dns_zone_ooni_nu
+  name    = "postgres.tier0.prod.ooni.nu"
+  type    = "CNAME"
+  ttl     = "300"
+  records = [aws_db_instance.ooni_pg.address]
 }
 
 resource "aws_route53_record" "alb_dns" {

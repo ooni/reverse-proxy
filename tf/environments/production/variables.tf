@@ -8,6 +8,10 @@ variable "aws_secret_access_key" {
   sensitive = true
 }
 
+variable "ooni_pg_password" {
+  sensitive = true
+}
+
 variable "aws_region" {
   description = "The AWS region to create things in."
   default     = "eu-central-1"
@@ -32,11 +36,6 @@ variable "ooni_service_config" {
     dataapi_version = "latest"
   }
   description = "configuration for ooni services"
-}
-
-variable "instance_type" {
-  default     = "t2.micro"
-  description = "AWS instance type"
 }
 
 variable "asg_min" {
