@@ -351,10 +351,11 @@ resource "aws_ecs_task_definition" "dataapi" {
     container_name   = local.container_name,
     container_port   = 80,
     log_group_region = var.aws_region,
-    log_group_name   = aws_cloudwatch_log_group.app.name
+    log_group_name   = aws_cloudwatch_log_group.app.name,
   })
 
-  tags = local.tags
+  execution_role_arn = aws_iam_role.ecs_service.arn
+  tags               = local.tags
 }
 
 resource "aws_ecs_service" "dataapi" {
