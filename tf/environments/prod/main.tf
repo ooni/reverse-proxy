@@ -32,12 +32,13 @@ module "terraform_state_backend" {
 
 resource "local_file" "ansible_inventory" {
   depends_on = [
-    module.clickhouse.server_ip
+    # Commented out because module is disabled
+    # module.clickhouse.server_ip
   ]
 
   content = templatefile("${path.module}/templates/ansible-inventory.tpl", {
     clickhouse_servers = [
-      module.clickhouse.server_fqdm
+      # module.clickhouse.server_fqdm
     ]
   })
   filename = "${path.module}/ansible/inventory.ini"
