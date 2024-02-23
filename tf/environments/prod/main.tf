@@ -32,12 +32,12 @@ module "terraform_state_backend" {
 
 resource "local_file" "ansible_inventory" {
   depends_on = [
-    aws_route53_record.clickhouse_dns
+    module.clickhouse.server_ip
   ]
 
   content = templatefile("${path.module}/templates/ansible-inventory.tpl", {
     clickhouse_servers = [
-      aws_route53_record.clickhouse_dns.name
+      module.clickhouse.server_fqdm
     ]
   })
   filename = "${path.module}/ansible/inventory.ini"
@@ -111,138 +111,21 @@ resource "aws_route_table_association" "a" {
   route_table_id = aws_route_table.r.id
 }
 
+### OONI Modules
 
-### EC2
-
-locals {
-  clickhouse_hostname    = "clickhouse.tier1.prod.ooni.nu"
-  clickhouse_device_name = "/dev/sdf"
-}
-
-data "aws_ami" "debian_ami" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["debian-12-amd64-*"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  owners = ["136693071363"] # Debian's official AWS account ID
-}
-
-resource "aws_instance" "clickhouse_server_prod_tier1" {
-  ami           = data.aws_ami.debian_ami.id
-  instance_type = "r5.xlarge"
-  key_name      = var.key_name
-
-  associate_public_ip_address = true
-
-  subnet_id              = aws_subnet.main[0].id
-  vpc_security_group_ids = [aws_security_group.clickhouse_sg.id]
-
-  root_block_device {
-    volume_type = "gp3"
-    volume_size = 10
-  }
-
-  user_data = templatefile("${path.module}/templates/clickhouse-setup.sh", {
-    datadog_api_key = var.datadog_api_key,
-    hostname        = local.clickhouse_hostname,
-    device_name     = local.clickhouse_device_name
-  })
-
-  tags = merge(
-    local.tags,
-    {
-      Name = "clickhouse-${local.tags["Name"]}"
-    }
-  )
-}
-
-# We care to ensure this data volume is not destroyed across re-applies. To do
-# that you can either run first an apply with this commented out and then
-# specify the data volume below. You can also just create a data volume with the
-# appropriate tag manually and then edit the section below to indicate the name.
-# If you do that, you will then have to manually also run:
-# $ terraform state rm aws_ebs_volume.clickhouse_data_volume
-#resource "aws_ebs_volume" "clickhouse_data_volume" {
-#  availability_zone = aws_instance.clickhouse_server_prod_tier1.availability_zone
-#  size              = 1024  # 1 TB
-#  type              = "gp3" # SSD-based volume type, provides up to 16,000 IOPS and 1,000 MiB/s throughput
-#  tags = merge(local.tags, {
-#    Name = "ooni-tier1-prod-clickhouse-vol1"
-#  })
+# Temporarily disabled, since production OONI clickhouse is not on AWS atm
+#module "clickhouse" {
+#  source = "../../modules/clickhouse"
 #
-#  lifecycle {
-#    prevent_destroy = true
-#  }
+#  aws_vpc_id            = aws_vpc.main.id
+#  aws_subnet_id         = aws_subnet.main[0].id
+#  datadog_api_key       = var.datadog_api_key
+#  aws_access_key_id     = var.aws_access_key_id
+#  aws_secret_access_key = var.aws_secret_access_key
+#  key_name              = var.key_name
+#  admin_cidr_ingress    = var.admin_cidr_ingress
 #}
-
-data "aws_ebs_volume" "clickhouse_data_volume" {
-  most_recent = true
-
-  filter {
-    name   = "tag:Name"
-    values = ["ooni-tier1-prod-clickhouse-vol1"]
-  }
-
-  filter {
-    name   = "availability-zone"
-    values = [aws_instance.clickhouse_server_prod_tier1.availability_zone]
-  }
-}
-
-resource "aws_volume_attachment" "clickhouse_data_volume_attachment" {
-  device_name  = local.clickhouse_device_name
-  volume_id    = data.aws_ebs_volume.clickhouse_data_volume.id
-  instance_id  = aws_instance.clickhouse_server_prod_tier1.id
-  force_detach = true
-}
-
-resource "aws_eip" "clickhouse_ip" {
-  instance = aws_instance.clickhouse_server_prod_tier1.id
-
-  tags = local.tags
-}
-
-resource "aws_security_group" "clickhouse_sg" {
-  name        = "clickhouse_sg"
-  description = "Allow Clickhouse traffic"
-
-  vpc_id = aws_vpc.main.id
-
-  ingress {
-    protocol  = "tcp"
-    from_port = 22
-    to_port   = 22
-
-    cidr_blocks = [
-      var.admin_cidr_ingress,
-    ]
-  }
-
-  ingress {
-    from_port   = 8123
-    to_port     = 8123
-    protocol    = "tcp"
-    cidr_blocks = ["93.65.174.0/24"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = local.tags
-}
-
+#
 ### AWS RDS for PostgreSQL
 resource "aws_security_group" "pg_sg" {
   description = "controls access to postgresql database"
@@ -640,14 +523,6 @@ resource "aws_alb_listener" "front_end_https" {
 }
 
 # Route53
-
-resource "aws_route53_record" "clickhouse_dns" {
-  zone_id = local.dns_zone_ooni_nu
-  name    = local.clickhouse_hostname
-  type    = "A"
-  ttl     = "300"
-  records = [aws_eip.clickhouse_ip.public_ip]
-}
 
 resource "aws_route53_record" "postgres_dns" {
   zone_id = local.dns_zone_ooni_nu
