@@ -391,27 +391,7 @@ resource "aws_ecs_service" "dataapi" {
 
 ## IAM
 
-resource "aws_iam_role" "ecs_service" {
-  name = "ooni_ecs_role"
 
-  tags = local.tags
-
-  assume_role_policy = <<EOF
-{
-  "Version": "2008-10-17",
-  "Statement": [
-    {
-      "Sid": "",
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "ecs.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-EOF
-}
 
 resource "aws_iam_role" "ecs_task" {
   name = "ooni_ecs_task_role"
@@ -435,48 +415,40 @@ resource "aws_iam_role" "ecs_task" {
 EOF
 }
 
-resource "aws_iam_role_policy" "ecs_service" {
-  name = "ooni_ecs_policy"
-  role = aws_iam_role.ecs_service.name
+resource "aws_iam_role_policy" "ecs_task" {
+  name = "ooni_ecs_task_policy"
+  role = aws_iam_role.ecs_task.name
 
-  policy = <<EOF
+  policy = templatefile("${path.module}/templates/instance_profile_policy.json", {})
+}
+
+resource "aws_iam_role" "ecs_service" {
+  name = "ooni_ecs_role"
+
+  tags = local.tags
+
+  assume_role_policy = <<EOF
 {
-  "Version": "2012-10-17",
+  "Version": "2008-10-17",
   "Statement": [
     {
+      "Sid": "",
       "Effect": "Allow",
-      "Action": [
-        "ec2:Describe*",
-        "elasticloadbalancing:DeregisterInstancesFromLoadBalancer",
-        "elasticloadbalancing:DeregisterTargets",
-        "elasticloadbalancing:Describe*",
-        "elasticloadbalancing:RegisterInstancesWithLoadBalancer",
-        "elasticloadbalancing:RegisterTargets"
-      ],
-      "Resource": "*"
-    },
-    {
-        "Effect": "Allow",
-        "Action": [
-            "secretsmanager:GetResourcePolicy",
-            "secretsmanager:GetSecretValue",
-            "secretsmanager:DescribeSecret",
-            "secretsmanager:ListSecretVersionIds"
-        ],
-        "Resource": [
-            "arn:aws:secretsmanager:us-west-2:111122223333:secret:aes128-1a2b3c",
-            "arn:aws:secretsmanager:us-west-2:111122223333:secret:aes192-4D5e6F",
-            "arn:aws:secretsmanager:us-west-2:111122223333:secret:aes256-7g8H9i"
-        ]
-    },
-    {
-        "Effect": "Allow",
-        "Action": "secretsmanager:ListSecrets",
-        "Resource": "*"
+      "Principal": {
+        "Service": "ecs.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
     }
   ]
 }
 EOF
+}
+
+resource "aws_iam_role_policy" "ecs_service" {
+  name = "ooni_ecs_policy"
+  role = aws_iam_role.ecs_service.name
+
+  policy = templatefile("${path.module}/templates/instance_profile_policy.json", {})
 }
 
 resource "aws_iam_instance_profile" "app" {
@@ -509,13 +481,9 @@ EOF
 }
 
 resource "aws_iam_role_policy" "instance" {
-  name = "TfEcsOONIInstanceRole"
-  role = aws_iam_role.app_instance.name
-  policy = templatefile("${path.module}/templates/instance_profile_policy.json", {
-    app_log_group_arn = aws_cloudwatch_log_group.app.arn,
-    ecs_log_group_arn = aws_cloudwatch_log_group.ecs.arn
-  })
-
+  name   = "TfEcsOONIInstanceRole"
+  role   = aws_iam_role.app_instance.name
+  policy = templatefile("${path.module}/templates/instance_profile_policy.json", {})
 }
 
 ## ALB
