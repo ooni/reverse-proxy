@@ -354,7 +354,7 @@ resource "aws_ecs_task_definition" "dataapi" {
     log_group_name   = aws_cloudwatch_log_group.app.name,
   })
 
-  execution_role_arn = aws_iam_role.ecs_service.arn
+  execution_role_arn = aws_iam_role.ecs_task.arn
   tags               = local.tags
 }
 
@@ -405,6 +405,28 @@ resource "aws_iam_role" "ecs_service" {
       "Effect": "Allow",
       "Principal": {
         "Service": "ecs.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role" "ecs_task" {
+  name = "ooni_ecs_task_role"
+
+  tags = local.tags
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ecs-tasks.amazonaws.com"
       },
       "Action": "sts:AssumeRole"
     }
