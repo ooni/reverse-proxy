@@ -454,6 +454,25 @@ resource "aws_iam_role_policy" "ecs_service" {
         "elasticloadbalancing:RegisterTargets"
       ],
       "Resource": "*"
+    },
+    {
+        "Effect": "Allow",
+        "Action": [
+            "secretsmanager:GetResourcePolicy",
+            "secretsmanager:GetSecretValue",
+            "secretsmanager:DescribeSecret",
+            "secretsmanager:ListSecretVersionIds"
+        ],
+        "Resource": [
+            "arn:aws:secretsmanager:us-west-2:111122223333:secret:aes128-1a2b3c",
+            "arn:aws:secretsmanager:us-west-2:111122223333:secret:aes192-4D5e6F",
+            "arn:aws:secretsmanager:us-west-2:111122223333:secret:aes256-7g8H9i"
+        ]
+    },
+    {
+        "Effect": "Allow",
+        "Action": "secretsmanager:ListSecrets",
+        "Resource": "*"
     }
   ]
 }
