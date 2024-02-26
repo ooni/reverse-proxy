@@ -13,7 +13,7 @@
     ],
     "secrets": [
         {
-            "name": "POSTGRES_URL",
+            "name": "POSTGRESQL_URL",
             "valueFrom": "arn:aws:secretsmanager:eu-central-1:082866812839:secret:OONI_PROD_POSTGRES_URL-IQyNqP"
         },
         {
