@@ -351,10 +351,11 @@ resource "aws_ecs_task_definition" "dataapi" {
     container_name   = local.container_name,
     container_port   = 80,
     log_group_region = var.aws_region,
-    log_group_name   = aws_cloudwatch_log_group.app.name
+    log_group_name   = aws_cloudwatch_log_group.app.name,
   })
 
-  tags = local.tags
+  execution_role_arn = aws_iam_role.ecs_task.arn
+  tags               = local.tags
 }
 
 resource "aws_ecs_service" "dataapi" {
@@ -390,6 +391,37 @@ resource "aws_ecs_service" "dataapi" {
 
 ## IAM
 
+
+
+resource "aws_iam_role" "ecs_task" {
+  name = "ooni_ecs_task_role"
+
+  tags = local.tags
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ecs-tasks.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "ecs_task" {
+  name = "ooni_ecs_task_policy"
+  role = aws_iam_role.ecs_task.name
+
+  policy = templatefile("${path.module}/templates/instance_profile_policy.json", {})
+}
+
 resource "aws_iam_role" "ecs_service" {
   name = "ooni_ecs_role"
 
@@ -416,25 +448,7 @@ resource "aws_iam_role_policy" "ecs_service" {
   name = "ooni_ecs_policy"
   role = aws_iam_role.ecs_service.name
 
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "ec2:Describe*",
-        "elasticloadbalancing:DeregisterInstancesFromLoadBalancer",
-        "elasticloadbalancing:DeregisterTargets",
-        "elasticloadbalancing:Describe*",
-        "elasticloadbalancing:RegisterInstancesWithLoadBalancer",
-        "elasticloadbalancing:RegisterTargets"
-      ],
-      "Resource": "*"
-    }
-  ]
-}
-EOF
+  policy = templatefile("${path.module}/templates/instance_profile_policy.json", {})
 }
 
 resource "aws_iam_instance_profile" "app" {
@@ -467,13 +481,9 @@ EOF
 }
 
 resource "aws_iam_role_policy" "instance" {
-  name = "TfEcsOONIInstanceRole"
-  role = aws_iam_role.app_instance.name
-  policy = templatefile("${path.module}/templates/instance_profile_policy.json", {
-    app_log_group_arn = aws_cloudwatch_log_group.app.arn,
-    ecs_log_group_arn = aws_cloudwatch_log_group.ecs.arn
-  })
-
+  name   = "TfEcsOONIInstanceRole"
+  role   = aws_iam_role.app_instance.name
+  policy = templatefile("${path.module}/templates/instance_profile_policy.json", {})
 }
 
 ## ALB

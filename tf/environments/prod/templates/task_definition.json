@@ -11,6 +11,16 @@
         "hostPort": 0
       }
     ],
+    "secrets": [
+        {
+            "name": "POSTGRESQL_URL",
+            "valueFrom": "arn:aws:secretsmanager:eu-central-1:082866812839:secret:OONI_PROD_POSTGRES_URL-IQyNqP"
+        },
+        {
+            "name": "JWT_ENCRYPTION_KEY",
+            "valueFrom": "arn:aws:secretsmanager:eu-central-1:082866812839:secret:OONI_PROD_JWT_ENCRYPTION_KEY-euqdD9"
+        }
+    ],
     "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
