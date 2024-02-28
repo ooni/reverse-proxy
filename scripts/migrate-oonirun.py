@@ -30,6 +30,18 @@ def dump_oonirun_links_clickhouse():
     for row in rows:
         d = dict(zip(col_names, row))
         desc = json.loads(d["descriptor"])
+        min_len_keys = [
+            "short_description",
+            "description",
+            "name",
+        ]
+        for k in min_len_keys:
+            if not desc.get(k) or len(desc.get(k)) < 2:
+                desc[k] = "this has been autopopulated"
+
+        if not desc["author"] or len(desc["author"]) < 2:
+            desc["author"] = "unknown-author"
+
         row = {
             "oonirun_link_id": d["ooni_run_link_id"],
             "date_created": d["descriptor_creation_time"],
@@ -37,13 +49,14 @@ def dump_oonirun_links_clickhouse():
             "creator_account_id": d["creator_account_id"],
             "revision": None,
             "expiration_date": d["descriptor_creation_time"] + timedelta(days=6 * 30),
-            "name": desc["name"],
+            "name": desc["name"][:50],
             "name_intl": None,
-            "short_description": desc["short_description"],
+            "short_description": desc["short_description"][:200],
             "short_description_intl": None,
             "description": desc["description"],
             "description_intl": None,
             "icon": desc["icon"],
+            "author": desc["author"],
             "color": desc.get("color"),
             "nettests": json.dumps(desc["nettests"])
         }
@@ -52,8 +65,12 @@ def dump_oonirun_links_clickhouse():
     oonirun_links_with_revision = []
     for runlink_id, rows in rows_by_id.items():
         revision = 1
+        first_created = None
         for oonirun_link in sorted(rows, key=lambda r: r["date_created"]):
             oonirun_link["revision"] = revision
+            if first_created is None:
+                first_created = oonirun_link["date_created"]
+            oonirun_link["date_created"] = first_created
             oonirun_links_with_revision.append(oonirun_link)
             revision += 1
     return oonirun_links_with_revision
@@ -92,4 +109,7 @@ def insert_run_links_postgresql(data_to_insert):
         cur.close()
         conn.close()
 
-insert_run_links_postgresql(dump_oonirun_links_clickhouse())
+valid_links = dump_oonirun_links_clickhouse()
+print(len(valid_links))
+insert_run_links_postgresql(valid_links)
+#pprint(valid_links)
