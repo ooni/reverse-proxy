@@ -120,7 +120,6 @@ resource "aws_route_table_association" "a" {
 #
 #  aws_vpc_id            = aws_vpc.main.id
 #  aws_subnet_id         = aws_subnet.main[0].id
-#  datadog_api_key       = var.datadog_api_key
 #  aws_access_key_id     = var.aws_access_key_id
 #  aws_secret_access_key = var.aws_secret_access_key
 #  key_name              = var.key_name
@@ -205,8 +204,7 @@ resource "aws_launch_template" "app" {
 
   user_data = base64encode(templatefile("${path.module}/templates/ecs-setup.sh", {
     ecs_cluster_name = local.ecs_cluster_name,
-    ecs_cluster_tags = local.tags,
-    datadog_api_key  = var.datadog_api_key,
+    ecs_cluster_tags = local.tags
   }))
 
   update_default_version               = true

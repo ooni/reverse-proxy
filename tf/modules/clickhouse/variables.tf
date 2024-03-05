@@ -1,6 +1,3 @@
-variable "datadog_api_key" {
-  sensitive = true
-}
 variable "aws_access_key_id" {
   sensitive = true
 }
