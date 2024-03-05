@@ -51,7 +51,6 @@ resource "aws_instance" "clickhouse_server_prod_tier1" {
   }
 
   user_data = templatefile("${path.module}/templates/clickhouse-setup.sh", {
-    datadog_api_key = var.datadog_api_key,
     hostname        = local.clickhouse_hostname,
     device_name     = local.clickhouse_device_name
   })

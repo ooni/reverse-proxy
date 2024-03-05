@@ -1,9 +1,6 @@
 #!/bin/bash
 sudo hostnamectl set-hostname --static ${hostname}
 
-# Install datadog agent
-DD_API_KEY=${datadog_api_key} DD_SITE="datadoghq.eu" bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
-
 # This only needs to be run the first time to initialize the volume
 # sudo mkfs.ext4 -q -F ${device_name}
 sudo mkdir -p /var/lib/clickhouse
