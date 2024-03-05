@@ -347,7 +347,8 @@ locals {
 resource "aws_ecs_task_definition" "dataapi" {
   family = "ooni-dataapi-production-td"
   container_definitions = templatefile("${path.module}/templates/task_definition.json", {
-    image_url        = "ooni/dataapi:${var.ooni_service_config.dataapi_version}",
+    # Image URL is updated via code build and code pipeline
+    image_url        = "ooni/dataapi:latest",
     container_name   = local.container_name,
     container_port   = 80,
     log_group_region = var.aws_region,
@@ -380,11 +381,6 @@ resource "aws_ecs_service" "dataapi" {
   ]
 
   force_new_deployment = true
-
-  triggers = {
-    # see: https://github.com/hashicorp/terraform-provider-aws/issues/28070#issuecomment-1824780763
-    redeployment = plantimestamp()
-  }
 
   tags = local.tags
 }
