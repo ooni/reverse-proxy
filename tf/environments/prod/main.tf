@@ -378,14 +378,18 @@ resource "aws_ecs_service" "dataapi" {
     aws_alb_listener.front_end,
   ]
 
+  lifecycle {
+    ignore_changes = [
+      task_definition,
+    ]
+  }
+
   force_new_deployment = true
 
   tags = local.tags
 }
 
 ## IAM
-
-
 
 resource "aws_iam_role" "ecs_task" {
   name = "ooni_ecs_task_role"
