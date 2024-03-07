@@ -199,7 +199,7 @@ resource "aws_security_group" "ooni_nginx_sg" {
   description = "security group for OONI Nginx. Allow port 80 and 22"
 
   vpc_id = aws_vpc.main.id
-  name   = "tf-ecs-lbsg"
+  name   = "ooni-tier0-prod-nginx-sg"
 
   ingress {
     protocol    = "tcp"
