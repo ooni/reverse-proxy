@@ -710,6 +710,9 @@ resource "aws_route53_record" "oonidataapi_cert_validation" {
 resource "aws_acm_certificate_validation" "oonidataapi" {
   certificate_arn         = aws_acm_certificate.oonidataapi.arn
   validation_record_fqdns = [for record in aws_route53_record.oonidataapi_cert_validation : record.fqdn]
+  depends_on = [
+    aws_route53_record.ooniapi_alb_dns
+  ]
 }
 
 resource "aws_acm_certificate" "ooniapi" {
@@ -717,6 +720,7 @@ resource "aws_acm_certificate" "ooniapi" {
   validation_method = "DNS"
 
   tags = local.tags
+
 
   lifecycle {
     create_before_destroy = true
