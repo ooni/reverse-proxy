@@ -10,8 +10,8 @@ output "asg_name" {
   value = aws_autoscaling_group.app.id
 }
 
-output "elb_hostname" {
-  value = aws_alb.main.dns_name
+output "oonidataapi_alb_hostname" {
+  value = aws_alb.oonidataapi.dns_name
 }
 
 output "db_instance_endpoint" {

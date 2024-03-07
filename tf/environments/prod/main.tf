@@ -189,6 +189,49 @@ resource "aws_db_instance" "ooni_pg" {
 }
 
 
+## EC2
+
+data "aws_ssm_parameter" "ubuntu_22_ami" {
+  name = "/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id"
+}
+
+resource "aws_launch_template" "ooni_nginx" {
+  name_prefix   = "nginx-template-"
+  image_id      = jsondecode(data.aws_ssm_parameter.ecs_optimized_ami.value)["image_id"]
+  instance_type = "t2.micro"
+  key_name      = var.key_name
+
+  user_data = filebase64("${path.module}/templates/install-nginx-ubuntu.sh")
+
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name = "ooni-tier0-production-nginx"
+    }
+  }
+}
+
+resource "aws_autoscaling_group" "ooni_backend_proxy" {
+  launch_template {
+    id      = aws_launch_template.ooni_nginx.id
+    version = "$Latest"
+  }
+
+  name_prefix = "ooni-tier0-prod-backend-proxy-asg"
+
+  min_size            = 1
+  max_size            = 2
+  desired_capacity    = 1
+  vpc_zone_identifier = aws_subnet.main[*].id
+
+  instance_refresh {
+    strategy = "Rolling"
+    preferences {
+      min_healthy_percentage = 50
+    }
+  }
+}
+
 ### Compute for ECS
 
 data "aws_ssm_parameter" "ecs_optimized_ami" {
@@ -342,7 +385,7 @@ locals {
   container_name = "ooni_dataapi"
 }
 
-resource "aws_ecs_task_definition" "dataapi" {
+resource "aws_ecs_task_definition" "oonidataapi" {
   family = "ooni-dataapi-production-td"
   container_definitions = templatefile("${path.module}/templates/task_definition.json", {
     # Image URL is updated via code build and code pipeline
@@ -357,10 +400,10 @@ resource "aws_ecs_task_definition" "dataapi" {
   tags               = local.tags
 }
 
-resource "aws_ecs_service" "dataapi" {
+resource "aws_ecs_service" "oonidataapi" {
   name            = "ooni-ecs-dataapi-production"
   cluster         = aws_ecs_cluster.main.id
-  task_definition = aws_ecs_task_definition.dataapi.arn
+  task_definition = aws_ecs_task_definition.oonidataapi.arn
   desired_count   = var.service_desired
   iam_role        = aws_iam_role.ecs_service.name
 
@@ -368,7 +411,7 @@ resource "aws_ecs_service" "dataapi" {
   deployment_maximum_percent         = 100
 
   load_balancer {
-    target_group_arn = aws_alb_target_group.dataapi.id
+    target_group_arn = aws_alb_target_group.oonidataapi.id
     container_name   = local.container_name
     container_port   = "80"
   }
@@ -486,7 +529,7 @@ resource "aws_iam_role_policy" "instance" {
 
 ## ALB
 
-resource "aws_alb_target_group" "dataapi" {
+resource "aws_alb_target_group" "oonidataapi" {
   name     = "ooni-ecs-dataapi"
   port     = 80
   protocol = "HTTP"
@@ -495,7 +538,7 @@ resource "aws_alb_target_group" "dataapi" {
   tags = local.tags
 }
 
-resource "aws_alb" "main" {
+resource "aws_alb" "oonidataapi" {
   name            = "ooni-alb-ecs"
   subnets         = aws_subnet.main[*].id
   security_groups = [aws_security_group.lb_sg.id]
@@ -504,12 +547,12 @@ resource "aws_alb" "main" {
 }
 
 resource "aws_alb_listener" "front_end" {
-  load_balancer_arn = aws_alb.main.id
+  load_balancer_arn = aws_alb.oonidataapi.id
   port              = "80"
   protocol          = "HTTP"
 
   default_action {
-    target_group_arn = aws_alb_target_group.dataapi.id
+    target_group_arn = aws_alb_target_group.oonidataapi.id
     type             = "forward"
   }
 
@@ -517,19 +560,88 @@ resource "aws_alb_listener" "front_end" {
 }
 
 resource "aws_alb_listener" "front_end_https" {
-  load_balancer_arn = aws_alb.main.id
+  load_balancer_arn = aws_alb.oonidataapi.id
   port              = "443"
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = aws_acm_certificate_validation.dataapi.certificate_arn
+  certificate_arn   = aws_acm_certificate_validation.oonidataapi.certificate_arn
 
   default_action {
-    target_group_arn = aws_alb_target_group.dataapi.id
+    target_group_arn = aws_alb_target_group.oonidataapi.id
     type             = "forward"
   }
 
   tags = local.tags
 }
+
+### OONI API ALB
+
+resource "aws_alb" "ooniapi" {
+  name            = "ooni-tier0-api"
+  subnets         = aws_subnet.main[*].id
+  security_groups = [aws_security_group.lb_sg.id]
+
+  tags = local.tags
+}
+
+resource "aws_alb_target_group" "ooni_backend_proxy" {
+  name     = "ooni-tier0-backend-proxy-tg"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.main.id
+
+  tags = local.tags
+}
+
+resource "aws_lb_target_group_attachment" "ooni_backend_proxy" {
+  target_group_arn = aws_alb_target_group.ooni_backend_proxy.arn
+  target_id        = aws_autoscaling_group.ooni_backend_proxy.id
+  port             = 80
+}
+
+resource "aws_alb_listener" "ooniapi_listener_http" {
+  load_balancer_arn = aws_alb.ooniapi.id
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    target_group_arn = aws_alb_target_group.ooni_backend_proxy.id
+    type             = "forward"
+  }
+
+  tags = local.tags
+}
+
+resource "aws_alb_listener" "ooniapi_listener_https" {
+  load_balancer_arn = aws_alb.ooniapi.id
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = aws_acm_certificate_validation.ooniapi.certificate_arn
+
+  default_action {
+    target_group_arn = aws_alb_target_group.ooni_backend_proxy.id
+    type             = "forward"
+  }
+
+  tags = local.tags
+}
+
+# resource "aws_lb_listener_rule" "rule" {
+#   listener_arn = aws_lb_listener.ooniapi_listener_https.arn
+#   priority     = 100
+
+#   action {
+#     type             = "forward"
+#     target_group_arn = aws_lb_target_group.tg.arn
+#   }
+
+#   condition {
+#     path_pattern {
+#       values = ["/api/v1/*"]
+#     }
+#   }
+# }
 
 # Route53
 
@@ -547,15 +659,27 @@ resource "aws_route53_record" "alb_dns" {
   type    = "A"
 
   alias {
-    name                   = aws_alb.main.dns_name
-    zone_id                = aws_alb.main.zone_id
+    name                   = aws_alb.oonidataapi.dns_name
+    zone_id                = aws_alb.oonidataapi.zone_id
+    evaluate_target_health = true
+  }
+}
+
+resource "aws_route53_record" "ooniapi_alb_dns" {
+  zone_id = local.dns_zone_ooni_io
+  name    = "api.prod.ooni.io"
+  type    = "A"
+
+  alias {
+    name                   = aws_alb.ooniapi.dns_name
+    zone_id                = aws_alb.ooniapi.zone_id
     evaluate_target_health = true
   }
 }
 
 # ACM TLS
 
-resource "aws_acm_certificate" "dataapi" {
+resource "aws_acm_certificate" "oonidataapi" {
   domain_name       = "dataapi.prod.ooni.io"
   validation_method = "DNS"
 
@@ -566,9 +690,9 @@ resource "aws_acm_certificate" "dataapi" {
   }
 }
 
-resource "aws_route53_record" "dataapi_cert_validation" {
+resource "aws_route53_record" "oonidataapi_cert_validation" {
   for_each = {
-    for dvo in aws_acm_certificate.dataapi.domain_validation_options : dvo.domain_name => {
+    for dvo in aws_acm_certificate.oonidataapi.domain_validation_options : dvo.domain_name => {
       name   = dvo.resource_record_name
       record = dvo.resource_record_value
       type   = dvo.resource_record_type
@@ -583,10 +707,44 @@ resource "aws_route53_record" "dataapi_cert_validation" {
   zone_id         = local.dns_zone_ooni_io
 }
 
-resource "aws_acm_certificate_validation" "dataapi" {
-  certificate_arn         = aws_acm_certificate.dataapi.arn
-  validation_record_fqdns = [for record in aws_route53_record.dataapi_cert_validation : record.fqdn]
+resource "aws_acm_certificate_validation" "oonidataapi" {
+  certificate_arn         = aws_acm_certificate.oonidataapi.arn
+  validation_record_fqdns = [for record in aws_route53_record.oonidataapi_cert_validation : record.fqdn]
 }
+
+resource "aws_acm_certificate" "ooniapi" {
+  domain_name       = "api.prod.ooni.io"
+  validation_method = "DNS"
+
+  tags = local.tags
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_route53_record" "ooniapi_cert_validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.ooniapi.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = local.dns_zone_ooni_io
+}
+
+resource "aws_acm_certificate_validation" "ooniapi" {
+  certificate_arn         = aws_acm_certificate.ooniapi.arn
+  validation_record_fqdns = [for record in aws_route53_record.oonidataapi_cert_validation : record.fqdn]
+}
+
 
 ## CloudWatch Logs
 
