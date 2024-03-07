@@ -530,7 +530,7 @@ resource "aws_iam_role_policy" "instance" {
 ## ALB
 
 resource "aws_alb_target_group" "oonidataapi" {
-  name     = "ooni-ecs-dataapi"
+  name     = "ooni-tier1-oonidataapi"
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.main.id
@@ -539,7 +539,7 @@ resource "aws_alb_target_group" "oonidataapi" {
 }
 
 resource "aws_alb" "oonidataapi" {
-  name            = "ooni-alb-ecs"
+  name            = "ooni-tier1-oonidataapi"
   subnets         = aws_subnet.main[*].id
   security_groups = [aws_security_group.lb_sg.id]
 
@@ -585,7 +585,7 @@ resource "aws_alb" "ooniapi" {
 }
 
 resource "aws_alb_target_group" "ooni_backend_proxy" {
-  name     = "ooni-tier0-backend-proxy-tg"
+  name     = "ooni-tier0-backend-proxy"
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.main.id

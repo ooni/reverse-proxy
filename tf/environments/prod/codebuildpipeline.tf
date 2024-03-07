@@ -74,7 +74,7 @@ POLICY
     "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
   ]
   max_session_duration = "3600"
-  name                 = "codebuild-ooni-backend-service-role"
+  name                 = "codebuild-oonibackend"
   path                 = "/service-role/"
 }
 
