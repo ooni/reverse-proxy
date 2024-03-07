@@ -203,6 +203,10 @@ resource "aws_launch_template" "ooni_nginx" {
 
   user_data = filebase64("${path.module}/templates/setup-backend-proxy.sh")
 
+  lifecycle {
+    create_before_destroy = true
+  }
+
   tag_specifications {
     resource_type = "instance"
     tags = {
@@ -215,6 +219,10 @@ resource "aws_autoscaling_group" "oonibackend_proxy" {
   launch_template {
     id      = aws_launch_template.ooni_nginx.id
     version = "$Latest"
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 
   name_prefix = "ooni-tier0-prod-oldbackend-proxy"
