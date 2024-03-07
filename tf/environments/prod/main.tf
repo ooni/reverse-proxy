@@ -195,6 +195,40 @@ data "aws_ssm_parameter" "ubuntu_22_ami" {
   name = "/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id"
 }
 
+resource "aws_security_group" "ooni_nginx_sg" {
+  description = "security group for OONI Nginx. Allow port 80 and 22"
+
+  vpc_id = aws_vpc.main.id
+  name   = "tf-ecs-lbsg"
+
+  ingress {
+    protocol    = "tcp"
+    from_port   = 80
+    to_port     = 80
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    protocol    = "tcp"
+    from_port   = 22
+    to_port     = 22
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port = 0
+    to_port   = 0
+    protocol  = "-1"
+
+    cidr_blocks = [
+      "0.0.0.0/0",
+    ]
+  }
+
+  tags = local.tags
+}
+
+
 resource "aws_launch_template" "ooni_nginx" {
   name_prefix   = "nginx-template-"
   image_id      = jsondecode(data.aws_ssm_parameter.ecs_optimized_ami.value)["image_id"]
@@ -208,9 +242,10 @@ resource "aws_launch_template" "ooni_nginx" {
   }
 
   network_interfaces {
-    delete_on_termination = true
+    delete_on_termination       = true
+    associate_public_ip_address = true
     security_groups = [
-      aws_security_group.lb_sg.id,
+      aws_security_group.ooni_nginx_sg.id,
     ]
   }
 
