@@ -585,7 +585,7 @@ resource "aws_alb" "ooniapi" {
 }
 
 resource "aws_alb_target_group" "ooni_backend_proxy" {
-  name     = "ooni-tier0-backend-proxy"
+  name     = "ooni-tier0-oldbackend-proxy"
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.main.id
