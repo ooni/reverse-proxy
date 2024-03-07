@@ -207,6 +207,13 @@ resource "aws_launch_template" "ooni_nginx" {
     create_before_destroy = true
   }
 
+  network_interfaces {
+    delete_on_termination = true
+    security_groups = [
+      aws_security_group.lb_sg.id,
+    ]
+  }
+
   tag_specifications {
     resource_type = "instance"
     tags = {
