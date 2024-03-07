@@ -201,7 +201,7 @@ resource "aws_launch_template" "ooni_nginx" {
   instance_type = "t2.micro"
   key_name      = var.key_name
 
-  user_data = filebase64("${path.module}/templates/install-nginx-ubuntu.sh")
+  user_data = filebase64("${path.module}/templates/setup-backend-proxy.sh")
 
   tag_specifications {
     resource_type = "instance"
