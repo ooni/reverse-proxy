@@ -211,13 +211,13 @@ resource "aws_launch_template" "ooni_nginx" {
   }
 }
 
-resource "aws_autoscaling_group" "ooni_backend_proxy" {
+resource "aws_autoscaling_group" "oonibackend_proxy" {
   launch_template {
     id      = aws_launch_template.ooni_nginx.id
     version = "$Latest"
   }
 
-  name_prefix = "ooni-tier0-prod-backend-proxy-asg"
+  name_prefix = "ooni-tier0-prod-oldbackend-proxy"
 
   min_size            = 1
   max_size            = 2
@@ -584,7 +584,7 @@ resource "aws_alb" "ooniapi" {
   tags = local.tags
 }
 
-resource "aws_alb_target_group" "ooni_backend_proxy" {
+resource "aws_alb_target_group" "oonibackend_proxy" {
   name     = "ooni-tier0-oldbackend-proxy"
   port     = 80
   protocol = "HTTP"
@@ -593,10 +593,9 @@ resource "aws_alb_target_group" "ooni_backend_proxy" {
   tags = local.tags
 }
 
-resource "aws_lb_target_group_attachment" "ooni_backend_proxy" {
-  target_group_arn = aws_alb_target_group.ooni_backend_proxy.arn
-  target_id        = aws_autoscaling_group.ooni_backend_proxy.id
-  port             = 80
+resource "aws_autoscaling_attachment" "oonibackend_proxy" {
+  autoscaling_group_name = aws_autoscaling_group.oonibackend_proxy.id
+  lb_target_group_arn    = aws_alb_target_group.oonibackend_proxy.arn
 }
 
 resource "aws_alb_listener" "ooniapi_listener_http" {
@@ -605,7 +604,7 @@ resource "aws_alb_listener" "ooniapi_listener_http" {
   protocol          = "HTTP"
 
   default_action {
-    target_group_arn = aws_alb_target_group.ooni_backend_proxy.id
+    target_group_arn = aws_alb_target_group.oonibackend_proxy.id
     type             = "forward"
   }
 
@@ -620,7 +619,7 @@ resource "aws_alb_listener" "ooniapi_listener_https" {
   certificate_arn   = aws_acm_certificate_validation.ooniapi.certificate_arn
 
   default_action {
-    target_group_arn = aws_alb_target_group.ooni_backend_proxy.id
+    target_group_arn = aws_alb_target_group.oonibackend_proxy.id
     type             = "forward"
   }
 
@@ -746,7 +745,7 @@ resource "aws_route53_record" "ooniapi_cert_validation" {
 
 resource "aws_acm_certificate_validation" "ooniapi" {
   certificate_arn         = aws_acm_certificate.ooniapi.arn
-  validation_record_fqdns = [for record in aws_route53_record.oonidataapi_cert_validation : record.fqdn]
+  validation_record_fqdns = [for record in aws_route53_record.ooniapi_cert_validation : record.fqdn]
 }
 
 

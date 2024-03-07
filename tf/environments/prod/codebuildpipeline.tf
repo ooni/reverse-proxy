@@ -350,6 +350,10 @@ resource "aws_codepipeline" "oonidataapi" {
     type     = "S3"
   }
 
+  depends_on = [
+    aws_codebuild_project.oonidataapi
+  ]
+
   stage {
     action {
       category = "Source"
