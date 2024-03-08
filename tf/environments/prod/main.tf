@@ -229,7 +229,7 @@ resource "aws_security_group" "ooni_nginx_sg" {
 }
 
 
-resource "aws_launch_template" "ooni_nginx" {
+resource "aws_launch_template" "ooni_backendproxy" {
   name_prefix   = "nginx-template-"
   image_id      = data.aws_ssm_parameter.ubuntu_22_ami.value
   instance_type = "t2.micro"
@@ -252,14 +252,14 @@ resource "aws_launch_template" "ooni_nginx" {
   tag_specifications {
     resource_type = "instance"
     tags = {
-      Name = "ooni-tier0-production-nginx"
+      Name = "ooni-tier0-prod-backendproxy"
     }
   }
 }
 
 resource "aws_autoscaling_group" "oonibackend_proxy" {
   launch_template {
-    id      = aws_launch_template.ooni_nginx.id
+    id      = aws_launch_template.ooni_backendproxy.id
     version = "$Latest"
   }
 
