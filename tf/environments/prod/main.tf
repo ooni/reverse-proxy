@@ -230,7 +230,7 @@ resource "aws_security_group" "ooni_nginx_sg" {
 
 
 resource "aws_launch_template" "ooni_backendproxy" {
-  name_prefix   = "nginx-template-"
+  name_prefix   = "ooni-backendproxy-nginx-template-"
   image_id      = data.aws_ssm_parameter.ubuntu_22_ami.value
   instance_type = "t2.micro"
   key_name      = var.key_name
