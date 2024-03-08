@@ -231,7 +231,7 @@ resource "aws_security_group" "ooni_nginx_sg" {
 
 resource "aws_launch_template" "ooni_nginx" {
   name_prefix   = "nginx-template-"
-  image_id      = jsondecode(data.aws_ssm_parameter.ecs_optimized_ami.value)["image_id"]
+  image_id      = jsondecode(data.aws_ssm_parameter.ubuntu_22_ami.value)["image_id"]
   instance_type = "t2.micro"
   key_name      = var.key_name
 
