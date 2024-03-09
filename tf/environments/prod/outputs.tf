@@ -15,5 +15,5 @@ output "oonidataapi_alb_hostname" {
 }
 
 output "db_instance_endpoint" {
-  value = aws_db_instance.ooni_pg.endpoint
+  value = module.postgresql.endpoint
 }

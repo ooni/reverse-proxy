@@ -134,67 +134,34 @@ moved {
 #}
 
 ### AWS RDS for PostgreSQL
-resource "aws_security_group" "pg_sg" {
-  description = "controls access to postgresql database"
 
-  vpc_id = module.network.vpc_id
-  name   = "ooni-tier0-prod-postgres-sg"
+module "postgresql" {
+  source = "../../modules/postgresql"
 
-  ingress {
-    protocol    = "tcp"
-    from_port   = 5432
-    to_port     = 5432
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-
-    cidr_blocks = [
-      "0.0.0.0/0",
-    ]
-  }
-
-  tags = local.tags
+  name                  = "ooni-tier0-prod-postgres"
+  aws_access_key_id     = var.aws_access_key_id
+  aws_secret_access_key = var.aws_secret_access_key
+  aws_region            = var.aws_region
+  vpc_id                = module.network.vpc_id
+  subnet_ids            = [module.network.vpc_subnet[0].id, module.network.vpc_subnet[1].id]
+  pg_password           = var.ooni_pg_password
+  tags                  = local.tags
 }
 
-resource "aws_db_subnet_group" "main" {
-  name       = "ooni-main"
-  subnet_ids = [module.network.vpc_subnet[0].id, module.network.vpc_subnet[1].id]
-
-  tags = {
-    Name = "Main"
-  }
+moved {
+  from = aws_db_instance.ooni_pg
+  to   = module.postgresql.aws_db_instance.pg
 }
 
-### PostgreSQL database
-resource "aws_db_instance" "ooni_pg" {
-  allocated_storage       = "10"
-  max_allocated_storage   = "100"
-  storage_type            = "gp2"
-  engine                  = "postgres"
-  engine_version          = "16.1"
-  instance_class          = "db.t3.micro"
-  identifier              = "ooni-postgresql-tier0-prod"
-  db_name                 = "oonipg"
-  username                = "oonipg"
-  password                = var.ooni_pg_password
-  parameter_group_name    = "default.postgres16"
-  db_subnet_group_name    = aws_db_subnet_group.main.name
-  vpc_security_group_ids  = [aws_security_group.pg_sg.id]
-  skip_final_snapshot     = true
-  backup_retention_period = 7
-  publicly_accessible     = true
-
-  # Enable deletion protection in production
-  deletion_protection = true
-
-  # Comment this out in production
-  # apply_immediately = true
+moved {
+  from = aws_db_subnet_group.main
+  to   = module.postgresql.aws_db_subnet_group.pg
 }
 
+moved {
+  from = aws_security_group.pg_sg
+  to   = module.postgresql.aws_security_group.pg
+}
 
 ## EC2
 
@@ -706,7 +673,7 @@ resource "aws_route53_record" "postgres_dns" {
   name    = "postgres.tier0.prod.ooni.nu"
   type    = "CNAME"
   ttl     = "300"
-  records = [aws_db_instance.ooni_pg.address]
+  records = [module.postgresql.address]
 }
 
 resource "aws_route53_record" "alb_dns" {
