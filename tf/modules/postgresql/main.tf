@@ -25,7 +25,7 @@ resource "aws_security_group" "pg" {
 }
 
 resource "aws_db_subnet_group" "pg" {
-  name       = "${var.name}-sng"
+  name       = var.db_subnet_name
   subnet_ids = var.subnet_ids
 
   tags = merge(

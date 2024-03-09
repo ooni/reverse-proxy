@@ -139,7 +139,8 @@ moved {
 module "postgresql" {
   source = "../../modules/postgresql"
 
-  name                  = "ooni-prod-tier0-postgres"
+  # TODO(art): in an ideal world these names should follow the pattern ooni-<environment>-<tier>-<service>
+  name                  = "ooni-tier0-prod-postgres"
   aws_access_key_id     = var.aws_access_key_id
   aws_secret_access_key = var.aws_secret_access_key
   aws_region            = var.aws_region
@@ -166,97 +167,31 @@ moved {
 
 ## EC2
 
-data "aws_ssm_parameter" "ubuntu_22_ami" {
-  name = "/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id"
+module "ooni_backendproxy" {
+  source = "../../modules/ooni_backendproxy"
+
+  aws_access_key_id     = var.aws_access_key_id
+  aws_secret_access_key = var.aws_secret_access_key
+  aws_region            = var.aws_region
+  vpc_id                = module.network.vpc_id
+  subnet_ids            = module.network.vpc_subnet[*].id
+  tags                  = local.tags
 }
 
-resource "aws_security_group" "ooni_nginx_sg" {
-  description = "security group for OONI Nginx. Allow port 80 and 22"
-
-  vpc_id = module.network.vpc_id
-  name   = "ooni-tier0-prod-nginx-sg"
-
-  ingress {
-    protocol    = "tcp"
-    from_port   = 80
-    to_port     = 80
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    protocol    = "tcp"
-    from_port   = 22
-    to_port     = 22
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-
-    cidr_blocks = [
-      "0.0.0.0/0",
-    ]
-  }
-
-  tags = local.tags
+moved {
+  from = aws_security_group.ooni_nginx_sg
+  to   = module.ooni_backendproxy.aws_security_group.nginx_sg
 }
 
-
-resource "aws_launch_template" "ooni_backendproxy" {
-  name_prefix   = "ooni-backendproxy-nginx-template-"
-  image_id      = data.aws_ssm_parameter.ubuntu_22_ami.value
-  instance_type = "t2.micro"
-  key_name      = var.key_name
-
-  user_data = filebase64("${path.module}/templates/setup-backend-proxy.sh")
-
-  lifecycle {
-    create_before_destroy = true
-  }
-
-  network_interfaces {
-    delete_on_termination       = true
-    associate_public_ip_address = true
-    security_groups = [
-      aws_security_group.ooni_nginx_sg.id,
-    ]
-  }
-
-  tag_specifications {
-    resource_type = "instance"
-    tags = {
-      Name = "ooni-tier0-prod-backendproxy"
-    }
-  }
+moved {
+  from = aws_launch_template.ooni_backendproxy
+  to   = module.ooni_backendproxy.aws_launch_template.ooni_backendproxy
 }
 
-resource "aws_autoscaling_group" "oonibackend_proxy" {
-  launch_template {
-    id      = aws_launch_template.ooni_backendproxy.id
-    version = "$Latest"
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-
-  name_prefix = "ooni-tier0-prod-oldbackend-proxy"
-
-  min_size            = 1
-  max_size            = 2
-  desired_capacity    = 1
-  vpc_zone_identifier = module.network.vpc_subnet[*].id
-
-  instance_refresh {
-    strategy = "Rolling"
-    preferences {
-      min_healthy_percentage = 50
-    }
-  }
+moved {
+  from = aws_autoscaling_group.oonibackend_proxy
+  to   = module.ooni_backendproxy.aws_autoscaling_group.oonibackend_proxy
 }
-
 ### Compute for ECS
 
 data "aws_ssm_parameter" "ecs_optimized_ami" {
@@ -619,7 +554,7 @@ resource "aws_alb_target_group" "oonibackend_proxy" {
 }
 
 resource "aws_autoscaling_attachment" "oonibackend_proxy" {
-  autoscaling_group_name = aws_autoscaling_group.oonibackend_proxy.id
+  autoscaling_group_name = module.ooni_backendproxy.autoscaling_group_id
   lb_target_group_arn    = aws_alb_target_group.oonibackend_proxy.arn
 }
 

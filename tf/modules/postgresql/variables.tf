@@ -54,3 +54,7 @@ variable "db_allocated_storage" {
 variable "db_max_allocated_storage" {
   default = "100"
 }
+
+variable "db_subnet_name" {
+  default = "ooni-main"
+}
