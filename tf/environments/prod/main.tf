@@ -89,35 +89,6 @@ module "network" {
   vpc_main_cidr_block   = "10.0.0.0/16"
 }
 
-moved {
-  from = aws_vpc.main
-  to   = module.network.aws_vpc.main
-}
-
-moved {
-  from = aws_internet_gateway.gw
-  to   = module.network.aws_internet_gateway.gw
-}
-
-moved {
-  from = aws_internet_gateway.gw
-  to   = module.network.aws_internet_gateway.gw
-}
-
-moved {
-  from = aws_subnet.main
-  to   = module.network.aws_subnet.main
-}
-
-moved {
-  from = aws_route_table.r
-  to   = module.network.aws_route_table.r
-}
-
-moved {
-  from = aws_route_table_association.a
-  to   = module.network.aws_route_table_association.a
-}
 
 #
 ### OONI Modules
@@ -139,8 +110,7 @@ moved {
 module "postgresql" {
   source = "../../modules/postgresql"
 
-  # TODO(art): in an ideal world these names should follow the pattern ooni-<environment>-<tier>-<service>
-  name                  = "ooni-tier0-prod-postgres"
+  name                  = "ooni-tier0-postgres"
   aws_access_key_id     = var.aws_access_key_id
   aws_secret_access_key = var.aws_secret_access_key
   aws_region            = var.aws_region
@@ -150,20 +120,6 @@ module "postgresql" {
   tags                  = local.tags
 }
 
-moved {
-  from = aws_db_instance.ooni_pg
-  to   = module.postgresql.aws_db_instance.pg
-}
-
-moved {
-  from = aws_db_subnet_group.main
-  to   = module.postgresql.aws_db_subnet_group.pg
-}
-
-moved {
-  from = aws_security_group.pg_sg
-  to   = module.postgresql.aws_security_group.pg
-}
 
 ## EC2
 
@@ -178,98 +134,35 @@ module "ooni_backendproxy" {
   tags                  = local.tags
 }
 
-moved {
-  from = aws_security_group.ooni_nginx_sg
-  to   = module.ooni_backendproxy.aws_security_group.nginx_sg
+## ECS
+
+resource "aws_ecs_cluster" "main" {
+  name = local.ecs_cluster_name
+  tags = local.tags
 }
 
-moved {
-  from = aws_launch_template.ooni_backendproxy
-  to   = module.ooni_backendproxy.aws_launch_template.ooni_backendproxy
+module "ooni_dataapi" {
+  source = "../../modules/ooni_dataapi"
+
+  aws_access_key_id     = var.aws_access_key_id
+  aws_secret_access_key = var.aws_secret_access_key
+  aws_region            = var.aws_region
+  tags                  = local.tags
+  ecs_cluster_name      = local.ecs_cluster_name
+  ecs_cluster_id        = aws_ecs_cluster.main.id
+  vpc_id                = module.network.vpc_id
+  subnet_ids            = module.network.vpc_subnet[*].id
+  certificate_arn       = aws_acm_certificate_validation.oonidataapi.certificate_arn
 }
 
-moved {
-  from = aws_autoscaling_group.oonibackend_proxy
-  to   = module.ooni_backendproxy.aws_autoscaling_group.oonibackend_proxy
-}
-### Compute for ECS
 
-data "aws_ssm_parameter" "ecs_optimized_ami" {
-  name = "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended"
-}
+### OONI API ALB
 
-resource "aws_launch_template" "app" {
-  name_prefix = "ooni-tier1-production-backend-lt"
-
-  key_name      = var.key_name
-  image_id      = jsondecode(data.aws_ssm_parameter.ecs_optimized_ami.value)["image_id"]
-  instance_type = "t2.micro"
-
-  user_data = base64encode(templatefile("${path.module}/templates/ecs-setup.sh", {
-    ecs_cluster_name = local.ecs_cluster_name,
-    ecs_cluster_tags = local.tags
-  }))
-
-  update_default_version               = true
-  instance_initiated_shutdown_behavior = "terminate"
-
-  iam_instance_profile {
-    name = aws_iam_instance_profile.app.name
-  }
-
-  network_interfaces {
-    associate_public_ip_address = true
-    delete_on_termination       = true
-    security_groups = [
-      aws_security_group.instance_sg.id,
-    ]
-  }
-
-  block_device_mappings {
-    device_name = "/dev/sdf"
-
-    ebs {
-      delete_on_termination = true
-    }
-  }
-
-  tag_specifications {
-    resource_type = "instance"
-    tags = {
-      Name = "ooni-tier1-production-backend"
-    }
-  }
-}
-
-resource "aws_autoscaling_group" "app" {
-  name_prefix         = "ooni-tier1-production-backend-asg"
-  vpc_zone_identifier = module.network.vpc_subnet[*].id
-  min_size            = var.asg_min
-  max_size            = var.asg_max
-  desired_capacity    = var.asg_desired
-
-  launch_template {
-    id      = aws_launch_template.app.id
-    version = "$Latest"
-  }
-
-  instance_refresh {
-    strategy = "Rolling"
-    preferences {
-      min_healthy_percentage = 50
-    }
-
-    triggers = ["tag"]
-  }
-}
-
-### Security
-
-resource "aws_security_group" "lb_sg" {
+resource "aws_security_group" "ooniapi" {
   description = "controls access to the application ELB"
 
   vpc_id = module.network.vpc_id
-  name   = "tf-ecs-lbsg"
+  name   = "ooniapi-sg"
 
   ingress {
     protocol    = "tcp"
@@ -298,248 +191,10 @@ resource "aws_security_group" "lb_sg" {
   tags = local.tags
 }
 
-resource "aws_security_group" "instance_sg" {
-  description = "controls direct access to application instances"
-  vpc_id      = module.network.vpc_id
-  name        = "tf-ecs-instsg"
-
-  ingress {
-    protocol  = "tcp"
-    from_port = 22
-    to_port   = 22
-
-    cidr_blocks = [
-      var.admin_cidr_ingress,
-    ]
-  }
-
-  ingress {
-    protocol  = "tcp"
-    from_port = 32768
-    to_port   = 61000
-
-    security_groups = [
-      aws_security_group.lb_sg.id,
-    ]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = local.tags
-}
-
-## ECS
-
-resource "aws_ecs_cluster" "main" {
-  name = local.ecs_cluster_name
-  tags = local.tags
-}
-
-
-locals {
-  container_name = "ooni_dataapi"
-}
-
-resource "aws_ecs_task_definition" "oonidataapi" {
-  family = "ooni-dataapi-production-td"
-  container_definitions = templatefile("${path.module}/templates/task_definition.json", {
-    # Image URL is updated via code build and code pipeline
-    image_url        = "ooni/dataapi:latest",
-    container_name   = local.container_name,
-    container_port   = 80,
-    log_group_region = var.aws_region,
-    log_group_name   = aws_cloudwatch_log_group.app.name,
-  })
-
-  execution_role_arn = aws_iam_role.ecs_task.arn
-  tags               = local.tags
-}
-
-resource "aws_ecs_service" "oonidataapi" {
-  name            = "ooni-ecs-dataapi-production"
-  cluster         = aws_ecs_cluster.main.id
-  task_definition = aws_ecs_task_definition.oonidataapi.arn
-  desired_count   = var.service_desired
-  iam_role        = aws_iam_role.ecs_service.name
-
-  deployment_minimum_healthy_percent = 50
-  deployment_maximum_percent         = 100
-
-  load_balancer {
-    target_group_arn = aws_alb_target_group.oonidataapi.id
-    container_name   = local.container_name
-    container_port   = "80"
-  }
-
-  depends_on = [
-    aws_iam_role_policy.ecs_service,
-    aws_alb_listener.front_end,
-  ]
-
-  lifecycle {
-    ignore_changes = [
-      task_definition,
-    ]
-  }
-
-  force_new_deployment = true
-
-  tags = local.tags
-}
-
-## IAM
-
-resource "aws_iam_role" "ecs_task" {
-  name = "ooni_ecs_task_role"
-
-  tags = local.tags
-
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "",
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "ecs-tasks.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-EOF
-}
-
-resource "aws_iam_role_policy" "ecs_task" {
-  name = "ooni_ecs_task_policy"
-  role = aws_iam_role.ecs_task.name
-
-  policy = templatefile("${path.module}/templates/instance_profile_policy.json", {})
-}
-
-resource "aws_iam_role" "ecs_service" {
-  name = "ooni_ecs_role"
-
-  tags = local.tags
-
-  assume_role_policy = <<EOF
-{
-  "Version": "2008-10-17",
-  "Statement": [
-    {
-      "Sid": "",
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "ecs.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-EOF
-}
-
-resource "aws_iam_role_policy" "ecs_service" {
-  name = "ooni_ecs_policy"
-  role = aws_iam_role.ecs_service.name
-
-  policy = templatefile("${path.module}/templates/instance_profile_policy.json", {})
-}
-
-resource "aws_iam_instance_profile" "app" {
-  name = "tf-ecs-instprofile"
-  role = aws_iam_role.app_instance.name
-
-  tags = local.tags
-}
-
-resource "aws_iam_role" "app_instance" {
-  name = "tf-ecs-ooni-instance-role"
-
-  tags = local.tags
-
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "",
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "ec2.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-EOF
-}
-
-resource "aws_iam_role_policy" "instance" {
-  name   = "TfEcsOONIInstanceRole"
-  role   = aws_iam_role.app_instance.name
-  policy = templatefile("${path.module}/templates/instance_profile_policy.json", {})
-}
-
-## ALB
-
-resource "aws_alb_target_group" "oonidataapi" {
-  name     = "ooni-tier1-oonidataapi"
-  port     = 80
-  protocol = "HTTP"
-  vpc_id   = module.network.vpc_id
-
-  tags = local.tags
-}
-
-resource "aws_alb" "oonidataapi" {
-  name            = "ooni-tier1-oonidataapi"
-  subnets         = module.network.vpc_subnet[*].id
-  security_groups = [aws_security_group.lb_sg.id]
-
-  tags = local.tags
-}
-
-resource "aws_alb_listener" "front_end" {
-  load_balancer_arn = aws_alb.oonidataapi.id
-  port              = "80"
-  protocol          = "HTTP"
-
-  default_action {
-    target_group_arn = aws_alb_target_group.oonidataapi.id
-    type             = "forward"
-  }
-
-  tags = local.tags
-}
-
-resource "aws_alb_listener" "front_end_https" {
-  load_balancer_arn = aws_alb.oonidataapi.id
-  port              = "443"
-  protocol          = "HTTPS"
-  ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = aws_acm_certificate_validation.oonidataapi.certificate_arn
-
-  default_action {
-    target_group_arn = aws_alb_target_group.oonidataapi.id
-    type             = "forward"
-  }
-
-  tags = local.tags
-}
-
-### OONI API ALB
-
 resource "aws_alb" "ooniapi" {
   name            = "ooni-tier0-api"
   subnets         = module.network.vpc_subnet[*].id
-  security_groups = [aws_security_group.lb_sg.id]
+  security_groups = [aws_security_group.ooniapi.id]
 
   tags = local.tags
 }
@@ -618,8 +273,8 @@ resource "aws_route53_record" "alb_dns" {
   type    = "A"
 
   alias {
-    name                   = aws_alb.oonidataapi.dns_name
-    zone_id                = aws_alb.oonidataapi.zone_id
+    name                   = module.ooni_dataapi.alb_dns_name
+    zone_id                = module.ooni_dataapi.alb_zone_id
     evaluate_target_health = true
   }
 }
@@ -713,8 +368,4 @@ resource "aws_acm_certificate_validation" "ooniapi" {
 
 resource "aws_cloudwatch_log_group" "ecs" {
   name = "tf-ecs-group/ecs-agent"
-}
-
-resource "aws_cloudwatch_log_group" "app" {
-  name = "tf-ecs-group/app-dataapi"
 }

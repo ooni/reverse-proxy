@@ -2,7 +2,9 @@ resource "aws_security_group" "pg" {
   description = "controls access to postgresql database"
 
   vpc_id = var.vpc_id
-  name   = "${var.name}-sg"
+  name   = "ooni-tier0-prod-postgres-sg"
+  # FIXME:  hardcoded name
+  #name   = "${var.name}-sg"
 
   ingress {
     protocol    = "tcp"
@@ -36,13 +38,15 @@ resource "aws_db_subnet_group" "pg" {
 
 ### PostgreSQL database
 resource "aws_db_instance" "pg" {
-  allocated_storage       = var.db_allocated_storage
-  max_allocated_storage   = var.db_max_allocated_storage
-  storage_type            = "gp2"
-  engine                  = "postgres"
-  engine_version          = "16.1"
-  instance_class          = var.db_instance_class
-  identifier              = var.name
+  allocated_storage     = var.db_allocated_storage
+  max_allocated_storage = var.db_max_allocated_storage
+  storage_type          = "gp2"
+  engine                = "postgres"
+  engine_version        = "16.1"
+  instance_class        = var.db_instance_class
+  # FIXME:  hardcoded name
+  #identifier              = var.name
+  identifier              = "ooni-postgresql-tier0-prod"
   db_name                 = var.pg_db_name
   username                = var.pg_username
   password                = var.pg_password
