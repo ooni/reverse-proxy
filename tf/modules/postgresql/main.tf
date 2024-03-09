@@ -29,8 +29,8 @@ resource "aws_db_subnet_group" "pg" {
   subnet_ids = var.subnet_ids
 
   tags = merge(
-    { Name = "Main" },
-    var.tags
+    var.tags,
+    #{ Name = "${var.name}-dbsng" }
   )
 }
 
@@ -58,4 +58,5 @@ resource "aws_db_instance" "pg" {
 
   # Comment this out in production
   # apply_immediately = true
+  tags = var.tags
 }

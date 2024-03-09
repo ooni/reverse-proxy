@@ -58,15 +58,16 @@ resource "null_resource" "ansible_update_known_hosts" {
 
 # Local variable definitions
 locals {
-  environment      = "production"
-  name             = "ooni-tier1-${local.environment}"
+  environment      = "prod"
+  name             = "ooni-${local.environment}"
   ecs_cluster_name = "ooni-ecs-cluster"
   dns_zone_ooni_nu = "Z035992527R8VEIX2UVO0" # ooni.nu hosted zone
   dns_zone_ooni_io = "Z02418652BOD91LFA5S9X" # ooni.io hosted zone
 
   tags = {
-    Name       = local.name
-    Repository = "https://github.com/ooni/devops"
+    Name        = local.name
+    Environment = local.environment
+    Repository  = "https://github.com/ooni/devops"
   }
 }
 
@@ -138,7 +139,7 @@ moved {
 module "postgresql" {
   source = "../../modules/postgresql"
 
-  name                  = "ooni-tier0-prod-postgres"
+  name                  = "ooni-prod-tier0-postgres"
   aws_access_key_id     = var.aws_access_key_id
   aws_secret_access_key = var.aws_secret_access_key
   aws_region            = var.aws_region
