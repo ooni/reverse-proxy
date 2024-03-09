@@ -78,40 +78,47 @@ provider "aws" {
   secret_key = var.aws_secret_access_key
 }
 
-data "aws_availability_zones" "available" {}
+module "network" {
+  source = "../../modules/network"
 
-resource "aws_vpc" "main" {
-  cidr_block           = "10.0.0.0/16"
-  enable_dns_hostnames = true
-  enable_dns_support   = true
+  aws_access_key_id     = var.aws_access_key_id
+  aws_secret_access_key = var.aws_secret_access_key
+  aws_region            = var.aws_region
+  az_count              = var.az_count
+  vpc_main_cidr_block   = "10.0.0.0/16"
 }
 
-resource "aws_subnet" "main" {
-  count             = var.az_count
-  cidr_block        = cidrsubnet(aws_vpc.main.cidr_block, 8, count.index)
-  availability_zone = data.aws_availability_zones.available.names[count.index]
-  vpc_id            = aws_vpc.main.id
+moved {
+  from = aws_vpc.main
+  to   = module.network.aws_vpc.main
 }
 
-resource "aws_internet_gateway" "gw" {
-  vpc_id = aws_vpc.main.id
+moved {
+  from = aws_internet_gateway.gw
+  to   = module.network.aws_internet_gateway.gw
 }
 
-resource "aws_route_table" "r" {
-  vpc_id = aws_vpc.main.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.gw.id
-  }
+moved {
+  from = aws_internet_gateway.gw
+  to   = module.network.aws_internet_gateway.gw
 }
 
-resource "aws_route_table_association" "a" {
-  count          = var.az_count
-  subnet_id      = element(aws_subnet.main[*].id, count.index)
-  route_table_id = aws_route_table.r.id
+moved {
+  from = aws_subnet.main
+  to   = module.network.aws_subnet.main
 }
 
+moved {
+  from = aws_route_table.r
+  to   = module.network.aws_route_table.r
+}
+
+moved {
+  from = aws_route_table_association.a
+  to   = module.network.aws_route_table_association.a
+}
+
+#
 ### OONI Modules
 
 # Temporarily disabled, since production OONI clickhouse is not on AWS atm
@@ -125,12 +132,12 @@ resource "aws_route_table_association" "a" {
 #  key_name              = var.key_name
 #  admin_cidr_ingress    = var.admin_cidr_ingress
 #}
-#
+
 ### AWS RDS for PostgreSQL
 resource "aws_security_group" "pg_sg" {
   description = "controls access to postgresql database"
 
-  vpc_id = aws_vpc.main.id
+  vpc_id = module.network.vpc_id
   name   = "ooni-tier0-prod-postgres-sg"
 
   ingress {
@@ -155,7 +162,7 @@ resource "aws_security_group" "pg_sg" {
 
 resource "aws_db_subnet_group" "main" {
   name       = "ooni-main"
-  subnet_ids = [aws_subnet.main[0].id, aws_subnet.main[1].id]
+  subnet_ids = [module.network.vpc_subnet[0].id, module.network.vpc_subnet[1].id]
 
   tags = {
     Name = "Main"
@@ -198,7 +205,7 @@ data "aws_ssm_parameter" "ubuntu_22_ami" {
 resource "aws_security_group" "ooni_nginx_sg" {
   description = "security group for OONI Nginx. Allow port 80 and 22"
 
-  vpc_id = aws_vpc.main.id
+  vpc_id = module.network.vpc_id
   name   = "ooni-tier0-prod-nginx-sg"
 
   ingress {
@@ -272,7 +279,7 @@ resource "aws_autoscaling_group" "oonibackend_proxy" {
   min_size            = 1
   max_size            = 2
   desired_capacity    = 1
-  vpc_zone_identifier = aws_subnet.main[*].id
+  vpc_zone_identifier = module.network.vpc_subnet[*].id
 
   instance_refresh {
     strategy = "Rolling"
@@ -333,7 +340,7 @@ resource "aws_launch_template" "app" {
 
 resource "aws_autoscaling_group" "app" {
   name_prefix         = "ooni-tier1-production-backend-asg"
-  vpc_zone_identifier = aws_subnet.main[*].id
+  vpc_zone_identifier = module.network.vpc_subnet[*].id
   min_size            = var.asg_min
   max_size            = var.asg_max
   desired_capacity    = var.asg_desired
@@ -358,7 +365,7 @@ resource "aws_autoscaling_group" "app" {
 resource "aws_security_group" "lb_sg" {
   description = "controls access to the application ELB"
 
-  vpc_id = aws_vpc.main.id
+  vpc_id = module.network.vpc_id
   name   = "tf-ecs-lbsg"
 
   ingress {
@@ -390,7 +397,7 @@ resource "aws_security_group" "lb_sg" {
 
 resource "aws_security_group" "instance_sg" {
   description = "controls direct access to application instances"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = module.network.vpc_id
   name        = "tf-ecs-instsg"
 
   ingress {
@@ -583,14 +590,14 @@ resource "aws_alb_target_group" "oonidataapi" {
   name     = "ooni-tier1-oonidataapi"
   port     = 80
   protocol = "HTTP"
-  vpc_id   = aws_vpc.main.id
+  vpc_id   = module.network.vpc_id
 
   tags = local.tags
 }
 
 resource "aws_alb" "oonidataapi" {
   name            = "ooni-tier1-oonidataapi"
-  subnets         = aws_subnet.main[*].id
+  subnets         = module.network.vpc_subnet[*].id
   security_groups = [aws_security_group.lb_sg.id]
 
   tags = local.tags
@@ -628,7 +635,7 @@ resource "aws_alb_listener" "front_end_https" {
 
 resource "aws_alb" "ooniapi" {
   name            = "ooni-tier0-api"
-  subnets         = aws_subnet.main[*].id
+  subnets         = module.network.vpc_subnet[*].id
   security_groups = [aws_security_group.lb_sg.id]
 
   tags = local.tags
@@ -638,7 +645,7 @@ resource "aws_alb_target_group" "oonibackend_proxy" {
   name     = "ooni-tier0-oldbackend-proxy"
   port     = 80
   protocol = "HTTP"
-  vpc_id   = aws_vpc.main.id
+  vpc_id   = module.network.vpc_id
 
   tags = local.tags
 }
