@@ -54,10 +54,34 @@ resource "aws_iam_policy" "oonidevops" {
   ]
 }
 EOF
+
+  tags = var.tags
 }
 
 resource "aws_iam_role" "oonidevops" {
   name                = "oonidevops"
   assume_role_policy  = data.aws_iam_policy_document.assume_role.json
   managed_policy_arns = [aws_iam_policy.oonidevops.arn]
+  tags                = var.tags
 }
+
+resource "tls_private_key" "oonidevops" {
+  algorithm = "ED25519"
+}
+
+resource "aws_key_pair" "oonidevops" {
+  key_name   = "oonidevops"
+  public_key = tls_private_key.oonidevops.public_key_openssh
+  tags       = var.tags
+}
+
+resource "aws_secretsmanager_secret" "oonidevops_deploy_key" {
+  name = "oonidevops/deploy_key/ssh_key_private"
+  tags = var.tags
+}
+
+resource "aws_secretsmanager_secret_version" "oonidevops_deploy_key" {
+  secret_id     = aws_secretsmanager_secret.oonidevops_deploy_key.id
+  secret_string = tls_private_key.oonidevops.private_key_openssh
+}
+

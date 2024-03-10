@@ -31,10 +31,7 @@ resource "aws_security_group" "nginx_sg" {
     ]
   }
 
-  tags = merge(
-    var.tags,
-    { Name = "ooni-backendproxy" }
-  )
+  tags = var.tags
 }
 
 
@@ -60,10 +57,7 @@ resource "aws_launch_template" "ooni_backendproxy" {
 
   tag_specifications {
     resource_type = "instance"
-    tags = merge(
-      var.tags,
-      { Name = "ooni-backendproxy" }
-    )
+    tags          = var.tags
   }
 }
 
@@ -77,7 +71,7 @@ resource "aws_autoscaling_group" "oonibackend_proxy" {
     create_before_destroy = true
   }
 
-  name_prefix = "ooni-tier0-prod-oldbackend-proxy"
+  name_prefix = "${var.name}-asg-"
 
   min_size            = 1
   max_size            = 2

@@ -1,15 +1,3 @@
-variable "aws_access_key_id" {
-  sensitive = true
-}
-variable "aws_secret_access_key" {
-  sensitive = true
-}
-
-variable "aws_region" {
-  description = "The AWS region to create things in."
-  default     = "eu-central-1"
-}
-
 variable "vpc_id" {
   description = "the id of the VPC to deploy the instance into"
 }
@@ -26,7 +14,6 @@ variable "tags" {
 
 variable "key_name" {
   description = "Name of AWS key pair"
-  default     = "ooni-devops-prod"
 }
 
 variable "name" {

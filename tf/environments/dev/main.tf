@@ -23,6 +23,8 @@ provider "aws" {
   }
 }
 
+data "aws_availability_zones" "available" {}
+
 ### !!! IMPORTANT !!!
 # The first time you run terraform for a new stage you have to setup the
 # required roles in AWS.
@@ -98,6 +100,8 @@ module "network" {
     { Name = "ooni-main-vpc" }
   )
 
+  aws_availability_zones_available = data.aws_availability_zones.available
+
   depends_on = [module.adm_iam_roles]
 }
 
@@ -139,16 +143,19 @@ module "postgresql" {
 
 # ## EC2
 
-# module "ooni_backendproxy" {
-#   source = "../../modules/ooni_backendproxy"
+module "ooni_backendproxy" {
+  source = "../../modules/ooni_backendproxy"
 
-#   aws_access_key_id     = var.aws_access_key_id
-#   aws_secret_access_key = var.aws_secret_access_key
-#   aws_region            = var.aws_region
-#   vpc_id                = module.network.vpc_id
-#   subnet_ids            = module.network.vpc_subnet[*].id
-#   tags                  = local.tags
-# }
+  vpc_id        = module.network.vpc_id
+  subnet_ids    = module.network.vpc_subnet[*].id
+  key_name      = module.adm_iam_roles.oonidevops_key_name
+  instance_type = "t2.micro"
+
+  tags = merge(
+    local.tags,
+    { Name = "ooni-tier0-backendproxy" }
+  )
+}
 
 # ## ECS
 

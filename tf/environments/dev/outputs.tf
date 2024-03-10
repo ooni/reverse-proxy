@@ -2,7 +2,15 @@ output "oonidevops_role_arn" {
   value = module.adm_iam_roles.oonidevops_role_arn
 }
 
-output "oonipg_pg_password" {
+output "oonidevops_key_name" {
+  value = module.adm_iam_roles.oonidevops_key_name
+}
+
+output "oonidevops_deploy_key_arn" {
+  value = module.adm_iam_roles.oonidevops_deploy_key_arn
+}
+
+output "oonipg_pg_password_arn" {
   value = module.postgresql.secrets_manager_pg_password_id
 }
 
