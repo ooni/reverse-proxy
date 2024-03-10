@@ -2,179 +2,6 @@ locals {
   name = "ooniapi-service-${var.service_name}"
 }
 
-data "aws_ssm_parameter" "ecs_optimized_ami" {
-  name = "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended"
-}
-
-resource "aws_iam_role" "ooniapi_service_host" {
-  name = "${local.name}-instance-role"
-
-  tags = var.tags
-
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "",
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "ec2.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-EOF
-}
-
-resource "aws_iam_instance_profile" "ooniapi_service_host" {
-  name = local.name
-  role = aws_iam_role.ooniapi_service_host.name
-
-  tags = var.tags
-}
-
-resource "aws_iam_role_policy" "ooniapi_service_host" {
-  name   = "${local.name}-instance-role-policy"
-  role   = aws_iam_role.ooniapi_service_host.name
-  policy = templatefile("${path.module}/templates/profile_policy.json", {})
-}
-
-resource "aws_security_group" "ooniapi_service_host" {
-  description = "controls direct access to application instances"
-  vpc_id      = var.vpc_id
-  name        = "${local.name}-instance-sg"
-
-  ingress {
-    protocol  = "tcp"
-    from_port = 22
-    to_port   = 22
-
-    cidr_blocks = [
-      var.admin_cidr_ingress,
-    ]
-  }
-
-  ingress {
-    protocol  = "tcp"
-    from_port = 32768
-    to_port   = 61000
-
-    security_groups = [
-      aws_security_group.ooniapi_service_web.id,
-    ]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = var.tags
-}
-
-
-
-resource "aws_launch_template" "ooniapi_service" {
-  name_prefix = local.name
-
-  key_name      = var.key_name
-  image_id      = jsondecode(data.aws_ssm_parameter.ecs_optimized_ami.value)["image_id"]
-  instance_type = var.instance_type
-
-  user_data = base64encode(templatefile("${path.module}/templates/ecs-setup.sh", {
-    ecs_cluster_name = var.ecs_cluster_name,
-    ecs_cluster_tags = var.tags
-  }))
-
-  update_default_version               = true
-  instance_initiated_shutdown_behavior = "terminate"
-
-  iam_instance_profile {
-    name = aws_iam_instance_profile.ooniapi_service_host.name
-  }
-
-  network_interfaces {
-    associate_public_ip_address = true
-    delete_on_termination       = true
-    security_groups = [
-      aws_security_group.ooniapi_service_host.id,
-    ]
-  }
-
-  block_device_mappings {
-    device_name = "/dev/sdf"
-
-    ebs {
-      volume_size           = var.volume_size
-      delete_on_termination = true
-    }
-  }
-
-  tag_specifications {
-    resource_type = "instance"
-    tags          = var.tags
-  }
-}
-
-resource "aws_autoscaling_group" "ooniapi_service" {
-  name_prefix         = local.name
-  vpc_zone_identifier = var.subnet_ids
-  min_size            = var.asg_min
-  max_size            = var.asg_max
-  desired_capacity    = var.asg_desired
-
-  launch_template {
-    id      = aws_launch_template.ooniapi_service.id
-    version = "$Latest"
-  }
-
-  instance_refresh {
-    strategy = "Rolling"
-    preferences {
-      min_healthy_percentage = 50
-    }
-
-    triggers = ["tag"]
-  }
-}
-
-resource "aws_security_group" "ooniapi_service_web" {
-  description = "controls access to the applications ELB web endpoint"
-
-  vpc_id = var.vpc_id
-  name   = "${local.name}-web-sg"
-
-  ingress {
-    protocol    = "tcp"
-    from_port   = 80
-    to_port     = 80
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    protocol    = "tcp"
-    from_port   = 443
-    to_port     = 443
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-
-    cidr_blocks = [
-      "0.0.0.0/0",
-    ]
-  }
-
-  tags = var.tags
-}
-
 resource "aws_iam_role" "ooniapi_service_task" {
   name = "${local.name}-task-role"
 
@@ -237,28 +64,41 @@ resource "aws_cloudwatch_log_group" "ooniapi_service" {
   name = "ooni-ecs-group/${local.name}"
 }
 
+
 locals {
-  secrets_spec = [
-    for k, v in var.task_secrets : {
-      name      = k,
-      valueFrom = v
-    }
-  ]
+  container_port = 80
 }
 
 resource "aws_ecs_task_definition" "ooniapi_service" {
   family = "${local.name}-td"
-  container_definitions = templatefile("${path.module}/templates/task_definition.json", {
-    image_url        = var.docker_image_url,
-    container_name   = local.name,
-    container_port   = 80,
-    log_group_region = var.aws_region,
-    log_group_name   = aws_cloudwatch_log_group.ooniapi_service.name,
-    task_cpu         = var.task_cpu,
-    task_memory      = var.task_memory,
-    secrets_json     = jsonencode(local.secrets_spec)
-  })
-
+  container_definitions = jsonencode([
+    {
+      cpu       = var.task_cpu,
+      essential = true,
+      image     = var.docker_image_url,
+      memory    = var.task_memory,
+      name      = local.name,
+      portMappings = [
+        {
+          containerPort = local.container_port,
+          hostPort      = 0
+        }
+      ],
+      secrets = [
+        for k, v in var.task_secrets : {
+          name      = k,
+          valueFrom = v
+        }
+      ],
+      logConfiguration = {
+        logDriver = "awslogs",
+        options = {
+          awslogs-group  = aws_cloudwatch_log_group.ooniapi_service.name,
+          awslogs-region = var.aws_region
+        }
+      }
+    }
+  ])
   execution_role_arn = aws_iam_role.ooniapi_service_task.arn
   tags               = var.tags
 }
@@ -307,7 +147,7 @@ resource "aws_alb_target_group" "ooniapi_service" {
 resource "aws_alb" "ooniapi_service" {
   name            = local.name
   subnets         = var.subnet_ids
-  security_groups = [aws_security_group.ooniapi_service_web.id]
+  security_groups = var.ooniapi_service_security_groups
 
   tags = var.tags
 }

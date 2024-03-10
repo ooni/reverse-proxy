@@ -106,9 +106,9 @@ module "network" {
 }
 
 
-### OONI Modules
+## OONI Modules
 
-#### OONI Tier0 PostgreSQL Instance
+### OONI Tier0 PostgreSQL Instance
 
 module "oonipg" {
   source = "../../modules/postgresql"
@@ -135,6 +135,59 @@ resource "aws_route53_record" "postgres_dns" {
   type    = "CNAME"
   ttl     = "300"
   records = [module.oonipg.pg_address]
+}
+
+## OONI Services
+
+### Configuration common to all services
+
+resource "random_password" "jwt_secret" {
+  length  = 32
+  special = false
+}
+
+resource "aws_secretsmanager_secret" "jwt_secret" {
+  name = "oonidevops/ooni_services/jwt_secret"
+  tags = local.tags
+}
+
+resource "aws_secretsmanager_secret_version" "jwt_secret" {
+  secret_id     = aws_secretsmanager_secret.jwt_secret.id
+  secret_string = random_password.jwt_secret.result
+}
+
+resource "aws_secretsmanager_secret" "oonipg_url" {
+  name = "oonidevops/ooni-tier0-postgres/postgresql_url"
+  tags = local.tags
+}
+
+resource "aws_secretsmanager_secret_version" "oonipg_url" {
+  secret_id = aws_secretsmanager_secret.oonipg_url.id
+  secret_string = format("postgresql://%s:%s@%s/%s",
+    module.oonipg.pg_username,
+    module.oonipg.pg_password,
+    module.oonipg.pg_endpoint,
+    module.oonipg.pg_db_name
+  )
+}
+
+resource "random_id" "artifact_id" {
+  byte_length = 4
+}
+
+resource "aws_s3_bucket" "ooniapi_codepipeline_bucket" {
+  bucket = "codepipeline-ooniapi-${var.aws_region}-${random_id.artifact_id.hex}"
+}
+
+# The aws_codestarconnections_connection resource is created in the state
+# PENDING. Authentication with the connection provider must be completed in the
+# AWS Console.
+# See: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/codestarconnections_connection 
+resource "aws_codestarconnections_connection" "ooniapi" {
+  name          = "ooniapi"
+  provider_type = "GitHub"
+
+  depends_on = [module.adm_iam_roles]
 }
 
 ### OONI Tier0 Backend Proxy
@@ -173,53 +226,36 @@ module "ooniapi_frontend" {
   )
 }
 
-resource "aws_cloudwatch_log_group" "ooniapi_services" {
-  name = "ooni-ecs-group/ooniapi-services-ecs-cluster"
-}
+module "ooniapi_cluster" {
+  source = "../../modules/ecs_cluster"
 
-resource "aws_ecs_cluster" "ooniapi_services" {
-  name = "ooniapi-services-ecs-cluster"
-  configuration {
-    execute_command_configuration {
-      logging = "OVERRIDE"
+  name       = "ooniapi-ecs-cluster"
+  key_name   = module.adm_iam_roles.oonidevops_key_name
+  vpc_id     = module.network.vpc_id
+  subnet_ids = module.network.vpc_subnet[*].id
 
-      log_configuration {
-        cloud_watch_log_group_name = aws_cloudwatch_log_group.ooniapi_services.name
-      }
-    }
-  }
-
-  tags = local.tags
-}
-
-### Configuration common to all services
-
-resource "random_password" "jwt_secret" {
-  length  = 32
-  special = false
-}
-
-resource "aws_secretsmanager_secret" "jwt_secret" {
-  name = "oonidevops/ooni_services/jwt_secret"
-  tags = local.tags
-}
-
-resource "aws_secretsmanager_secret_version" "jwt_secret" {
-  secret_id     = aws_secretsmanager_secret.jwt_secret.id
-  secret_string = random_password.jwt_secret.result
-}
-
-resource "aws_secretsmanager_secret" "oonipg_url" {
-  name = "oonidevops/ooni-tier0-postgres/postgresql_url"
-  tags = local.tags
-}
-
-resource "aws_secretsmanager_secret_version" "oonipg_url" {
-  secret_id     = aws_secretsmanager_secret.oonipg_url.id
-  secret_string = "postgresql://${module.oonipg.pg_username}:${module.oonipg.pg_password}@${module.oonipg.pg_endpoint}/${module.oonipg.pg_db_name}"
+  tags = merge(
+    local.tags,
+    { Name = "ooni-tier0-api-ecs-cluster" }
+  )
 }
 
 #### OONI Tier1 dataapi service
+
+module "oonidataapi_deployer" {
+  source = "../../modules/ooniapi_service_deployer"
+
+  service_name            = "dataapi"
+  repo                    = "ooni/backend"
+  branch_name             = "master"
+  buildspec_path          = "api/fastapi/buildspec.yml"
+  codestar_connection_arn = aws_codestarconnections_connection.ooniapi.arn
+
+  codepipeline_bucket = aws_s3_bucket.ooniapi_codepipeline_bucket.bucket
+
+  ecs_service_name = module.oonidataapi.ecs_service_name
+  ecs_cluster_name = module.ooniapi_cluster.cluster_name
+}
 
 module "oonidataapi" {
   source = "../../modules/ooniapi_service"
@@ -232,13 +268,16 @@ module "oonidataapi" {
   stage            = local.stage
   dns_zone_ooni_io = local.dns_zone_ooni_io
   key_name         = module.adm_iam_roles.oonidevops_key_name
-  ecs_cluster_id   = aws_ecs_cluster.ooniapi_services.id
-  ecs_cluster_name = aws_ecs_cluster.ooniapi_services.name
+  ecs_cluster_id   = module.ooniapi_cluster.cluster_id
 
   task_secrets = {
     POSTGRESQL_URL     = aws_secretsmanager_secret_version.oonipg_url.arn
     JWT_ENCRYPTION_KEY = aws_secretsmanager_secret_version.jwt_secret.arn
   }
+
+  ooniapi_service_security_groups = [
+    module.ooniapi_cluster.web_security_group_id
+  ]
 
   tags = merge(
     local.tags,

@@ -37,6 +37,7 @@ resource "aws_iam_policy" "oonidevops" {
         "codebuild:*",
         "codedeploy:*",
         "codepipeline:*",
+        "codestar-connections:*",
         "codestar-notifications:*",
         "route53:*",
         "servicediscovery:*",

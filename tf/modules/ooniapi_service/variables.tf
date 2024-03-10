@@ -29,44 +29,9 @@ variable "tags" {
   type        = map(string)
 }
 
-variable "ecs_cluster_name" {
-  description = "value of the ecs cluster name"
-}
-
-variable "ecs_cluster_id" {
-  description = "value of the ecs cluster id"
-}
-
 variable "service_desired_count" {
   description = "Desired numbers of instances in the ecs service"
   default     = 1
-}
-
-variable "asg_min" {
-  description = "Min numbers of servers in ASG"
-  default     = 1
-}
-
-variable "asg_max" {
-  description = "Max numbers of servers in ASG"
-  default     = 4
-}
-
-variable "asg_desired" {
-  description = "Desired numbers of servers in ASG"
-  default     = 1
-}
-
-variable "admin_cidr_ingress" {
-  default = "0.0.0.0/0"
-}
-
-variable "instance_type" {
-  default = "t2.micro"
-}
-
-variable "volume_size" {
-  default = "5"
 }
 
 variable "task_cpu" {
@@ -87,7 +52,16 @@ variable "docker_image_url" {
   description = "the url to the docker image"
 }
 
+variable "ecs_cluster_id" {
+  description = "id of the cluster to deploy into"
+}
+
 variable "task_secrets" {
   default = {}
   type    = map(string)
+}
+
+variable "ooniapi_service_security_groups" {
+  description = "the shared web security group from the ecs cluster"
+  type        = list(string)
 }

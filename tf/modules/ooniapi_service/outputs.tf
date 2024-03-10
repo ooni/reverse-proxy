@@ -5,3 +5,7 @@ output "ooni_io_fqdn" {
 output "dns_name" {
   value = aws_alb.ooniapi_service.dns_name
 }
+
+output "ecs_service_name" {
+  value = aws_ecs_service.ooniapi_service.name
+}

@@ -11,7 +11,7 @@ on:
       - edited # title or body of a pull request was edited, or the base branch of a pull request was changed
 
 env:
-  tf_actions_working_dir: "./tf/environments/prod"
+  tf_actions_working_dir: "./tf/environments/dev"
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
