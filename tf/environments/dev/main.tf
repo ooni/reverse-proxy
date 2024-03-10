@@ -15,13 +15,13 @@ locals {
 
 ## AWS Setup
 
-#provider "aws" {
-#  profile = "oonidevops_user"
-#  region  = var.aws_region
-#  assume_role {
-#    role_arn = "arn:aws:iam::905418398257:role/oonidevops"
-#  }
-#}
+provider "aws" {
+  profile = "oonidevops_user"
+  region  = var.aws_region
+  assume_role {
+    role_arn = "arn:aws:iam::905418398257:role/oonidevops"
+  }
+}
 
 ### !!! IMPORTANT !!!
 # The first time you run terraform for a new stage you have to setup the
@@ -45,10 +45,10 @@ locals {
 # Once this is done, new accounts can be added/removed by just adding their arn
 # to the authorized accounts below.
 
-provider "aws" {
-  profile = "oonidevops_root"
-  region  = var.aws_region
-}
+#provider "aws" {
+#  profile = "oonidevops_root"
+#  region  = var.aws_region
+#}
 
 module "adm_iam_roles" {
   source = "../../modules/adm_iam_roles"
@@ -62,18 +62,19 @@ module "adm_iam_roles" {
 # immediately proceeding to "terraform apply". The S3 backend must
 # be bootstrapped according to the simple yet essential procedure in
 # https://github.com/cloudposse/terraform-aws-tfstate-backend#usage
-# module "terraform_state_backend" {
-#   source     = "cloudposse/tfstate-backend/aws"
-#   version    = "1.4.0"
-#   namespace  = "oonidevops"
-#   stage      = local.stage
-#   name       = "terraform"
-#   attributes = ["state"]
+module "terraform_state_backend" {
+  source     = "cloudposse/tfstate-backend/aws"
+  version    = "1.4.0"
+  namespace  = "oonidevops"
+  stage      = local.stage
+  name       = "terraform"
+  attributes = ["state"]
 
-#   terraform_backend_config_file_path = "."
-#   terraform_backend_config_file_name = "backend.tf"
-#   force_destroy                      = false
-# }
+  terraform_backend_config_file_path = "."
+  terraform_backend_config_file_name = "backend.tf"
+  force_destroy                      = false
+  depends_on                         = [module.adm_iam_roles]
+}
 
 ## Ansible inventory
 
