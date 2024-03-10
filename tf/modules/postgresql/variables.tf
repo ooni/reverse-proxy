@@ -1,10 +1,3 @@
-variable "aws_access_key_id" {
-  sensitive = true
-}
-variable "aws_secret_access_key" {
-  sensitive = true
-}
-
 variable "aws_region" {
   description = "The AWS region to create things in."
   default     = "eu-central-1"
@@ -26,11 +19,6 @@ variable "tags" {
   description = "tags to apply to the resources"
   default     = {}
   type        = map(string)
-}
-
-variable "pg_password" {
-  description = "the password for the postgres user"
-  sensitive   = true
 }
 
 variable "pg_db_name" {
@@ -55,6 +43,10 @@ variable "db_max_allocated_storage" {
   default = "100"
 }
 
-variable "db_subnet_name" {
-  default = "ooni-main"
+variable "db_engine_version" {
+  default = "16.1"
+}
+
+variable "allow_cidr_blocks" {
+  default = ["0.0.0.0/0"]
 }

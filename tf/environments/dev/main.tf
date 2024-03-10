@@ -70,7 +70,8 @@ module "terraform_state_backend" {
   name       = "terraform"
   attributes = ["state"]
 
-  terraform_backend_config_file_path = "."
+  # Comment this out on first start
+  #terraform_backend_config_file_path = "."
   terraform_backend_config_file_name = "backend.tf"
   force_destroy                      = false
   depends_on                         = [module.adm_iam_roles]
@@ -87,15 +88,16 @@ module "ansible_inventory" {
   }
 }
 
-# module "network" {
-#   source = "../../modules/network"
+module "network" {
+  source = "../../modules/network"
 
-#   aws_access_key_id     = var.aws_access_key_id
-#   aws_secret_access_key = var.aws_secret_access_key
-#   aws_region            = var.aws_region
-#   az_count              = var.az_count
-#   vpc_main_cidr_block   = "10.0.0.0/16"
-# }
+  az_count            = var.az_count
+  vpc_main_cidr_block = "10.0.0.0/16"
+  tags = merge(
+    local.tags,
+    { Name = "ooni-main-vpc" }
+  )
+}
 
 
 ### OONI Modules
@@ -114,19 +116,21 @@ module "ansible_inventory" {
 
 ### AWS RDS for PostgreSQL
 
-# module "postgresql" {
-#   source = "../../modules/postgresql"
+module "postgresql" {
+  source = "../../modules/postgresql"
 
-#   name                  = "ooni-tier0-postgres"
-#   aws_access_key_id     = var.aws_access_key_id
-#   aws_secret_access_key = var.aws_secret_access_key
-#   aws_region            = var.aws_region
-#   vpc_id                = module.network.vpc_id
-#   subnet_ids            = [module.network.vpc_subnet[0].id, module.network.vpc_subnet[1].id]
-#   pg_password           = var.ooni_pg_password
-#   tags                  = local.tags
-# }
-
+  name                     = "ooni-tier0-postgres"
+  aws_region               = var.aws_region
+  vpc_id                   = module.network.vpc_id
+  subnet_ids               = module.network.vpc_subnet[*].id
+  db_instance_class        = "db.t3.micro"
+  db_allocated_storage     = "1"
+  db_max_allocated_storage = "10"
+  tags = merge(
+    local.tags,
+    { Name = "ooni-tier0-postgres" }
+  )
+}
 
 # ## EC2
 

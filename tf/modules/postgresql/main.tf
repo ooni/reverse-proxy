@@ -2,15 +2,13 @@ resource "aws_security_group" "pg" {
   description = "controls access to postgresql database"
 
   vpc_id = var.vpc_id
-  name   = "ooni-tier0-prod-postgres-sg"
-  # FIXME:  hardcoded name
-  #name   = "${var.name}-sg"
+  name   = "${var.name}-sg"
 
   ingress {
     protocol    = "tcp"
     from_port   = 5432
     to_port     = 5432
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = var.allow_cidr_blocks
   }
 
   egress {
@@ -27,30 +25,43 @@ resource "aws_security_group" "pg" {
 }
 
 resource "aws_db_subnet_group" "pg" {
-  name       = var.db_subnet_name
+  name       = "${var.name}-dbsng"
   subnet_ids = var.subnet_ids
 
   tags = merge(
     var.tags,
-    #{ Name = "${var.name}-dbsng" }
+    { Name = "${var.name}-dbsng" }
   )
+}
+
+resource "random_password" "pg_password" {
+  length  = 32
+  special = false
+}
+
+resource "aws_secretsmanager_secret" "pg_password" {
+  name = "oonidevops/${var.name}/pg_password"
+  tags = var.tags
+}
+
+resource "aws_secretsmanager_secret_version" "pg_password" {
+  secret_id     = aws_secretsmanager_secret.pg_password.id
+  secret_string = random_password.pg_password.result
 }
 
 ### PostgreSQL database
 resource "aws_db_instance" "pg" {
-  allocated_storage     = var.db_allocated_storage
-  max_allocated_storage = var.db_max_allocated_storage
-  storage_type          = "gp2"
-  engine                = "postgres"
-  engine_version        = "16.1"
-  instance_class        = var.db_instance_class
-  # FIXME:  hardcoded name
-  #identifier              = var.name
-  identifier              = "ooni-postgresql-tier0-prod"
+  allocated_storage       = var.db_allocated_storage
+  max_allocated_storage   = var.db_max_allocated_storage
+  storage_type            = "gp2"
+  engine                  = "postgres"
+  engine_version          = var.db_engine_version
+  instance_class          = var.db_instance_class
+  identifier              = var.name
   db_name                 = var.pg_db_name
   username                = var.pg_username
-  password                = var.pg_password
-  parameter_group_name    = "default.postgres16"
+  password                = aws_secretsmanager_secret_version.pg_password.secret_string
+  parameter_group_name    = "default.postgres${var.db_engine_version}"
   db_subnet_group_name    = aws_db_subnet_group.pg.name
   vpc_security_group_ids  = [aws_security_group.pg.id]
   skip_final_snapshot     = true
