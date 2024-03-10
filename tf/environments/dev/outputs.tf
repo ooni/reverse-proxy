@@ -11,7 +11,7 @@ output "oonidevops_deploy_key_arn" {
 }
 
 output "oonipg_pg_password_arn" {
-  value = module.postgresql.secrets_manager_pg_password_id
+  value = module.oonipg.secrets_manager_pg_password_id
 }
 
 # output "oonidataapi_alb_hostname" {

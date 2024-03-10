@@ -2,6 +2,8 @@ data "aws_ssm_parameter" "ubuntu_22_ami" {
   name = "/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id"
 }
 
+# Important note about security groups:
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group#recreating-a-security-group
 resource "aws_security_group" "nginx_sg" {
   description = "security group for nginx"
 
@@ -33,7 +35,6 @@ resource "aws_security_group" "nginx_sg" {
 
   tags = var.tags
 }
-
 
 resource "aws_launch_template" "ooni_backendproxy" {
   name_prefix   = "${var.name}-nginx-tmpl-"
@@ -86,3 +87,16 @@ resource "aws_autoscaling_group" "oonibackend_proxy" {
   }
 }
 
+resource "aws_alb_target_group" "oonibackend_proxy" {
+  name     = var.name
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = var.vpc_id
+
+  tags = var.tags
+}
+
+resource "aws_autoscaling_attachment" "oonibackend_proxy" {
+  autoscaling_group_name = aws_autoscaling_group.oonibackend_proxy.id
+  lb_target_group_arn    = aws_alb_target_group.oonibackend_proxy.arn
+}

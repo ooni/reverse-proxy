@@ -108,21 +108,9 @@ module "network" {
 
 ### OONI Modules
 
-# Temporarily disabled, since production OONI clickhouse is not on AWS atm
-#module "clickhouse" {
-#  source = "../../modules/clickhouse"
-#
-#  aws_vpc_id            = aws_vpc.main.id
-#  aws_subnet_id         = aws_subnet.main[0].id
-#  aws_access_key_id     = var.aws_access_key_id
-#  aws_secret_access_key = var.aws_secret_access_key
-#  key_name              = var.key_name
-#  admin_cidr_ingress    = var.admin_cidr_ingress
-#}
+#### OONI Tier0 PostgreSQL Instance
 
-### AWS RDS for PostgreSQL
-
-module "postgresql" {
+module "oonipg" {
   source = "../../modules/postgresql"
 
   name                     = "ooni-tier0-postgres"
@@ -141,19 +129,44 @@ module "postgresql" {
   depends_on = [module.adm_iam_roles]
 }
 
-# ## EC2
+moved {
+  from = module.postgresql
+  to   = module.oonipg
+}
+
+### OONI Tier0 Backend Proxy
 
 module "ooni_backendproxy" {
   source = "../../modules/ooni_backendproxy"
 
-  vpc_id        = module.network.vpc_id
-  subnet_ids    = module.network.vpc_subnet[*].id
+  vpc_id     = module.network.vpc_id
+  subnet_ids = module.network.vpc_subnet[*].id
+
   key_name      = module.adm_iam_roles.oonidevops_key_name
   instance_type = "t2.micro"
 
   tags = merge(
     local.tags,
     { Name = "ooni-tier0-backendproxy" }
+  )
+}
+
+### OONI Tier0 API Frontend
+
+module "ooniapi_frontend" {
+  source = "../../modules/ooniapi_frontend"
+
+
+  vpc_id     = module.network.vpc_id
+  subnet_ids = module.network.vpc_subnet[*].id
+
+  oonibackend_proxy_target_group_arn = module.ooni_backendproxy.alb_target_group_id
+  stage                              = local.stage
+  dns_zone_ooni_io                   = local.dns_zone_ooni_io
+
+  tags = merge(
+    local.tags,
+    { Name = "ooni-tier0-api-frontend" }
   )
 }
 
@@ -180,118 +193,36 @@ module "ooni_backendproxy" {
 
 # ### OONI API ALB
 
-# resource "aws_security_group" "ooniapi" {
-#   description = "controls access to the application ELB"
 
-#   vpc_id = module.network.vpc_id
-#   name   = "ooniapi-sg"
+# resource "aws_lb_listener_rule" "rule" {
+#   listener_arn = aws_lb_listener.ooniapi_listener_https.arn
+#   priority     = 100
 
-#   ingress {
-#     protocol    = "tcp"
-#     from_port   = 80
-#     to_port     = 80
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-
-#   ingress {
-#     protocol    = "tcp"
-#     from_port   = 443
-#     to_port     = 443
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-
-#   egress {
-#     from_port = 0
-#     to_port   = 0
-#     protocol  = "-1"
-
-#     cidr_blocks = [
-#       "0.0.0.0/0",
-#     ]
-#   }
-
-#   tags = local.tags
-# }
-
-# resource "aws_alb" "ooniapi" {
-#   name            = "ooni-tier0-api"
-#   subnets         = module.network.vpc_subnet[*].id
-#   security_groups = [aws_security_group.ooniapi.id]
-
-#   tags = local.tags
-# }
-
-# resource "aws_alb_target_group" "oonibackend_proxy" {
-#   name     = "ooni-tier0-oldbackend-proxy"
-#   port     = 80
-#   protocol = "HTTP"
-#   vpc_id   = module.network.vpc_id
-
-#   tags = local.tags
-# }
-
-# resource "aws_autoscaling_attachment" "oonibackend_proxy" {
-#   autoscaling_group_name = module.ooni_backendproxy.autoscaling_group_id
-#   lb_target_group_arn    = aws_alb_target_group.oonibackend_proxy.arn
-# }
-
-# resource "aws_alb_listener" "ooniapi_listener_http" {
-#   load_balancer_arn = aws_alb.ooniapi.id
-#   port              = "80"
-#   protocol          = "HTTP"
-
-#   default_action {
-#     target_group_arn = aws_alb_target_group.oonibackend_proxy.id
+#   action {
 #     type             = "forward"
+#     target_group_arn = aws_lb_target_group.tg.arn
 #   }
 
-#   tags = local.tags
-# }
-
-# resource "aws_alb_listener" "ooniapi_listener_https" {
-#   load_balancer_arn = aws_alb.ooniapi.id
-#   port              = "443"
-#   protocol          = "HTTPS"
-#   ssl_policy        = "ELBSecurityPolicy-2016-08"
-#   certificate_arn   = aws_acm_certificate_validation.ooniapi.certificate_arn
-
-#   default_action {
-#     target_group_arn = aws_alb_target_group.oonibackend_proxy.id
-#     type             = "forward"
+#   condition {
+#     path_pattern {
+#       values = ["/api/v1/*"]
+#     }
 #   }
-
-#   tags = local.tags
 # }
 
-# # resource "aws_lb_listener_rule" "rule" {
-# #   listener_arn = aws_lb_listener.ooniapi_listener_https.arn
-# #   priority     = 100
+# Route53
 
-# #   action {
-# #     type             = "forward"
-# #     target_group_arn = aws_lb_target_group.tg.arn
-# #   }
-
-# #   condition {
-# #     path_pattern {
-# #       values = ["/api/v1/*"]
-# #     }
-# #   }
-# # }
-
-# # Route53
-
-# resource "aws_route53_record" "postgres_dns" {
-#   zone_id = local.dns_zone_ooni_nu
-#   name    = "postgres.tier0.prod.ooni.nu"
-#   type    = "CNAME"
-#   ttl     = "300"
-#   records = [module.postgresql.address]
-# }
+resource "aws_route53_record" "postgres_dns" {
+  zone_id = local.dns_zone_ooni_nu
+  name    = "postgres.${local.stage}.ooni.nu"
+  type    = "CNAME"
+  ttl     = "300"
+  records = [module.oonipg.pg_address]
+}
 
 # resource "aws_route53_record" "alb_dns" {
 #   zone_id = local.dns_zone_ooni_io
-#   name    = "dataapi.prod.ooni.io"
+#   name    = "dataapi.${local.stage}.ooni.io"
 #   type    = "A"
 
 #   alias {
@@ -301,17 +232,7 @@ module "ooni_backendproxy" {
 #   }
 # }
 
-# resource "aws_route53_record" "ooniapi_alb_dns" {
-#   zone_id = local.dns_zone_ooni_io
-#   name    = "api.prod.ooni.io"
-#   type    = "A"
 
-#   alias {
-#     name                   = aws_alb.ooniapi.dns_name
-#     zone_id                = aws_alb.ooniapi.zone_id
-#     evaluate_target_health = true
-#   }
-# }
 
 # # ACM TLS
 
@@ -349,40 +270,6 @@ module "ooni_backendproxy" {
 #   depends_on = [
 #     aws_route53_record.ooniapi_alb_dns
 #   ]
-# }
-
-# resource "aws_acm_certificate" "ooniapi" {
-#   domain_name       = "api.prod.ooni.io"
-#   validation_method = "DNS"
-
-#   tags = local.tags
-
-
-#   lifecycle {
-#     create_before_destroy = true
-#   }
-# }
-
-# resource "aws_route53_record" "ooniapi_cert_validation" {
-#   for_each = {
-#     for dvo in aws_acm_certificate.ooniapi.domain_validation_options : dvo.domain_name => {
-#       name   = dvo.resource_record_name
-#       record = dvo.resource_record_value
-#       type   = dvo.resource_record_type
-#     }
-#   }
-
-#   allow_overwrite = true
-#   name            = each.value.name
-#   records         = [each.value.record]
-#   ttl             = 60
-#   type            = each.value.type
-#   zone_id         = local.dns_zone_ooni_io
-# }
-
-# resource "aws_acm_certificate_validation" "ooniapi" {
-#   certificate_arn         = aws_acm_certificate.ooniapi.arn
-#   validation_record_fqdns = [for record in aws_route53_record.ooniapi_cert_validation : record.fqdn]
 # }
 
 
