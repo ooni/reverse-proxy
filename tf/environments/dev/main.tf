@@ -129,9 +129,12 @@ module "oonipg" {
   depends_on = [module.adm_iam_roles]
 }
 
-moved {
-  from = module.postgresql
-  to   = module.oonipg
+resource "aws_route53_record" "postgres_dns" {
+  zone_id = local.dns_zone_ooni_nu
+  name    = "postgres.${local.stage}.ooni.nu"
+  type    = "CNAME"
+  ttl     = "300"
+  records = [module.oonipg.pg_address]
 }
 
 ### OONI Tier0 Backend Proxy
@@ -170,29 +173,81 @@ module "ooniapi_frontend" {
   )
 }
 
-# ## ECS
+resource "aws_cloudwatch_log_group" "ooniapi_services" {
+  name = "ooni-ecs-group/ooniapi-services-ecs-cluster"
+}
 
-# resource "aws_ecs_cluster" "main" {
-#   name = local.ecs_cluster_name
-#   tags = local.tags
-# }
+resource "aws_ecs_cluster" "ooniapi_services" {
+  name = "ooniapi-services-ecs-cluster"
+  configuration {
+    execute_command_configuration {
+      logging = "OVERRIDE"
 
-# module "ooni_dataapi" {
-#   source = "../../modules/ooni_dataapi"
+      log_configuration {
+        cloud_watch_log_group_name = aws_cloudwatch_log_group.ooniapi_services.name
+      }
+    }
+  }
 
-#   aws_access_key_id     = var.aws_access_key_id
-#   aws_secret_access_key = var.aws_secret_access_key
-#   aws_region            = var.aws_region
-#   tags                  = local.tags
-#   ecs_cluster_name      = local.ecs_cluster_name
-#   ecs_cluster_id        = aws_ecs_cluster.main.id
-#   vpc_id                = module.network.vpc_id
-#   subnet_ids            = module.network.vpc_subnet[*].id
-#   certificate_arn       = aws_acm_certificate_validation.oonidataapi.certificate_arn
-# }
+  tags = local.tags
+}
+
+### Configuration common to all services
+
+resource "random_password" "jwt_secret" {
+  length  = 32
+  special = false
+}
+
+resource "aws_secretsmanager_secret" "jwt_secret" {
+  name = "oonidevops/ooni_services/jwt_secret"
+  tags = local.tags
+}
+
+resource "aws_secretsmanager_secret_version" "jwt_secret" {
+  secret_id     = aws_secretsmanager_secret.jwt_secret.id
+  secret_string = random_password.jwt_secret.result
+}
+
+resource "aws_secretsmanager_secret" "oonipg_url" {
+  name = "oonidevops/ooni-tier0-postgres/postgresql_url"
+  tags = local.tags
+}
+
+resource "aws_secretsmanager_secret_version" "oonipg_url" {
+  secret_id     = aws_secretsmanager_secret.oonipg_url.id
+  secret_string = "postgresql://${module.oonipg.pg_username}:${module.oonipg.pg_password}@${module.oonipg.pg_endpoint}/${module.oonipg.pg_db_name}"
+}
+
+#### OONI Tier1 dataapi service
+
+module "oonidataapi" {
+  source = "../../modules/ooniapi_service"
+
+  vpc_id     = module.network.vpc_id
+  subnet_ids = module.network.vpc_subnet[*].id
+
+  service_name     = "dataapi"
+  docker_image_url = "ooni/dataapi:latest"
+  stage            = local.stage
+  dns_zone_ooni_io = local.dns_zone_ooni_io
+  key_name         = module.adm_iam_roles.oonidevops_key_name
+  ecs_cluster_id   = aws_ecs_cluster.ooniapi_services.id
+  ecs_cluster_name = aws_ecs_cluster.ooniapi_services.name
+
+  task_secrets = {
+    POSTGRESQL_URL     = aws_secretsmanager_secret_version.oonipg_url.arn
+    JWT_ENCRYPTION_KEY = aws_secretsmanager_secret_version.jwt_secret.arn
+  }
+
+  tags = merge(
+    local.tags,
+    { Name = "ooni-tier1-dataapi" }
+  )
+}
+
 
 # ### OONI API ALB
-
 
 # resource "aws_lb_listener_rule" "rule" {
 #   listener_arn = aws_lb_listener.ooniapi_listener_https.arn
@@ -208,73 +263,4 @@ module "ooniapi_frontend" {
 #       values = ["/api/v1/*"]
 #     }
 #   }
-# }
-
-# Route53
-
-resource "aws_route53_record" "postgres_dns" {
-  zone_id = local.dns_zone_ooni_nu
-  name    = "postgres.${local.stage}.ooni.nu"
-  type    = "CNAME"
-  ttl     = "300"
-  records = [module.oonipg.pg_address]
-}
-
-# resource "aws_route53_record" "alb_dns" {
-#   zone_id = local.dns_zone_ooni_io
-#   name    = "dataapi.${local.stage}.ooni.io"
-#   type    = "A"
-
-#   alias {
-#     name                   = module.ooni_dataapi.alb_dns_name
-#     zone_id                = module.ooni_dataapi.alb_zone_id
-#     evaluate_target_health = true
-#   }
-# }
-
-
-
-# # ACM TLS
-
-# resource "aws_acm_certificate" "oonidataapi" {
-#   domain_name       = "dataapi.prod.ooni.io"
-#   validation_method = "DNS"
-
-#   tags = local.tags
-
-#   lifecycle {
-#     create_before_destroy = true
-#   }
-# }
-
-# resource "aws_route53_record" "oonidataapi_cert_validation" {
-#   for_each = {
-#     for dvo in aws_acm_certificate.oonidataapi.domain_validation_options : dvo.domain_name => {
-#       name   = dvo.resource_record_name
-#       record = dvo.resource_record_value
-#       type   = dvo.resource_record_type
-#     }
-#   }
-
-#   allow_overwrite = true
-#   name            = each.value.name
-#   records         = [each.value.record]
-#   ttl             = 60
-#   type            = each.value.type
-#   zone_id         = local.dns_zone_ooni_io
-# }
-
-# resource "aws_acm_certificate_validation" "oonidataapi" {
-#   certificate_arn         = aws_acm_certificate.oonidataapi.arn
-#   validation_record_fqdns = [for record in aws_route53_record.oonidataapi_cert_validation : record.fqdn]
-#   depends_on = [
-#     aws_route53_record.ooniapi_alb_dns
-#   ]
-# }
-
-
-# ## CloudWatch Logs
-
-# resource "aws_cloudwatch_log_group" "ecs" {
-#   name = "tf-ecs-group/ecs-agent"
 # }
