@@ -5,7 +5,7 @@ variable "aws_region" {
 
 variable "az_count" {
   description = "The AWS region to create things in."
-  default     = 1
+  default     = 2
 }
 
 variable "admin_cidr_ingress" {

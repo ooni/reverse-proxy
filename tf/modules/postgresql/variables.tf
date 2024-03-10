@@ -39,6 +39,10 @@ variable "db_allocated_storage" {
   default = "10"
 }
 
+variable "db_storage_type" {
+  default = "standard"
+}
+
 variable "db_max_allocated_storage" {
   default = "100"
 }
@@ -47,6 +51,15 @@ variable "db_engine_version" {
   default = "16.1"
 }
 
+variable "db_parameter_group" {
+  default = "default.postgres16"
+}
+
+
 variable "allow_cidr_blocks" {
   default = ["0.0.0.0/0"]
+}
+
+variable "db_multi_az" {
+  default = false
 }

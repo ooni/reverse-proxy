@@ -46,7 +46,8 @@ resource "aws_iam_policy" "oonidevops" {
         "iam:*",
         "dynamodb:*",
         "states:*",
-        "organizations:*"
+        "organizations:*",
+        "secretsmanager:*"
       ],
       "Resource": "*"
     }

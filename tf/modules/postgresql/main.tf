@@ -53,15 +53,16 @@ resource "aws_secretsmanager_secret_version" "pg_password" {
 resource "aws_db_instance" "pg" {
   allocated_storage       = var.db_allocated_storage
   max_allocated_storage   = var.db_max_allocated_storage
-  storage_type            = "gp2"
+  storage_type            = var.db_storage_type
   engine                  = "postgres"
   engine_version          = var.db_engine_version
   instance_class          = var.db_instance_class
   identifier              = var.name
+  multi_az                = var.db_multi_az
   db_name                 = var.pg_db_name
   username                = var.pg_username
   password                = aws_secretsmanager_secret_version.pg_password.secret_string
-  parameter_group_name    = "default.postgres${var.db_engine_version}"
+  parameter_group_name    = var.db_parameter_group
   db_subnet_group_name    = aws_db_subnet_group.pg.name
   vpc_security_group_ids  = [aws_security_group.pg.id]
   skip_final_snapshot     = true

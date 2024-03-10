@@ -97,6 +97,8 @@ module "network" {
     local.tags,
     { Name = "ooni-main-vpc" }
   )
+
+  depends_on = [module.adm_iam_roles]
 }
 
 
@@ -124,12 +126,15 @@ module "postgresql" {
   vpc_id                   = module.network.vpc_id
   subnet_ids               = module.network.vpc_subnet[*].id
   db_instance_class        = "db.t3.micro"
-  db_allocated_storage     = "1"
-  db_max_allocated_storage = "10"
+  db_storage_type          = "standard"
+  db_allocated_storage     = "5"
+  db_max_allocated_storage = null
   tags = merge(
     local.tags,
     { Name = "ooni-tier0-postgres" }
   )
+
+  depends_on = [module.adm_iam_roles]
 }
 
 # ## EC2
