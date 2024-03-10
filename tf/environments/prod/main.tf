@@ -11,6 +11,29 @@ terraform {
   }
 }
 
+## AWS Setup
+
+provider "aws" {
+  region     = var.aws_region
+  access_key = var.aws_access_key_id
+  secret_key = var.aws_secret_access_key
+}
+
+# Local variable definitions
+locals {
+  environment      = "prod"
+  name             = "ooni-${local.environment}"
+  ecs_cluster_name = "ooni-ecs-cluster"
+  dns_zone_ooni_nu = "Z035992527R8VEIX2UVO0" # ooni.nu hosted zone
+  dns_zone_ooni_io = "Z02418652BOD91LFA5S9X" # ooni.io hosted zone
+
+  tags = {
+    Name        = local.name
+    Environment = local.environment
+    Repository  = "https://github.com/ooni/devops"
+  }
+}
+
 # You cannot create a new backend by simply defining this and then
 # immediately proceeding to "terraform apply". The S3 backend must
 # be bootstrapped according to the simple yet essential procedure in
@@ -30,53 +53,13 @@ module "terraform_state_backend" {
 
 ## Ansible inventory
 
-resource "local_file" "ansible_inventory" {
-  depends_on = [
-    # Commented out because module is disabled
-    # module.clickhouse.server_ip
-  ]
+module "ansible_inventory" {
+  source = "../../modules/ansible_inventory"
 
-  content = templatefile("${path.module}/templates/ansible-inventory.tpl", {
-    clickhouse_servers = [
-      # module.clickhouse.server_fqdm
-    ]
-  })
-  filename = "${path.module}/ansible/inventory.ini"
-}
-
-resource "null_resource" "ansible_update_known_hosts" {
-  depends_on = [local_file.ansible_inventory]
-
-  provisioner "local-exec" {
-    command = "./scripts/update_known_hosts.sh"
-    environment = {
-      INVENTORY_FILE   = "ansible/inventory.ini"
-      KNOWN_HOSTS_FILE = "ansible/known_hosts"
-    }
+  server_groups = {
+    ## "all" has special meaning and is reserved
+    "mygroup" = []
   }
-}
-
-# Local variable definitions
-locals {
-  environment      = "prod"
-  name             = "ooni-${local.environment}"
-  ecs_cluster_name = "ooni-ecs-cluster"
-  dns_zone_ooni_nu = "Z035992527R8VEIX2UVO0" # ooni.nu hosted zone
-  dns_zone_ooni_io = "Z02418652BOD91LFA5S9X" # ooni.io hosted zone
-
-  tags = {
-    Name        = local.name
-    Environment = local.environment
-    Repository  = "https://github.com/ooni/devops"
-  }
-}
-
-## AWS Setup
-
-provider "aws" {
-  region     = var.aws_region
-  access_key = var.aws_access_key_id
-  secret_key = var.aws_secret_access_key
 }
 
 module "network" {
@@ -90,7 +73,6 @@ module "network" {
 }
 
 
-#
 ### OONI Modules
 
 # Temporarily disabled, since production OONI clickhouse is not on AWS atm
@@ -154,7 +136,6 @@ module "ooni_dataapi" {
   subnet_ids            = module.network.vpc_subnet[*].id
   certificate_arn       = aws_acm_certificate_validation.oonidataapi.certificate_arn
 }
-
 
 ### OONI API ALB
 
