@@ -25,7 +25,6 @@ output "pg_password" {
 }
 
 output "secrets_manager_pg_password_id" {
-  sensitive   = true
   description = "The postgres password to login as pg_username into pg_db_name as a secrets_manager_id"
   value       = aws_secretsmanager_secret.pg_password.id
 }
