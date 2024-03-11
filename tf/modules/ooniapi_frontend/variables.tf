@@ -27,3 +27,8 @@ variable "dns_zone_ooni_io" {
 variable "stage" {
   description = "dev, test, prod label for the stage"
 }
+
+variable "ooniapi_service_security_groups" {
+  description = "the shared web security group from the ecs cluster"
+  type        = list(string)
+}

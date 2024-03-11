@@ -279,6 +279,10 @@ module "ooniapi_frontend" {
   oonibackend_proxy_target_group_arn = module.ooni_backendproxy.alb_target_group_id
   oonidataapi_target_group_arn       = module.oonidataapi.alb_target_group_id
 
+  ooniapi_service_security_groups = [
+    module.ooniapi_cluster.web_security_group_id
+  ]
+
   stage            = local.stage
   dns_zone_ooni_io = local.dns_zone_ooni_io
 
