@@ -77,7 +77,7 @@ resource "aws_alb_listener" "ooniapi_listener_https" {
 }
 
 resource "aws_lb_listener_rule" "oonidataapi_rule" {
-  listener_arn = aws_lb_listener.ooniapi_listener_https.arn
+  listener_arn = aws_alb_listener.ooniapi_listener_https.arn
   priority     = 100
 
   action {
