@@ -207,24 +207,7 @@ module "ooni_backendproxy" {
   )
 }
 
-### OONI Tier0 API Frontend
-
-module "ooniapi_frontend" {
-  source = "../../modules/ooniapi_frontend"
-
-
-  vpc_id     = module.network.vpc_id
-  subnet_ids = module.network.vpc_subnet[*].id
-
-  oonibackend_proxy_target_group_arn = module.ooni_backendproxy.alb_target_group_id
-  stage                              = local.stage
-  dns_zone_ooni_io                   = local.dns_zone_ooni_io
-
-  tags = merge(
-    local.tags,
-    { Name = "ooni-tier0-api-frontend" }
-  )
-}
+### OONI Services Clusters
 
 module "ooniapi_cluster" {
   source = "../../modules/ecs_cluster"
@@ -285,21 +268,23 @@ module "oonidataapi" {
   )
 }
 
+### OONI Tier0 API Frontend
 
-# ### OONI API ALB
+module "ooniapi_frontend" {
+  source = "../../modules/ooniapi_frontend"
 
-# resource "aws_lb_listener_rule" "rule" {
-#   listener_arn = aws_lb_listener.ooniapi_listener_https.arn
-#   priority     = 100
+  vpc_id     = module.network.vpc_id
+  subnet_ids = module.network.vpc_subnet[*].id
 
-#   action {
-#     type             = "forward"
-#     target_group_arn = aws_lb_target_group.tg.arn
-#   }
+  oonibackend_proxy_target_group_arn = module.ooni_backendproxy.alb_target_group_id
+  oonidataapi_target_group_arn       = module.oonidataapi.alb_target_group_id
 
-#   condition {
-#     path_pattern {
-#       values = ["/api/v1/*"]
-#     }
-#   }
-# }
+  stage            = local.stage
+  dns_zone_ooni_io = local.dns_zone_ooni_io
+
+  tags = merge(
+    local.tags,
+    { Name = "ooni-tier0-api-frontend" }
+  )
+}
+

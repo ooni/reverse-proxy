@@ -49,8 +49,13 @@ resource "aws_alb_listener" "ooniapi_listener_http" {
   protocol          = "HTTP"
 
   default_action {
-    target_group_arn = var.oonibackend_proxy_target_group_arn
-    type             = "forward"
+    type = "redirect"
+
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
   }
 
   tags = var.tags
@@ -70,6 +75,24 @@ resource "aws_alb_listener" "ooniapi_listener_https" {
 
   tags = var.tags
 }
+
+resource "aws_lb_listener_rule" "oonidataapi_rule" {
+  listener_arn = aws_lb_listener.ooniapi_listener_https.arn
+  priority     = 100
+
+  action {
+    type             = "forward"
+    target_group_arn = var.oonidataapi_target_group_arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/api/v2/*"]
+    }
+  }
+}
+
+## DNS
 
 resource "aws_route53_record" "ooniapi" {
   zone_id = var.dns_zone_ooni_io
