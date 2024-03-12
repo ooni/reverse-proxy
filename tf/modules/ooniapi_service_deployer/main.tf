@@ -40,6 +40,16 @@ resource "aws_iam_policy" "codebuild" {
       ]
     },
     {
+      "Effect": "Allow",
+      "Action": [
+        "ssmmessages:CreateControlChannel",
+        "ssmmessages:CreateDataChannel",
+        "ssmmessages:OpenControlChannel",
+        "ssmmessages:OpenDataChannel"
+      ],
+      "Resource": "*"
+    },
+    {
       "Action": [
         "codebuild:CreateReportGroup",
         "codebuild:CreateReport",
