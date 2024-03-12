@@ -61,6 +61,11 @@ resource "aws_iam_policy" "codebuild" {
       "Resource": [
         "arn:aws:codebuild:${var.aws_region}:${local.account_id}:report-group/ooniapi-${var.service_name}-*"
       ]
+    },
+    {
+        "Effect": "Allow",
+        "Action": "codestar-connections:UseConnection",
+        "Resource": "${var.codestar_connection_arn}"
     }
   ],
   "Version": "2012-10-17"
