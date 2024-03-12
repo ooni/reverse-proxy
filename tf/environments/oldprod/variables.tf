@@ -1,14 +1,3 @@
-variable "aws_access_key_id" {
-  sensitive = true
-}
-variable "aws_secret_access_key" {
-  sensitive = true
-}
-
-variable "ooni_pg_password" {
-  sensitive = true
-}
-
 variable "aws_region" {
   description = "The AWS region to create things in."
   default     = "eu-central-1"
