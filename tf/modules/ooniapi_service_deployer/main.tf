@@ -214,7 +214,7 @@ resource "aws_codepipeline" "ooniapi" {
         FullRepositoryId     = var.repo
         BranchName           = var.branch_name
         DetectChanges        = "true"
-        OutputArtifactFormat = "CODE_ZIP"
+        OutputArtifactFormat = "CODEBUILD_CLONE_REF"
       }
     }
 
