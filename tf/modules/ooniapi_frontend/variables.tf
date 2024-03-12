@@ -16,8 +16,8 @@ variable "oonibackend_proxy_target_group_arn" {
   description = "aws_alb_target_group.oonibackend_proxy.id"
 }
 
-variable "oonidataapi_target_group_arn" {
-  description = "aws_alb_target_group.oonidataapi.id"
+variable "ooniapi_oonirun_target_group_arn" {
+  description = "arn for the target group of the oonirun module"
 }
 
 variable "dns_zone_ooni_io" {

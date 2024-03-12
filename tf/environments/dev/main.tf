@@ -225,29 +225,29 @@ module "ooniapi_cluster" {
 
 #### OONI Tier1 dataapi service
 
-module "oonidataapi_deployer" {
+module "ooniapi_oonirun_deployer" {
   source = "../../modules/ooniapi_service_deployer"
 
-  service_name            = "dataapi"
+  service_name            = "oonirun"
   repo                    = "ooni/backend"
   branch_name             = "master"
-  buildspec_path          = "api/fastapi/buildspec.yml"
+  buildspec_path          = "ooniapi/services/oonirun/buildspec.yml"
   codestar_connection_arn = aws_codestarconnections_connection.ooniapi.arn
 
   codepipeline_bucket = aws_s3_bucket.ooniapi_codepipeline_bucket.bucket
 
-  ecs_service_name = module.oonidataapi.ecs_service_name
+  ecs_service_name = module.ooniapi_oonirun.ecs_service_name
   ecs_cluster_name = module.ooniapi_cluster.cluster_name
 }
 
-module "oonidataapi" {
+module "ooniapi_oonirun" {
   source = "../../modules/ooniapi_service"
 
   vpc_id     = module.network.vpc_id
   subnet_ids = module.network.vpc_subnet[*].id
 
-  service_name     = "dataapi"
-  docker_image_url = "ooni/dataapi:latest"
+  service_name     = "oonirun"
+  docker_image_url = "ooni/api-oonirun:latest"
   stage            = local.stage
   dns_zone_ooni_io = local.dns_zone_ooni_io
   key_name         = module.adm_iam_roles.oonidevops_key_name
@@ -264,7 +264,7 @@ module "oonidataapi" {
 
   tags = merge(
     local.tags,
-    { Name = "ooni-tier1-dataapi" }
+    { Name = "ooni-tier0-oonirun" }
   )
 }
 
@@ -277,7 +277,7 @@ module "ooniapi_frontend" {
   subnet_ids = module.network.vpc_subnet[*].id
 
   oonibackend_proxy_target_group_arn = module.ooni_backendproxy.alb_target_group_id
-  oonidataapi_target_group_arn       = module.oonidataapi.alb_target_group_id
+  ooniapi_oonirun_target_group_arn   = module.ooniapi_oonirun.alb_target_group_id
 
   ooniapi_service_security_groups = [
     module.ooniapi_cluster.web_security_group_id
