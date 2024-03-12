@@ -1,14 +1,14 @@
 # Local variable definitions
 locals {
-  stage = "dev"
-  name  = "oonidevops-${local.stage}"
+  environment = "dev"
+  name  = "oonidevops-${local.environment}"
 
   dns_zone_ooni_nu = "Z091407123AEJO90Z3H6D" # dev.ooni.nu hosted zone
   dns_zone_ooni_io = "Z055356431RGCLK3JXZDL" # dev.ooni.io hosted zone
 
   tags = {
     Name       = local.name
-    Stage      = local.stage
+    Environment = local.environment
     Repository = "https://github.com/ooni/devops"
   }
 }
@@ -26,7 +26,7 @@ provider "aws" {
 data "aws_availability_zones" "available" {}
 
 ### !!! IMPORTANT !!!
-# The first time you run terraform for a new stage you have to setup the
+# The first time you run terraform for a new environment you have to setup the
 # required roles in AWS.
 # This is a one time operation.
 # Follow these steps:
@@ -68,7 +68,7 @@ module "terraform_state_backend" {
   source     = "cloudposse/tfstate-backend/aws"
   version    = "1.4.0"
   namespace  = "oonidevops"
-  stage      = local.stage
+  stage      = local.environment
   name       = "terraform"
   attributes = ["state"]
 
@@ -131,7 +131,7 @@ module "oonipg" {
 
 resource "aws_route53_record" "postgres_dns" {
   zone_id = local.dns_zone_ooni_nu
-  name    = "postgres.${local.stage}.ooni.nu"
+  name    = "postgres.${local.environment}.ooni.nu"
   type    = "CNAME"
   ttl     = "300"
   records = [module.oonipg.pg_address]
@@ -248,7 +248,7 @@ module "ooniapi_oonirun" {
 
   service_name     = "oonirun"
   docker_image_url = "ooni/api-oonirun:latest"
-  stage            = local.stage
+  stage            = local.environment
   dns_zone_ooni_io = local.dns_zone_ooni_io
   key_name         = module.adm_iam_roles.oonidevops_key_name
   ecs_cluster_id   = module.ooniapi_cluster.cluster_id
@@ -283,7 +283,7 @@ module "ooniapi_frontend" {
     module.ooniapi_cluster.web_security_group_id
   ]
 
-  stage            = local.stage
+  stage            = local.environment
   dns_zone_ooni_io = local.dns_zone_ooni_io
 
   tags = merge(
