@@ -29,19 +29,19 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Configure AWS credentials
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.OONIDEVOPS_AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.OONIDEVOPS_AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: eu-central-1
         run: |
-          aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-          aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-          aws configure set default.region $AWS_DEFAULT_REGION
+          mkdir ~/.aws/
+          cat <<EOF > ~/.aws/credentials
+          [default]
+          aws_access_key_id = ${{ secrets.OONIDEVOPS_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key = ${{ secrets.OONIDEVOPS_AWS_SECRET_ACCESS_KEY }}
 
-          # Create profile oonidevops_user
-          aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID --profile oonidevops_user
-          aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY --profile oonidevops_user
-          aws configure set default.region $AWS_DEFAULT_REGION --profile oonidevops_user
+          [oonidevops_user]
+          aws_access_key_id = ${{ secrets.OONIDEVOPS_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key = ${{ secrets.OONIDEVOPS_AWS_SECRET_ACCESS_KEY }}
+          EOF
+          chmod 700 ~/.aws/
+          chmod 600 ~/.aws/credentials
 
       - name: Install Terraform
         run: |
