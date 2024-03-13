@@ -21,9 +21,11 @@ locals {
 provider "aws" {
   profile = "oonidevops_user"
   region  = var.aws_region
-  assume_role {
-    role_arn = "arn:aws:iam::905418398257:role/oonidevops"
-  }
+  # You will have to setup your own credentials in ~/.aws/credentials like this:
+  # [oonidevops_user]
+  # aws_access_key_id = YYYY
+  # aws_secret_access_key = ZZZ
+  # role_arn = arn:aws:iam::905418398257:role/oonidevops
 }
 
 data "aws_availability_zones" "available" {}
