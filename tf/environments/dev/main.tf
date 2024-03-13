@@ -296,3 +296,7 @@ module "ooniapi_frontend" {
   )
 }
 
+module "oonidevops_github_user" {
+  source = "../../modules/oonidevops_github_user"
+}
+
