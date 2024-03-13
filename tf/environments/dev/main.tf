@@ -6,6 +6,9 @@ locals {
   dns_zone_ooni_nu = "Z091407123AEJO90Z3H6D" # dev.ooni.nu hosted zone
   dns_zone_ooni_io = "Z055356431RGCLK3JXZDL" # dev.ooni.io hosted zone
 
+  ooni_main_org_id = "082866812839" # account ID for the admin@openobservatory.org account
+  ooni_dev_org_id = "905418398257" # account ID for the admin+dev@ooni.org account
+
   tags = {
     Name       = local.name
     Environment = local.environment
@@ -56,7 +59,8 @@ module "adm_iam_roles" {
   source = "../../modules/adm_iam_roles"
 
   authorized_accounts = [
-    "arn:aws:iam::082866812839:user/art"
+    "arn:aws:iam::${local.ooni_dev_org_id}:user/mehul",
+    "arn:aws:iam::${local.ooni_main_org_id}:user/art"
   ]
 }
 
