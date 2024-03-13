@@ -125,6 +125,8 @@
                 "secretsmanager:Describe*",
                 "secretsmanager:GetResourcePolicy",
                 "secretsmanager:List*",
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret",
                 "servicediscovery:DiscoverInstances",
                 "servicediscovery:DiscoverInstancesRevision",
                 "servicediscovery:Get*",
