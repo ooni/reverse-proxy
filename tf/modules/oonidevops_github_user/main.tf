@@ -177,7 +177,7 @@ resource "aws_iam_access_key" "oonidevops_github_user" {
     user = aws_iam_user.oonidevops_github_user.name
 } 
 
-resource "aws_secretsmanager_secret" "oonidevops_github_user_secrets" {
+resource "aws_secretsmanager_secret" "oonidevops_github" {
   name = "oonidevops/github_user/access_key_json"
   
   tags = var.tags

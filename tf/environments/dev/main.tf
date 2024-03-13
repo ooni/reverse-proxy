@@ -19,6 +19,7 @@ locals {
 ## AWS Setup
 
 provider "aws" {
+  profile = "oonidevops_user"
   region  = var.aws_region
   assume_role {
     role_arn = "arn:aws:iam::905418398257:role/oonidevops"
