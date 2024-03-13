@@ -42,7 +42,7 @@ jobs:
         id: playbook
         env:
           ANSIBLE_SSH_ARGS: "-o UserKnownHostsFile=known_hosts"
-          INVENTORY_FILE_PATH: "tf/modules/ansible_inventory/inventories/inventory-${{ matrix.environment }}.ini"
+          INVENTORY_FILE_PATH: "../tf/modules/ansible_inventory/inventories/inventory-${{ matrix.environment }}.ini"
         run: |
           echo "ansible_playbook<<EOF" >> "$GITHUB_OUTPUT"
           echo "\$ ansible-playbook playbook.yml --check --diff -i $INVENTORY_FILE_PATH" >> "$GITHUB_OUTPUT"
