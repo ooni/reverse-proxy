@@ -1,18 +1,18 @@
 # Local variable definitions
 locals {
   environment = "dev"
-  name  = "oonidevops-${local.environment}"
+  name        = "oonidevops-${local.environment}"
 
   dns_zone_ooni_nu = "Z091407123AEJO90Z3H6D" # dev.ooni.nu hosted zone
   dns_zone_ooni_io = "Z055356431RGCLK3JXZDL" # dev.ooni.io hosted zone
 
   ooni_main_org_id = "082866812839" # account ID for the admin@openobservatory.org account
-  ooni_dev_org_id = "905418398257" # account ID for the admin+dev@ooni.org account
+  ooni_dev_org_id  = "905418398257" # account ID for the admin+dev@ooni.org account
 
   tags = {
-    Name       = local.name
+    Name        = local.name
     Environment = local.environment
-    Repository = "https://github.com/ooni/devops"
+    Repository  = "https://github.com/ooni/devops"
   }
 }
 

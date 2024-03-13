@@ -3,5 +3,5 @@ output "oonidevops_github_user_arn" {
 }
 
 output "oonidevops_github_user_secrets_id" {
-    value = aws_secretsmanager_secret.oonidevops_github.id
+  value = aws_secretsmanager_secret.oonidevops_github.id
 }
