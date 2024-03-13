@@ -1,7 +1,7 @@
 {
-    "statement": {
-      "effect": "Allow",
-      "actions": [
+    "Statement": {
+      "Effect": "Allow",
+      "Action": [
         "acm:Describe*",
         "acm:Get*",
         "acm:List*",
@@ -156,6 +156,6 @@
         "vpc-lattice:ListTargetGroups",
         "vpc-lattice:ListTargets"
       ],
-      "resources": ["*"]
+      "Resource": ["*"]
     }
 }
