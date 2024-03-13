@@ -16,7 +16,6 @@ locals {
 ## AWS Setup
 
 provider "aws" {
-  profile = "oonidevops_user"
   region  = var.aws_region
   assume_role {
     role_arn = "arn:aws:iam::905418398257:role/oonidevops"
@@ -56,7 +55,8 @@ module "adm_iam_roles" {
   source = "../../modules/adm_iam_roles"
 
   authorized_accounts = [
-    "arn:aws:iam::082866812839:user/art"
+    "arn:aws:iam::082866812839:user/art",
+    "arn:aws:iam::905418398257:user/mehul"
   ]
 }
 
@@ -283,6 +283,10 @@ module "oonidataapi" {
     local.tags,
     { Name = "ooni-tier1-dataapi" }
   )
+}
+
+module "ooni_dev_user" {
+  source = "../../modules/ooni_dev_user"
 }
 
 
