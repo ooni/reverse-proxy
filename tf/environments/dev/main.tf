@@ -19,7 +19,6 @@ locals {
 ## AWS Setup
 
 provider "aws" {
-  profile = "oonidevops_user"
   region  = var.aws_region
   assume_role {
     role_arn = "arn:aws:iam::905418398257:role/oonidevops"
@@ -298,5 +297,7 @@ module "ooniapi_frontend" {
 
 module "oonidevops_github_user" {
   source = "../../modules/oonidevops_github_user"
+
+  tags = local.tags
 }
 
