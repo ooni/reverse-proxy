@@ -43,7 +43,6 @@ jobs:
           aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY --profile oonidevops_user
           aws configure set default.region $AWS_DEFAULT_REGION --profile oonidevops_user
 
-      - name: Configure Terraform key
       - name: Install Terraform
         run: |
           wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
