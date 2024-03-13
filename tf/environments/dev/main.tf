@@ -58,13 +58,8 @@ module "adm_iam_roles" {
   source = "../../modules/adm_iam_roles"
 
   authorized_accounts = [
-<<<<<<< HEAD
-    "arn:aws:iam::082866812839:user/art",
-    "arn:aws:iam::905418398257:user/mehul"
-=======
     "arn:aws:iam::${local.ooni_dev_org_id}:user/mehul",
     "arn:aws:iam::${local.ooni_main_org_id}:user/art"
->>>>>>> dev-role
   ]
 }
 
@@ -276,14 +271,7 @@ module "ooniapi_oonirun" {
   )
 }
 
-<<<<<<< HEAD
-module "ooni_dev_user" {
-  source = "../../modules/ooni_dev_user"
-}
-
-=======
 ### OONI Tier0 API Frontend
->>>>>>> dev-role
 
 module "ooniapi_frontend" {
   source = "../../modules/ooniapi_frontend"
