@@ -1,5 +1,5 @@
 output "oonidevops_github_user_arn" {
-  value = aws_iam_user.oonidevops_github_user.arn
+  value = aws_iam_user.oonidevops_github.arn
 }
 
 output "oonidevops_github_user_secrets_id" {
