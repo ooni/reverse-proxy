@@ -157,5 +157,6 @@
         "vpc-lattice:ListTargets"
       ],
       "Resource": ["*"]
-    }
+    },
+    "Version": "2012-10-17"
 }
