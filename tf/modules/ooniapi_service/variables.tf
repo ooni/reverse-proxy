@@ -31,7 +31,7 @@ variable "tags" {
 
 variable "service_desired_count" {
   description = "Desired numbers of instances in the ecs service"
-  default     = 3
+  default     = 2
 }
 
 variable "task_cpu" {
