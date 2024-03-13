@@ -7,7 +7,7 @@ resource "local_file" "ansible_inventory" {
   content = templatefile("${path.module}/templates/ansible-inventory.tpl",
     { server_groups = var.server_groups }
   )
-  filename = "${path.module}/ansible/inventory.ini"
+  filename = "${path.module}/inventories/inventory-${var.environment}.ini"
 }
 
 resource "null_resource" "ansible_update_known_hosts" {

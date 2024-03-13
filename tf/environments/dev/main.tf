@@ -95,6 +95,8 @@ module "ansible_inventory" {
     ## "all" has special meaning and is reserved
     "mygroup" = []
   }
+
+  environment = local.environment
 }
 
 module "network" {
