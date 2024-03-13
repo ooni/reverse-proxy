@@ -31,35 +31,6 @@ resource "aws_iam_role_policy" "ooniapi_service_task" {
   policy = templatefile("${path.module}/templates/profile_policy.json", {})
 }
 
-resource "aws_iam_role" "ooniapi_service_ecs" {
-  name = "${local.name}-ecs-role"
-
-  tags = var.tags
-
-  assume_role_policy = <<EOF
-{
-  "Version": "2008-10-17",
-  "Statement": [
-    {
-      "Sid": "",
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "ecs.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-EOF
-}
-
-resource "aws_iam_role_policy" "ooniapi_service_ecs" {
-  name = "${local.name}-ecs-role"
-  role = aws_iam_role.ooniapi_service_ecs.name
-
-  policy = templatefile("${path.module}/templates/profile_policy.json", {})
-}
-
 resource "aws_cloudwatch_log_group" "ooniapi_service" {
   name = "ooni-ecs-group/${local.name}"
 }
@@ -108,19 +79,23 @@ resource "aws_ecs_service" "ooniapi_service" {
   cluster         = var.ecs_cluster_id
   task_definition = aws_ecs_task_definition.ooniapi_service.arn
   desired_count   = var.service_desired_count
-  iam_role        = aws_iam_role.ooniapi_service_ecs.name
 
   deployment_minimum_healthy_percent = 50
   deployment_maximum_percent         = 100
 
   load_balancer {
-    target_group_arn = aws_alb_target_group.ooniapi_service.id
+    target_group_arn = aws_alb_target_group.ooniapi_service_direct.id
+    container_name   = local.name
+    container_port   = "80"
+  }
+
+  load_balancer {
+    target_group_arn = aws_alb_target_group.ooniapi_service_mapped.id
     container_name   = local.name
     container_port   = "80"
   }
 
   depends_on = [
-    aws_iam_role_policy.ooniapi_service_ecs,
     aws_alb_listener.ooniapi_service_http,
   ]
 
@@ -135,8 +110,19 @@ resource "aws_ecs_service" "ooniapi_service" {
   tags = var.tags
 }
 
-resource "aws_alb_target_group" "ooniapi_service" {
-  name     = local.name
+# The direct target group is used for the direct domain name mapping
+resource "aws_alb_target_group" "ooniapi_service_direct" {
+  name     = "${local.name}-direct"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = var.vpc_id
+
+  tags = var.tags
+}
+
+# The mapped target group is used for mapping it in the main API load balancer
+resource "aws_alb_target_group" "ooniapi_service_mapped" {
+  name     = "${local.name}-mapped"
   port     = 80
   protocol = "HTTP"
   vpc_id   = var.vpc_id
@@ -158,7 +144,7 @@ resource "aws_alb_listener" "ooniapi_service_http" {
   protocol          = "HTTP"
 
   default_action {
-    target_group_arn = aws_alb_target_group.ooniapi_service.id
+    target_group_arn = aws_alb_target_group.ooniapi_service_direct.id
     type             = "forward"
   }
 
@@ -173,7 +159,7 @@ resource "aws_alb_listener" "front_end_https" {
   certificate_arn   = aws_acm_certificate.ooniapi_service.arn
 
   default_action {
-    target_group_arn = aws_alb_target_group.ooniapi_service.id
+    target_group_arn = aws_alb_target_group.ooniapi_service_direct.id
     type             = "forward"
   }
 

@@ -2,43 +2,10 @@ locals {
   name = "ooni-tier0-api-frontend"
 }
 
-resource "aws_security_group" "ooniapi" {
-  description = "controls access to the application ELB"
-
-  vpc_id = var.vpc_id
-  name   = "${local.name}-sg"
-
-  ingress {
-    protocol    = "tcp"
-    from_port   = 80
-    to_port     = 80
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    protocol    = "tcp"
-    from_port   = 443
-    to_port     = 443
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-
-    cidr_blocks = [
-      "0.0.0.0/0",
-    ]
-  }
-
-  tags = var.tags
-}
-
 resource "aws_alb" "ooniapi" {
   name            = local.name
   subnets         = var.subnet_ids
-  security_groups = [aws_security_group.ooniapi.id]
+  security_groups = var.ooniapi_service_security_groups
 
   tags = var.tags
 }
@@ -49,8 +16,13 @@ resource "aws_alb_listener" "ooniapi_listener_http" {
   protocol          = "HTTP"
 
   default_action {
-    target_group_arn = var.oonibackend_proxy_target_group_arn
-    type             = "forward"
+    type = "redirect"
+
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
   }
 
   tags = var.tags
@@ -70,6 +42,24 @@ resource "aws_alb_listener" "ooniapi_listener_https" {
 
   tags = var.tags
 }
+
+resource "aws_lb_listener_rule" "oonidataapi_rule" {
+  listener_arn = aws_alb_listener.ooniapi_listener_https.arn
+  priority     = 100
+
+  action {
+    type             = "forward"
+    target_group_arn = var.ooniapi_oonirun_target_group_arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/api/v2/*"]
+    }
+  }
+}
+
+## DNS
 
 resource "aws_route53_record" "ooniapi" {
   zone_id = var.dns_zone_ooni_io

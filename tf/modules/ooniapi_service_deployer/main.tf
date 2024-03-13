@@ -36,8 +36,18 @@ resource "aws_iam_policy" "codebuild" {
       ],
       "Effect": "Allow",
       "Resource": [
-        "arn:aws:s3:::codepipeline-${var.aws_region}-*"
+        "arn:aws:s3:::codepipeline-ooniapi-${var.aws_region}-*"
       ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ssmmessages:CreateControlChannel",
+        "ssmmessages:CreateDataChannel",
+        "ssmmessages:OpenControlChannel",
+        "ssmmessages:OpenDataChannel"
+      ],
+      "Resource": "*"
     },
     {
       "Action": [
@@ -51,6 +61,11 @@ resource "aws_iam_policy" "codebuild" {
       "Resource": [
         "arn:aws:codebuild:${var.aws_region}:${local.account_id}:report-group/ooniapi-${var.service_name}-*"
       ]
+    },
+    {
+        "Effect": "Allow",
+        "Action": "codestar-connections:UseConnection",
+        "Resource": "${var.codestar_connection_arn}"
     }
   ],
   "Version": "2012-10-17"
@@ -105,7 +120,7 @@ resource "aws_codebuild_project" "ooniapi" {
     compute_type                = "BUILD_GENERAL1_SMALL"
     image                       = "aws/codebuild/standard:7.0"
     image_pull_credentials_type = "CODEBUILD"
-    privileged_mode             = "false"
+    privileged_mode             = "true"
     type                        = "LINUX_CONTAINER"
   }
 
@@ -204,7 +219,7 @@ resource "aws_codepipeline" "ooniapi" {
         FullRepositoryId     = var.repo
         BranchName           = var.branch_name
         DetectChanges        = "true"
-        OutputArtifactFormat = "CODE_ZIP"
+        OutputArtifactFormat = "CODEBUILD_CLONE_REF"
       }
     }
 

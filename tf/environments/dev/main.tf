@@ -1,14 +1,17 @@
 # Local variable definitions
 locals {
-  stage = "dev"
-  name  = "oonidevops-${local.stage}"
+  environment = "dev"
+  name  = "oonidevops-${local.environment}"
 
   dns_zone_ooni_nu = "Z091407123AEJO90Z3H6D" # dev.ooni.nu hosted zone
   dns_zone_ooni_io = "Z055356431RGCLK3JXZDL" # dev.ooni.io hosted zone
 
+  ooni_main_org_id = "082866812839" # account ID for the admin@openobservatory.org account
+  ooni_dev_org_id = "905418398257" # account ID for the admin+dev@ooni.org account
+
   tags = {
     Name       = local.name
-    Stage      = local.stage
+    Environment = local.environment
     Repository = "https://github.com/ooni/devops"
   }
 }
@@ -25,7 +28,7 @@ provider "aws" {
 data "aws_availability_zones" "available" {}
 
 ### !!! IMPORTANT !!!
-# The first time you run terraform for a new stage you have to setup the
+# The first time you run terraform for a new environment you have to setup the
 # required roles in AWS.
 # This is a one time operation.
 # Follow these steps:
@@ -55,8 +58,13 @@ module "adm_iam_roles" {
   source = "../../modules/adm_iam_roles"
 
   authorized_accounts = [
+<<<<<<< HEAD
     "arn:aws:iam::082866812839:user/art",
     "arn:aws:iam::905418398257:user/mehul"
+=======
+    "arn:aws:iam::${local.ooni_dev_org_id}:user/mehul",
+    "arn:aws:iam::${local.ooni_main_org_id}:user/art"
+>>>>>>> dev-role
   ]
 }
 
@@ -68,7 +76,7 @@ module "terraform_state_backend" {
   source     = "cloudposse/tfstate-backend/aws"
   version    = "1.4.0"
   namespace  = "oonidevops"
-  stage      = local.stage
+  stage      = local.environment
   name       = "terraform"
   attributes = ["state"]
 
@@ -131,7 +139,7 @@ module "oonipg" {
 
 resource "aws_route53_record" "postgres_dns" {
   zone_id = local.dns_zone_ooni_nu
-  name    = "postgres.${local.stage}.ooni.nu"
+  name    = "postgres.${local.environment}.ooni.nu"
   type    = "CNAME"
   ttl     = "300"
   records = [module.oonipg.pg_address]
@@ -207,24 +215,7 @@ module "ooni_backendproxy" {
   )
 }
 
-### OONI Tier0 API Frontend
-
-module "ooniapi_frontend" {
-  source = "../../modules/ooniapi_frontend"
-
-
-  vpc_id     = module.network.vpc_id
-  subnet_ids = module.network.vpc_subnet[*].id
-
-  oonibackend_proxy_target_group_arn = module.ooni_backendproxy.alb_target_group_id
-  stage                              = local.stage
-  dns_zone_ooni_io                   = local.dns_zone_ooni_io
-
-  tags = merge(
-    local.tags,
-    { Name = "ooni-tier0-api-frontend" }
-  )
-}
+### OONI Services Clusters
 
 module "ooniapi_cluster" {
   source = "../../modules/ecs_cluster"
@@ -242,30 +233,30 @@ module "ooniapi_cluster" {
 
 #### OONI Tier1 dataapi service
 
-module "oonidataapi_deployer" {
+module "ooniapi_oonirun_deployer" {
   source = "../../modules/ooniapi_service_deployer"
 
-  service_name            = "dataapi"
+  service_name            = "oonirun"
   repo                    = "ooni/backend"
   branch_name             = "master"
-  buildspec_path          = "api/fastapi/buildspec.yml"
+  buildspec_path          = "ooniapi/services/oonirun/buildspec.yml"
   codestar_connection_arn = aws_codestarconnections_connection.ooniapi.arn
 
   codepipeline_bucket = aws_s3_bucket.ooniapi_codepipeline_bucket.bucket
 
-  ecs_service_name = module.oonidataapi.ecs_service_name
+  ecs_service_name = module.ooniapi_oonirun.ecs_service_name
   ecs_cluster_name = module.ooniapi_cluster.cluster_name
 }
 
-module "oonidataapi" {
+module "ooniapi_oonirun" {
   source = "../../modules/ooniapi_service"
 
   vpc_id     = module.network.vpc_id
   subnet_ids = module.network.vpc_subnet[*].id
 
-  service_name     = "dataapi"
-  docker_image_url = "ooni/dataapi:latest"
-  stage            = local.stage
+  service_name     = "oonirun"
+  docker_image_url = "ooni/api-oonirun:latest"
+  stage            = local.environment
   dns_zone_ooni_io = local.dns_zone_ooni_io
   key_name         = module.adm_iam_roles.oonidevops_key_name
   ecs_cluster_id   = module.ooniapi_cluster.cluster_id
@@ -281,29 +272,44 @@ module "oonidataapi" {
 
   tags = merge(
     local.tags,
-    { Name = "ooni-tier1-dataapi" }
+    { Name = "ooni-tier0-oonirun" }
   )
 }
 
+<<<<<<< HEAD
 module "ooni_dev_user" {
   source = "../../modules/ooni_dev_user"
 }
 
+=======
+### OONI Tier0 API Frontend
+>>>>>>> dev-role
 
-# ### OONI API ALB
+module "ooniapi_frontend" {
+  source = "../../modules/ooniapi_frontend"
 
-# resource "aws_lb_listener_rule" "rule" {
-#   listener_arn = aws_lb_listener.ooniapi_listener_https.arn
-#   priority     = 100
+  vpc_id     = module.network.vpc_id
+  subnet_ids = module.network.vpc_subnet[*].id
 
-#   action {
-#     type             = "forward"
-#     target_group_arn = aws_lb_target_group.tg.arn
-#   }
+  oonibackend_proxy_target_group_arn = module.ooni_backendproxy.alb_target_group_id
+  ooniapi_oonirun_target_group_arn   = module.ooniapi_oonirun.alb_target_group_id
 
-#   condition {
-#     path_pattern {
-#       values = ["/api/v1/*"]
-#     }
-#   }
-# }
+  ooniapi_service_security_groups = [
+    module.ooniapi_cluster.web_security_group_id
+  ]
+
+  stage            = local.environment
+  dns_zone_ooni_io = local.dns_zone_ooni_io
+
+  tags = merge(
+    local.tags,
+    { Name = "ooni-tier0-api-frontend" }
+  )
+}
+
+module "oonidevops_github_user" {
+  source = "../../modules/oonidevops_github_user"
+
+  tags = local.tags
+}
+
