@@ -183,7 +183,7 @@ resource "aws_secretsmanager_secret" "oonidevops_github" {
   tags = var.tags
 }
 
-resource "aws_secretsmanager_secret_version" "oonidevops_github_user_secrets" {
-  secret_id = aws_secretsmanager_secret.oonidevops_github_user_secrets.id
+resource "aws_secretsmanager_secret_version" "oonidevops_github" {
+  secret_id = aws_secretsmanager_secret.oonidevops_github.id
   secret_string = jsonencode({"AccessKey": aws_iam_access_key.oonidevops_github_user.id, "SecretAccessKey" = aws_iam_access_key.oonidevops_github_user.secret})
 }
