@@ -43,7 +43,7 @@ resource "aws_alb_listener" "ooniapi_listener_https" {
   tags = var.tags
 }
 
-resource "aws_lb_listener_rule" "oonidataapi_rule" {
+resource "aws_lb_listener_rule" "ooniapi_oonirun_rule" {
   listener_arn = aws_alb_listener.ooniapi_listener_https.arn
   priority     = 100
 
@@ -58,6 +58,33 @@ resource "aws_lb_listener_rule" "oonidataapi_rule" {
     }
   }
 }
+
+moved {
+  from = aws_lb_listener_rule.oonidataapi_rule
+  to   = aws_lb_listener_rule.ooniapi_oonirun_rule
+}
+
+resource "aws_lb_listener_rule" "ooniapi_ooniauth_rule" {
+  listener_arn = aws_alb_listener.ooniapi_listener_https.arn
+  priority     = 100
+
+  action {
+    type             = "forward"
+    target_group_arn = var.ooniapi_ooniauth_target_group_arn
+  }
+
+  condition {
+    path_pattern {
+      values = [
+        "/api/v1/user_register",
+        "/api/v1/user_login",
+        "/api/v1/user_refresh_token",
+        "/api/_/account_metadata",
+      ]
+    }
+  }
+}
+
 
 ## DNS
 

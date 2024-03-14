@@ -247,7 +247,9 @@ module "ooniapi_cluster" {
   )
 }
 
-#### OONI Tier1 dataapi service
+#### OONI Tier0
+
+#### OONI Run service
 
 module "ooniapi_oonirun_deployer" {
   source = "../../modules/ooniapi_service_deployer"
@@ -292,6 +294,50 @@ module "ooniapi_oonirun" {
   )
 }
 
+#### OONI Auth service
+
+module "ooniapi_ooniauth_deployer" {
+  source = "../../modules/ooniapi_service_deployer"
+
+  service_name            = "ooniauth"
+  repo                    = "ooni/backend"
+  branch_name             = "service-ooniauth"
+  buildspec_path          = "ooniapi/services/ooniauth/buildspec.yml"
+  codestar_connection_arn = aws_codestarconnections_connection.ooniapi.arn
+
+  codepipeline_bucket = aws_s3_bucket.ooniapi_codepipeline_bucket.bucket
+
+  ecs_service_name = module.ooniapi_oonirun.ecs_service_name
+  ecs_cluster_name = module.ooniapi_cluster.cluster_name
+}
+
+module "ooniapi_ooniauth" {
+  source = "../../modules/ooniapi_service"
+
+  vpc_id     = module.network.vpc_id
+  subnet_ids = module.network.vpc_subnet[*].id
+
+  service_name     = "oonirun"
+  docker_image_url = "ooni/api-ooniauth:latest"
+  stage            = local.environment
+  dns_zone_ooni_io = local.dns_zone_ooni_io
+  key_name         = module.adm_iam_roles.oonidevops_key_name
+  ecs_cluster_id   = module.ooniapi_cluster.cluster_id
+
+  task_secrets = {
+    POSTGRESQL_URL     = aws_secretsmanager_secret_version.oonipg_url.arn
+    JWT_ENCRYPTION_KEY = aws_secretsmanager_secret_version.jwt_secret.arn
+  }
+
+  ooniapi_service_security_groups = [
+    module.ooniapi_cluster.web_security_group_id
+  ]
+
+  tags = merge(
+    local.tags,
+    { Name = "ooni-tier0-ooniauth" }
+  )
+}
 ### OONI Tier0 API Frontend
 
 module "ooniapi_frontend" {
@@ -302,6 +348,7 @@ module "ooniapi_frontend" {
 
   oonibackend_proxy_target_group_arn = module.ooni_backendproxy.alb_target_group_id
   ooniapi_oonirun_target_group_arn   = module.ooniapi_oonirun.alb_target_group_id
+  ooniapi_ooniauth_target_group_arn  = module.ooniapi_ooniauth.alb_target_group_id
 
   ooniapi_service_security_groups = [
     module.ooniapi_cluster.web_security_group_id

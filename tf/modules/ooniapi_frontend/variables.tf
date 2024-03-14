@@ -19,7 +19,9 @@ variable "oonibackend_proxy_target_group_arn" {
 variable "ooniapi_oonirun_target_group_arn" {
   description = "arn for the target group of the oonirun module"
 }
-
+variable "ooniapi_ooniauth_target_group_arn" {
+  description = "arn for the target group of the oonirun module"
+}
 variable "dns_zone_ooni_io" {
   description = "id of the DNS zone for ooni_io"
 }
