@@ -4,7 +4,8 @@ set -e
 sudo apt update
 sudo apt install -y nginx
 
-sudo bash -c "cat > /etc/nginx/sites-available/default <<EOF
+tmpfile=$(mktemp /tmp/nginx-config.XXXXXX)
+cat > $tmpfile <<EOF
 server {
     listen 80;
 
@@ -16,7 +17,8 @@ server {
         proxy_set_header Host \$host;
     }
 }
-EOF"
+EOF
+sudo mv $tmpfile /etc/nginx/sites-available/default
 
 sudo nginx -t
 sudo systemctl reload nginx
