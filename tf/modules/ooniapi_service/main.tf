@@ -55,6 +55,12 @@ resource "aws_ecs_task_definition" "ooniapi_service" {
           hostPort      = 0
         }
       ],
+      environment = [
+        for k, v in var.task_environment : {
+          name  = k,
+          value = v
+        }
+      ],
       secrets = [
         for k, v in var.task_secrets : {
           name      = k,

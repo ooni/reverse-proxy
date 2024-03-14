@@ -180,6 +180,37 @@ resource "aws_secretsmanager_secret_version" "jwt_secret" {
   secret_string = random_password.jwt_secret.result
 }
 
+resource "random_password" "account_id_hashing_key" {
+  length  = 32
+  special = false
+}
+
+resource "aws_secretsmanager_secret" "account_id_hashing_key" {
+  name = "oonidevops/ooni_services/account_id_hashing_key"
+  tags = local.tags
+}
+
+resource "aws_secretsmanager_secret_version" "account_id_hashing_key" {
+  secret_id     = aws_secretsmanager_secret.account_id_hashing_key.id
+  secret_string = random_password.account_id_hashing_key.result
+}
+
+resource "random_password" "prometheus_metrics_password" {
+  length  = 32
+  special = false
+}
+
+resource "aws_secretsmanager_secret" "prometheus_metrics_password" {
+  name = "oonidevops/ooni_services/prometheus_metrics_password"
+  tags = local.tags
+}
+
+resource "aws_secretsmanager_secret_version" "prometheus_metrics_password" {
+  secret_id     = aws_secretsmanager_secret.prometheus_metrics_password.id
+  secret_string = random_password.prometheus_metrics_password.result
+}
+
+
 resource "aws_secretsmanager_secret" "oonipg_url" {
   name = "oonidevops/ooni-tier0-postgres/postgresql_url"
   tags = local.tags
@@ -280,8 +311,10 @@ module "ooniapi_oonirun" {
   ecs_cluster_id   = module.ooniapi_cluster.cluster_id
 
   task_secrets = {
-    POSTGRESQL_URL     = aws_secretsmanager_secret_version.oonipg_url.arn
-    JWT_ENCRYPTION_KEY = aws_secretsmanager_secret_version.jwt_secret.arn
+    POSTGRESQL_URL              = aws_secretsmanager_secret_version.oonipg_url.arn
+    JWT_ENCRYPTION_KEY          = aws_secretsmanager_secret_version.jwt_secret.arn
+    PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
+    ACCOUNT_ID_HASHING_KEY      = aws_secretsmanager_secret_version.account_id_hashing_key.arn
   }
 
   ooniapi_service_security_groups = [
@@ -325,8 +358,19 @@ module "ooniapi_ooniauth" {
   ecs_cluster_id   = module.ooniapi_cluster.cluster_id
 
   task_secrets = {
-    POSTGRESQL_URL     = aws_secretsmanager_secret_version.oonipg_url.arn
-    JWT_ENCRYPTION_KEY = aws_secretsmanager_secret_version.jwt_secret.arn
+    POSTGRESQL_URL              = aws_secretsmanager_secret_version.oonipg_url.arn
+    JWT_ENCRYPTION_KEY          = aws_secretsmanager_secret_version.jwt_secret.arn
+    PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
+    ACCOUNT_ID_HASHING_KEY      = aws_secretsmanager_secret_version.account_id_hashing_key.arn
+
+    AWS_SECRET_ACCESS_KEY = module.ooniapi_user.aws_secret_access_key_arn
+    AWS_ACCESS_KEY_ID     = module.ooniapi_user.aws_access_key_id_arn
+  }
+  task_environment = {
+    AWS_REGION           = var.aws_region
+    EMAIL_SOURCE_ADDRESS = module.ooniapi_user.email_address
+    SESSION_EXPIRY_DAYS  = 180
+    LOGIN_EXPIRY_DAYS    = 365
   }
 
   ooniapi_service_security_groups = [
