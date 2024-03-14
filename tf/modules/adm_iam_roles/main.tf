@@ -42,6 +42,7 @@ resource "aws_iam_policy" "oonidevops" {
         "route53:*",
         "servicediscovery:*",
         "s3:*",
+        "ses:*",
         "ssm:*",
         "logs:*",
         "iam:*",

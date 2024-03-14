@@ -117,6 +117,13 @@ module "network" {
 
 ## OONI Modules
 
+module "oonidevops_github_user" {
+  source = "../../modules/oonidevops_github_user"
+
+  tags = local.tags
+}
+
+
 ### OONI Tier0 PostgreSQL Instance
 
 module "oonipg" {
@@ -147,6 +154,14 @@ resource "aws_route53_record" "postgres_dns" {
 }
 
 ## OONI Services
+
+module "ooniapi_user" {
+  source = "../../modules/ooniapi_user"
+
+  email_address = "admin+dev@ooni.io"
+  tags          = local.tags
+}
+
 
 ### Configuration common to all services
 
@@ -300,10 +315,3 @@ module "ooniapi_frontend" {
     { Name = "ooni-tier0-api-frontend" }
   )
 }
-
-module "oonidevops_github_user" {
-  source = "../../modules/oonidevops_github_user"
-
-  tags = local.tags
-}
-
