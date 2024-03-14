@@ -51,7 +51,6 @@
                 "codestar-notifications:listNotificationRules",
                 "codestar-notifications:listTagsForResource",
                 "codestar-notifications:ListTargets",
-                "dynamodb:*",
                 "ec2:Describe*",
                 "ec2:Get*",
                 "ec2:ListImagesInRecycleBin",
@@ -156,6 +155,13 @@
             ],
             "Effect": "Allow",
             "Resource": "*"
+        }, 
+        {
+            "Action": [
+                "dynamodb:*"
+            ],
+            "Effect": "Allow",
+            "Resource": "arn:aws:dynamodb:eu-central-1:905418398257:table/oonidevops-dev-terraform-state-lock"           
         }
     ],
     "Version": "2012-10-17"
