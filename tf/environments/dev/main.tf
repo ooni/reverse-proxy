@@ -272,6 +272,12 @@ module "ooniapi_cluster" {
   vpc_id     = module.network.vpc_id
   subnet_ids = module.network.vpc_subnet[*].id
 
+  asg_min     = 2
+  asg_max     = 6
+  asg_desired = 2
+
+  instance_type = "t2.small"
+
   tags = merge(
     local.tags,
     { Name = "ooni-tier0-api-ecs-cluster" }
