@@ -25,7 +25,7 @@ resource "aws_iam_policy" "oonidevops" {
         "ecr:*",
         "ecr-public:*",
         "rds:*",
-        "vpc:*",
+        "vpc-lattice:*",
         "appmesh:*",
         "autoscaling:*",
         "application-autoscaling:*",
