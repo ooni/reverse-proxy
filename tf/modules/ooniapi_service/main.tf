@@ -168,7 +168,7 @@ resource "aws_alb_listener" "front_end_https" {
 
 resource "aws_route53_record" "ooniapi_service" {
   zone_id = var.dns_zone_ooni_io
-  name    = "${var.service_name}.${var.stage}.ooni.io"
+  name    = "${var.service_name}.api.${var.stage}.ooni.io"
   type    = "A"
 
   alias {
@@ -179,7 +179,7 @@ resource "aws_route53_record" "ooniapi_service" {
 }
 
 resource "aws_acm_certificate" "ooniapi_service" {
-  domain_name       = "${var.service_name}.${var.stage}.ooni.io"
+  domain_name       = "${var.service_name}.api.${var.stage}.ooni.io"
   validation_method = "DNS"
 
   tags = var.tags
