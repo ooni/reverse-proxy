@@ -158,7 +158,7 @@ resource "aws_route53_record" "postgres_dns" {
 module "ooniapi_user" {
   source = "../../modules/ooniapi_user"
 
-  email_address = "admin+dev@ooni.org"
+  email_address = "admin@dev.ooni.io"
   tags          = local.tags
 }
 
