@@ -317,7 +317,7 @@ module "ooniapi_ooniauth" {
   vpc_id     = module.network.vpc_id
   subnet_ids = module.network.vpc_subnet[*].id
 
-  service_name     = "oonirun"
+  service_name     = "ooniauth"
   docker_image_url = "ooni/api-ooniauth:latest"
   stage            = local.environment
   dns_zone_ooni_io = local.dns_zone_ooni_io

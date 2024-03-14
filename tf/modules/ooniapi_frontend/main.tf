@@ -66,7 +66,7 @@ moved {
 
 resource "aws_lb_listener_rule" "ooniapi_ooniauth_rule" {
   listener_arn = aws_alb_listener.ooniapi_listener_https.arn
-  priority     = 100
+  priority     = 101
 
   action {
     type             = "forward"
