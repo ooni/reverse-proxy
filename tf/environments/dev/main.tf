@@ -346,7 +346,7 @@ module "ooniapi_ooniauth_deployer" {
 
   codepipeline_bucket = aws_s3_bucket.ooniapi_codepipeline_bucket.bucket
 
-  ecs_service_name = module.ooniapi_auth.ecs_service_name
+  ecs_service_name = module.ooniapi_ooniauth.ecs_service_name
   ecs_cluster_name = module.ooniapi_cluster.cluster_name
 }
 
