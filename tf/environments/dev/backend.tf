@@ -9,9 +9,5 @@ terraform {
     encrypt = "true"
 
     dynamodb_table = "oonidevops-dev-terraform-state-lock"
-
-    assume_role = {
-      role_arn = "arn:aws:iam::905418398257:role/oonidevops"
-    }
   }
 }

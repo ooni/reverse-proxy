@@ -1,18 +1,18 @@
 # Local variable definitions
 locals {
   environment = "dev"
-  name  = "oonidevops-${local.environment}"
+  name        = "oonidevops-${local.environment}"
 
   dns_zone_ooni_nu = "Z091407123AEJO90Z3H6D" # dev.ooni.nu hosted zone
   dns_zone_ooni_io = "Z055356431RGCLK3JXZDL" # dev.ooni.io hosted zone
 
   ooni_main_org_id = "082866812839" # account ID for the admin@openobservatory.org account
-  ooni_dev_org_id = "905418398257" # account ID for the admin+dev@ooni.org account
+  ooni_dev_org_id  = "905418398257" # account ID for the admin+dev@ooni.org account
 
   tags = {
-    Name       = local.name
+    Name        = local.name
     Environment = local.environment
-    Repository = "https://github.com/ooni/devops"
+    Repository  = "https://github.com/ooni/devops"
   }
 }
 
@@ -21,9 +21,11 @@ locals {
 provider "aws" {
   profile = "oonidevops_user"
   region  = var.aws_region
-  assume_role {
-    role_arn = "arn:aws:iam::905418398257:role/oonidevops"
-  }
+  # You will have to setup your own credentials in ~/.aws/credentials like this:
+  # [oonidevops_user]
+  # aws_access_key_id = YYYY
+  # aws_secret_access_key = ZZZ
+  # role_arn = arn:aws:iam::905418398257:role/oonidevops
 }
 
 data "aws_availability_zones" "available" {}
@@ -60,6 +62,7 @@ module "adm_iam_roles" {
 
   authorized_accounts = [
     "arn:aws:iam::${local.ooni_dev_org_id}:user/mehul",
+    "arn:aws:iam::${local.ooni_dev_org_id}:user/art",
     "arn:aws:iam::${local.ooni_main_org_id}:user/art"
   ]
 }
@@ -92,6 +95,8 @@ module "ansible_inventory" {
     ## "all" has special meaning and is reserved
     "mygroup" = []
   }
+
+  environment = local.environment
 }
 
 module "network" {
@@ -294,5 +299,11 @@ module "ooniapi_frontend" {
     local.tags,
     { Name = "ooni-tier0-api-frontend" }
   )
+}
+
+module "oonidevops_github_user" {
+  source = "../../modules/oonidevops_github_user"
+
+  tags = local.tags
 }
 
