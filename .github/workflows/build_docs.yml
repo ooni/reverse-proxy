@@ -32,7 +32,7 @@ jobs:
             | awk '{if ($1 > 1) { print "duplicate slug for: " $2; exit 1}}'
 
       - name: Print the lines of the generated docs
-        run: wc -l ooni-docs/src/content/docs/mydocs/*
+        run: wc -l ooni-docs/src/content/docs/devops/*
 
       - name: Commit changes
         # Only push the docs update when we are in main
