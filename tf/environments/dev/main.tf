@@ -352,13 +352,6 @@ module "ooniapi_ooniauth" {
     JWT_ENCRYPTION_KEY          = aws_secretsmanager_secret_version.jwt_secret.arn
     PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
 
-    ADMIN_EMAILS = jsonencode([
-      "maja@ooni.org",
-      "arturo@ooni.org",
-      "jessie@ooni.org",
-      "mehul@ooni.org",
-      "admin+dev@ooni.org",
-    ])
     AWS_SECRET_ACCESS_KEY = module.ooniapi_user.aws_secret_access_key_arn
     AWS_ACCESS_KEY_ID     = module.ooniapi_user.aws_access_key_id_arn
   }
@@ -367,6 +360,13 @@ module "ooniapi_ooniauth" {
     EMAIL_SOURCE_ADDRESS = module.ooniapi_user.email_address
     SESSION_EXPIRY_DAYS  = 180
     LOGIN_EXPIRY_DAYS    = 365
+    ADMIN_EMAILS = jsonencode([
+      "maja@ooni.org",
+      "arturo@ooni.org",
+      "jessie@ooni.org",
+      "mehul@ooni.org",
+      "admin+dev@ooni.org",
+    ])
   }
 
   ooniapi_service_security_groups = [
