@@ -180,21 +180,6 @@ resource "aws_secretsmanager_secret_version" "jwt_secret" {
   secret_string = random_password.jwt_secret.result
 }
 
-resource "random_password" "account_id_hashing_key" {
-  length  = 32
-  special = false
-}
-
-resource "aws_secretsmanager_secret" "account_id_hashing_key" {
-  name = "oonidevops/ooni_services/account_id_hashing_key"
-  tags = local.tags
-}
-
-resource "aws_secretsmanager_secret_version" "account_id_hashing_key" {
-  secret_id     = aws_secretsmanager_secret.account_id_hashing_key.id
-  secret_string = random_password.account_id_hashing_key.result
-}
-
 resource "random_password" "prometheus_metrics_password" {
   length  = 32
   special = false
@@ -320,7 +305,6 @@ module "ooniapi_oonirun" {
     POSTGRESQL_URL              = aws_secretsmanager_secret_version.oonipg_url.arn
     JWT_ENCRYPTION_KEY          = aws_secretsmanager_secret_version.jwt_secret.arn
     PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
-    ACCOUNT_ID_HASHING_KEY      = aws_secretsmanager_secret_version.account_id_hashing_key.arn
   }
 
   ooniapi_service_security_groups = [
@@ -367,8 +351,14 @@ module "ooniapi_ooniauth" {
     POSTGRESQL_URL              = aws_secretsmanager_secret_version.oonipg_url.arn
     JWT_ENCRYPTION_KEY          = aws_secretsmanager_secret_version.jwt_secret.arn
     PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
-    ACCOUNT_ID_HASHING_KEY      = aws_secretsmanager_secret_version.account_id_hashing_key.arn
 
+    ADMIN_EMAILS = jsonencode([
+      "maja@ooni.org",
+      "arturo@ooni.org",
+      "jessie@ooni.org",
+      "mehul@ooni.org",
+      "admin+dev@ooni.org",
+    ])
     AWS_SECRET_ACCESS_KEY = module.ooniapi_user.aws_secret_access_key_arn
     AWS_ACCESS_KEY_ID     = module.ooniapi_user.aws_access_key_id_arn
   }
