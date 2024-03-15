@@ -340,7 +340,7 @@ module "ooniapi_ooniauth_deployer" {
 
   service_name            = "ooniauth"
   repo                    = "ooni/backend"
-  branch_name             = "service-ooniauth"
+  branch_name             = "master"
   buildspec_path          = "ooniapi/services/ooniauth/buildspec.yml"
   codestar_connection_arn = aws_codestarconnections_connection.ooniapi.arn
 
