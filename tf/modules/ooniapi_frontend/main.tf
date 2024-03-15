@@ -59,11 +59,6 @@ resource "aws_lb_listener_rule" "ooniapi_oonirun_rule" {
   }
 }
 
-moved {
-  from = aws_lb_listener_rule.oonidataapi_rule
-  to   = aws_lb_listener_rule.ooniapi_oonirun_rule
-}
-
 resource "aws_lb_listener_rule" "ooniapi_ooniauth_rule" {
   listener_arn = aws_alb_listener.ooniapi_listener_https.arn
   priority     = 101
