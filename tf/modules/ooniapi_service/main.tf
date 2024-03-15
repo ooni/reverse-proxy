@@ -40,15 +40,22 @@ locals {
   container_port = 80
 }
 
+data "aws_ecs_task_definition" "ooniapi_service" {
+  task_definition = "${local.name}-td"
+}
+
 resource "aws_ecs_task_definition" "ooniapi_service" {
   family = "${local.name}-td"
   container_definitions = jsonencode([
     {
       cpu       = var.task_cpu,
       essential = true,
-      image     = var.docker_image_url,
-      memory    = var.task_memory,
-      name      = local.name,
+      image = try(
+        jsondecode(data.aws_ecs_task_definition.ooniapi_service.task_definition).ContainerDefinitions[0].image,
+        var.docker_image_url
+      ),
+      memory = var.task_memory,
+      name   = local.name,
       portMappings = [
         {
           containerPort = local.container_port,
@@ -104,12 +111,6 @@ resource "aws_ecs_service" "ooniapi_service" {
   depends_on = [
     aws_alb_listener.ooniapi_service_http,
   ]
-
-  lifecycle {
-    ignore_changes = [
-      task_definition,
-    ]
-  }
 
   force_new_deployment = true
 
