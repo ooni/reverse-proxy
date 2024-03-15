@@ -40,7 +40,7 @@ locals {
   container_port = 80
 }
 
-data "aws_ecs_task_definition" "ooniapi_service" {
+data "aws_ecs_task_definition" "ooniapi_service_current" {
   task_definition = "${local.name}-td"
 }
 
@@ -51,7 +51,7 @@ resource "aws_ecs_task_definition" "ooniapi_service" {
       cpu       = var.task_cpu,
       essential = true,
       image = try(
-        jsondecode(data.aws_ecs_task_definition.ooniapi_service.task_definition).ContainerDefinitions[0].image,
+        jsondecode(data.aws_ecs_task_definition.ooniapi_service_current.task_definition).ContainerDefinitions[0].image,
         var.default_docker_image_url
       ),
       memory = var.task_memory,
