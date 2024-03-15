@@ -54,7 +54,7 @@ resource "aws_lb_listener_rule" "ooniapi_oonirun_rule" {
 
   condition {
     path_pattern {
-      values = ["/api/v2/*"]
+      values = ["/api/v2/oonirun/*"]
     }
   }
 }
@@ -76,6 +76,7 @@ resource "aws_lb_listener_rule" "ooniapi_ooniauth_rule" {
   condition {
     path_pattern {
       values = [
+        "/api/v2/ooniauth/*",
         "/api/v1/user_register",
         "/api/v1/user_login",
         "/api/v1/user_refresh_token",
