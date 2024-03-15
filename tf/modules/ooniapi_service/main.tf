@@ -52,7 +52,7 @@ resource "aws_ecs_task_definition" "ooniapi_service" {
       essential = true,
       image = try(
         jsondecode(data.aws_ecs_task_definition.ooniapi_service.task_definition).ContainerDefinitions[0].image,
-        var.docker_image_url
+        var.default_docker_image_url
       ),
       memory = var.task_memory,
       name   = local.name,

@@ -294,12 +294,12 @@ module "ooniapi_oonirun" {
   vpc_id     = module.network.vpc_id
   subnet_ids = module.network.vpc_subnet[*].id
 
-  service_name     = "oonirun"
-  docker_image_url = "ooni/api-oonirun:latest"
-  stage            = local.environment
-  dns_zone_ooni_io = local.dns_zone_ooni_io
-  key_name         = module.adm_iam_roles.oonidevops_key_name
-  ecs_cluster_id   = module.ooniapi_cluster.cluster_id
+  service_name             = "oonirun"
+  default_docker_image_url = "ooni/api-oonirun:latest"
+  stage                    = local.environment
+  dns_zone_ooni_io         = local.dns_zone_ooni_io
+  key_name                 = module.adm_iam_roles.oonidevops_key_name
+  ecs_cluster_id           = module.ooniapi_cluster.cluster_id
 
   task_secrets = {
     POSTGRESQL_URL              = aws_secretsmanager_secret_version.oonipg_url.arn
@@ -340,12 +340,12 @@ module "ooniapi_ooniauth" {
   vpc_id     = module.network.vpc_id
   subnet_ids = module.network.vpc_subnet[*].id
 
-  service_name     = "ooniauth"
-  docker_image_url = "ooni/api-ooniauth:latest"
-  stage            = local.environment
-  dns_zone_ooni_io = local.dns_zone_ooni_io
-  key_name         = module.adm_iam_roles.oonidevops_key_name
-  ecs_cluster_id   = module.ooniapi_cluster.cluster_id
+  service_name             = "ooniauth"
+  default_docker_image_url = "ooni/api-ooniauth:latest"
+  stage                    = local.environment
+  dns_zone_ooni_io         = local.dns_zone_ooni_io
+  key_name                 = module.adm_iam_roles.oonidevops_key_name
+  ecs_cluster_id           = module.ooniapi_cluster.cluster_id
 
   task_secrets = {
     POSTGRESQL_URL              = aws_secretsmanager_secret_version.oonipg_url.arn

@@ -48,8 +48,8 @@ variable "dns_zone_ooni_io" {
   description = "id of the DNS zone for ooni_io"
 }
 
-variable "docker_image_url" {
-  description = "the url to the docker image"
+variable "default_docker_image_url" {
+  description = "the url to the default docker image unless there is one already defined in the task definition"
 }
 
 variable "ecs_cluster_id" {
