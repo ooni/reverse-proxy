@@ -36,7 +36,7 @@ jobs:
 
       - name: Commit changes
         # Only push the docs update when we are in main
-        # if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'
         run: |
           cd ooni-docs
           git config --global user.email "github+devops@ooni.org"
