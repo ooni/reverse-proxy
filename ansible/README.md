@@ -8,7 +8,7 @@ pyenv activate ooni-devops
 
 Install deps:
 ```
-pip install ansible dnspython
+pip install ansible dnspython boto3
 ```
 
 Run playbook:

@@ -38,4 +38,8 @@
     mode: 0644
     validate: "amtool check-config %s"
   vars:
-    alertmanager_slack_api_url: "oonidevops/prometheus/alertmanager_slack_api_url"
+    alertmanager_slack_api_url: >
+      {{ lookup(
+        'amazon.aws.aws_secret', 
+        'arn:aws:secretsmanager:eu-central-1:905418398257:secret:oonidevops/prometheus/alertmanager_slack_api_url-R8vOjb'
+      ) }}
