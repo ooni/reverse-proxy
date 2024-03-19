@@ -20,14 +20,14 @@
     - templates/*.tmpl
 
 - name: Configure Alertmanager
-  tags: monitoring, alertmanager
+  tags: alertmanager
   lineinfile:
     path: /etc/default/prometheus-alertmanager
     regexp: "^ARGS="
-    line: ARGS='--cluster.listen-address= --web.listen-address="127.0.0.1:9093"'
+    line: ARGS='--cluster.listen-address= --web.listen-address="127.0.0.1:9093" --web.external-url="https://grafana.ooni.org"'
 
 - name: Reload Alertmanager
-  tags: monitoring, alertmanager
+  tags: alertmanager
   notify:
     - reload alertmanager
   template:
@@ -38,8 +38,4 @@
     mode: 0644
     validate: "amtool check-config %s"
   vars:
-    alertmanager_slack_api_url: >
-      {{ lookup(
-        'amazon.aws.aws_secret', 
-        'arn:aws:secretsmanager:eu-central-1:905418398257:secret:oonidevops/prometheus/alertmanager_slack_api_url-R8vOjb'
-      ) }}
+    alertmanager_slack_api_url: "{{ lookup('amazon.aws.aws_secret', 'oonidevops/prometheus/alertmanager_slack_api_url') }}"
