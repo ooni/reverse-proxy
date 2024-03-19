@@ -1,4 +1,3 @@
-
 ## CodeBuild and CodePipeline for OONI TH Services
 
 data "aws_caller_identity" "current" {}

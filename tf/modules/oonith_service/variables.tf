@@ -66,7 +66,7 @@ variable "task_environment" {
   type    = map(string)
 }
 
-variable "ooniapi_service_security_groups" {
+variable "oonith_service_security_groups" {
   description = "the shared web security group from the ecs cluster"
   type        = list(string)
 }

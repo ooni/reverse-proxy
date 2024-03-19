@@ -458,7 +458,7 @@ module "oonith_oohelperd" {
   vpc_id     = module.network.vpc_id
   subnet_ids = module.network.vpc_subnet[*].id
 
-  service_name             = "oonhelperd"
+  service_name             = "oohelperd"
   default_docker_image_url = "ooni/oonith-oohelperd:latest"
   stage                    = local.environment
   dns_zone_ooni_io         = local.dns_zone_ooni_io
