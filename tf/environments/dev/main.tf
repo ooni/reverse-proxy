@@ -269,6 +269,26 @@ module "ooniapi_cluster" {
   )
 }
 
+module "oonith_cluster" {
+  source = "../../modules/ecs_cluster"
+
+  name = "oonith-ecs-cluster"
+  key_name = module.adm_iam_roles.oonidevops_key_name
+  vpc_id = modules.network.vpc_id
+  subnet_ids = module.network.vpc_subnet[*].id
+
+  asg_min = 2
+  asg_max = 6
+  asg_desired = 2
+
+  instance_type = "t2.small"
+
+  tags = merge(
+    local.tags,
+    { Name = "ooni-tier0-th-ecs-cluster" }
+  )
+}
+
 #### OONI Tier0
 
 #### OONI Run service
@@ -378,7 +398,8 @@ module "ooniapi_ooniauth" {
     { Name = "ooni-tier0-ooniauth" }
   )
 }
-### OONI Tier0 API Frontend
+
+#### OONI Tier0 API Frontend
 
 module "ooniapi_frontend" {
   source = "../../modules/ooniapi_frontend"
@@ -402,3 +423,14 @@ module "ooniapi_frontend" {
     { Name = "ooni-tier0-api-frontend" }
   )
 }
+
+#### OONI oohelperd service
+
+module "oonith_oohelperd_deployer" {
+  source = "../../modules/oonith_service_deployer"
+}
+
+module "oonith_oohelperd" {
+  source = "../../modules/oonith_service"
+}
+
