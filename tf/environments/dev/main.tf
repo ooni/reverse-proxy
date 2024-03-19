@@ -423,14 +423,3 @@ module "ooniapi_frontend" {
     { Name = "ooni-tier0-api-frontend" }
   )
 }
-
-#### OONI oohelperd service
-
-module "oonith_oohelperd_deployer" {
-  source = "../../modules/oonith_service_deployer"
-}
-
-module "oonith_oohelperd" {
-  source = "../../modules/oonith_service"
-}
-
