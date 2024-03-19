@@ -1,0 +1,26 @@
+---
+- name: Configure rules files
+  copy:
+    src: "{{ item }}"
+    dest: "/etc/prometheus/"
+    owner: root
+    group: root
+    mode: 0644
+    validate: "/usr/bin/promtool check rules %s"
+  with_fileglob:
+    - "alert_*.yml"
+  notify:
+    - reload prometheus
+  tags: prometheus-conf
+
+- name: Configure Prometheus
+  template:
+    src: prometheus.yml
+    dest: "/etc/prometheus/prometheus.yml"
+    owner: root
+    group: root
+    mode: 0644
+    validate: "/usr/bin/promtool check config %s"
+  notify:
+    - reload prometheus
+  tags: prometheus-conf
