@@ -235,7 +235,7 @@ resource "aws_codestarconnections_connection" "ooniapi" {
 }
 
 resource "aws_codestarconnections_connection" "oonith" {
-  name          = "oonith"
+  name = "oonith"
   provider_type = "GitHub"
 
   depends_on = [module.adm_iam_roles]
@@ -432,5 +432,45 @@ module "ooniapi_frontend" {
   tags = merge(
     local.tags,
     { Name = "ooni-tier0-api-frontend" }
+  )
+}
+
+#### OONI oohelperd service
+
+module "oonith_oohelperd_deployer" {
+  source = "../../modules/oonith_service_deployer"
+  
+  service_name            = "oohelperd"
+  repo                    = "ooni/backend"
+  branch_name             = "master"
+  buildspec_path          = "oonith/buildspec.yml"
+  codestar_connection_arn = aws_codestarconnections_connection.oonith.arn
+
+  codepipeline_bucket = aws_s3_bucket.oonith_codepipeline_bucket.bucket
+
+  ecs_service_name = module.oonith_oohelperd.ecs_service_name
+  ecs_cluster_name = module.oonith_cluster.cluster_name
+}
+
+module "oonith_oohelperd" {
+  source = "../../modules/oonith_service"
+
+  vpc_id     = module.network.vpc_id
+  subnet_ids = module.network.vpc_subnet[*].id
+
+  service_name             = "oonhelperd"
+  default_docker_image_url = "ooni/oonith-oohelperd:latest"
+  stage                    = local.environment
+  dns_zone_ooni_io         = local.dns_zone_ooni_io
+  key_name                 = module.adm_iam_roles.oonidevops_key_name
+  ecs_cluster_id           = module.oonith_cluster.cluster_id
+
+  oonith_service_security_groups = [
+    module.oonith_cluster.web_security_group_id
+  ]
+
+  tags = merge(
+    local.tags,
+    { Name = "ooni-tier0-oohelperd" }
   )
 }
