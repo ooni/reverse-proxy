@@ -441,7 +441,7 @@ module "oonith_oohelperd_deployer" {
   source = "../../modules/oonith_service_deployer"
 
   service_name            = "oohelperd"
-  repo                    = "ooni/backend"
+  repo                    = "ooni/probe-cli"
   branch_name             = "master"
   buildspec_path          = "oonith/buildspec.yml"
   codestar_connection_arn = aws_codestarconnections_connection.oonith.arn
