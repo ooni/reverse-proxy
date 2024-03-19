@@ -17,3 +17,5 @@
   hosts: monitoring.ooni.org
   roles:
     - prometheus
+    - prometheus_blackbox_exporter
+    - prometheus_alertmanager

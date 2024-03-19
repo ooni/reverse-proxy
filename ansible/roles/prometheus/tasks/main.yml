@@ -1,4 +1,8 @@
 ---
+- name: lookup prometheus scraping username
+  debug:
+    msg: "{{ lookup('amazon.aws.aws_secret', 'oonidevops/ooni_services/prometheus_metrics_password	', bypath=true) }}"
+
 - name: Configure rules files
   copy:
     src: "{{ item }}"
