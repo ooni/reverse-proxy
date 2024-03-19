@@ -285,7 +285,7 @@ module "oonith_cluster" {
 
   name = "oonith-ecs-cluster"
   key_name = module.adm_iam_roles.oonidevops_key_name
-  vpc_id = modules.network.vpc_id
+  vpc_id = module.network.vpc_id
   subnet_ids = module.network.vpc_subnet[*].id
 
   asg_min = 2
