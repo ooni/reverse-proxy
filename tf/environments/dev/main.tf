@@ -219,12 +219,23 @@ resource "aws_s3_bucket" "ooniapi_codepipeline_bucket" {
   bucket = "codepipeline-ooniapi-${var.aws_region}-${random_id.artifact_id.hex}"
 }
 
+resource "aws_s3_bucket" "oonith_codepipeline_bucket" {
+  bucket = "codepipeline-oonith-${var.aws_region}-${random_id.artifact_id.hex}"
+}
+
 # The aws_codestarconnections_connection resource is created in the state
 # PENDING. Authentication with the connection provider must be completed in the
 # AWS Console.
 # See: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/codestarconnections_connection 
 resource "aws_codestarconnections_connection" "ooniapi" {
   name          = "ooniapi"
+  provider_type = "GitHub"
+
+  depends_on = [module.adm_iam_roles]
+}
+
+resource "aws_codestarconnections_connection" "oonith" {
+  name          = "oonith"
   provider_type = "GitHub"
 
   depends_on = [module.adm_iam_roles]
