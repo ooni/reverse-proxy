@@ -55,10 +55,10 @@ resource "aws_ecs_task_definition" "oonith_service" {
       cpu       = var.task_cpu,
       essential = true,
       # image = try(
-        # jsondecode(data.aws_ecs_task_definition.oonith_service_current.task_definition).ContainerDefinitions[0].image,
-        # var.default_docker_image_url
+      # jsondecode(data.aws_ecs_task_definition.oonith_service_current.task_definition).ContainerDefinitions[0].image,
+      # var.default_docker_image_url
       # ),
-      image = var.default_docker_image_url,
+      image  = var.default_docker_image_url,
       memory = var.task_memory,
       name   = local.name,
       portMappings = [

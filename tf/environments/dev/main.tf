@@ -235,7 +235,7 @@ resource "aws_codestarconnections_connection" "ooniapi" {
 }
 
 resource "aws_codestarconnections_connection" "oonith" {
-  name = "oonith"
+  name          = "oonith"
   provider_type = "GitHub"
 
   depends_on = [module.adm_iam_roles]
@@ -283,13 +283,13 @@ module "ooniapi_cluster" {
 module "oonith_cluster" {
   source = "../../modules/ecs_cluster"
 
-  name = "oonith-ecs-cluster"
-  key_name = module.adm_iam_roles.oonidevops_key_name
-  vpc_id = module.network.vpc_id
+  name       = "oonith-ecs-cluster"
+  key_name   = module.adm_iam_roles.oonidevops_key_name
+  vpc_id     = module.network.vpc_id
   subnet_ids = module.network.vpc_subnet[*].id
 
-  asg_min = 2
-  asg_max = 6
+  asg_min     = 2
+  asg_max     = 6
   asg_desired = 2
 
   instance_type = "t2.small"
@@ -439,7 +439,7 @@ module "ooniapi_frontend" {
 
 module "oonith_oohelperd_deployer" {
   source = "../../modules/oonith_service_deployer"
-  
+
   service_name            = "oohelperd"
   repo                    = "ooni/backend"
   branch_name             = "master"
