@@ -9,10 +9,6 @@ dom0_hosts:
   - mia-echoth.ooni.nu
   - mia-httpth.ooni.nu
 
-new_prom_metrics_hosts:
-  - ooniauth.api.dev.ooni.io
-  - oonirun.api.dev.ooni.io
-
 blackbox_jobs:
   - name: "ooni web_connectivity test helpers"
     module: "ooni_web_connectivity_ok"
