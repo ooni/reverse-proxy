@@ -20,7 +20,7 @@ jobs:
         environment: ["dev"]
 
     runs-on: ubuntu-latest
-    if: ${{ !startsWith(github.event.head_commit.message, 'skip-terraform:') }}
+    # if: ${{ !startsWith(github.event.head_commit.message, 'skip-terraform:') }}
     defaults:
       run:
         working-directory: tf/environments/${{ matrix.environment }}
