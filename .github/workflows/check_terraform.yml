@@ -9,9 +9,9 @@ on:
       - synchronize # when commits are pushed to the PR
       - reopened
       - edited # title or body of a pull request was edited, or the base branch of a pull request was changed
-    # paths:
-      # - "tf/*"
-      # - "!tf/README.md"
+    paths:
+      - "tf/**"
+      - "!tf/README.md"
 
 jobs:
   terraform:
