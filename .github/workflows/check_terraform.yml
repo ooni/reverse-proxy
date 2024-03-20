@@ -10,7 +10,7 @@ on:
       - reopened
       - edited # title or body of a pull request was edited, or the base branch of a pull request was changed
     paths:
-      - "tf/*"
+      - "tf/**"
       - "!tf/README.md"
 
 jobs:
