@@ -3,7 +3,6 @@
 # * https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
 # * https://docs.github.com/en/webhooks/webhook-events-and-payloads?actionType=synchronize#pull_request
 on:
-  workflow_dispatch:
   pull_request:
     types:
       - opened
@@ -37,12 +36,12 @@ jobs:
           mkdir ~/.aws/
           cat <<EOF > ~/.aws/credentials
           [default]
-          aws_access_key_id = ${{ secrets.OONIDEVOPS_AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key = ${{ secrets.OONIDEVOPS_AWS_SECRET_ACCESS_KEY }}
+          aws_access_key_id = ${{ secrets.OONIDEVOPS_TEMP_ACCESS_KEY_ID }}
+          aws_secret_access_key = ${{ secrets.OONIDEVOPS_TEMP_ACCESS_KEY_SECRET }}
 
           [oonidevops_user]
-          aws_access_key_id = ${{ secrets.OONIDEVOPS_AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key = ${{ secrets.OONIDEVOPS_AWS_SECRET_ACCESS_KEY }}
+          aws_access_key_id = ${{ secrets.OONIDEVOPS_TEMP_ACCESS_KEY_ID }}
+          aws_secret_access_key = ${{ secrets.OONIDEVOPS_TEMP_ACCESS_KEY_SECRET }}
           EOF
           chmod 700 ~/.aws/
           chmod 600 ~/.aws/credentials
