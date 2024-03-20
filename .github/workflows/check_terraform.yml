@@ -36,12 +36,12 @@ jobs:
           mkdir ~/.aws/
           cat <<EOF > ~/.aws/credentials
           [default]
-          aws_access_key_id = ${{ secrets.OONIDEVOPS_TEMP_ACCESS_KEY_ID }}
-          aws_secret_access_key = ${{ secrets.OONIDEVOPS_TEMP_ACCESS_KEY_SECRET }}
+          aws_access_key_id = ${{ secrets.OONIDEVOPS_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key = ${{ secrets.OONIDEVOPS_AWS_SECRET_ACCESS_KEY }}
 
           [oonidevops_user]
-          aws_access_key_id = ${{ secrets.OONIDEVOPS_TEMP_ACCESS_KEY_ID }}
-          aws_secret_access_key = ${{ secrets.OONIDEVOPS_TEMP_ACCESS_KEY_SECRET }}
+          aws_access_key_id = ${{ secrets.OONIDEVOPS_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key = ${{ secrets.OONIDEVOPS_AWS_SECRET_ACCESS_KEY }}
           EOF
           chmod 700 ~/.aws/
           chmod 600 ~/.aws/credentials
