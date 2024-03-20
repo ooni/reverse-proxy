@@ -380,25 +380,25 @@ module "ooniapi_ooniauth" {
 }
 ### OONI Tier0 API Frontend
 
-module "ooniapi_frontend" {
-  source = "../../modules/ooniapi_frontend"
+# module "ooniapi_frontend" {
+  # source = "../../modules/ooniapi_frontend"
 
-  vpc_id     = module.network.vpc_id
-  subnet_ids = module.network.vpc_subnet[*].id
+  # vpc_id     = module.network.vpc_id
+  # subnet_ids = module.network.vpc_subnet[*].id
 
-  oonibackend_proxy_target_group_arn = module.ooni_backendproxy.alb_target_group_id
-  ooniapi_oonirun_target_group_arn   = module.ooniapi_oonirun.alb_target_group_id
-  ooniapi_ooniauth_target_group_arn  = module.ooniapi_ooniauth.alb_target_group_id
+  # oonibackend_proxy_target_group_arn = module.ooni_backendproxy.alb_target_group_id
+  # ooniapi_oonirun_target_group_arn   = module.ooniapi_oonirun.alb_target_group_id
+  # ooniapi_ooniauth_target_group_arn  = module.ooniapi_ooniauth.alb_target_group_id
 
-  ooniapi_service_security_groups = [
-    module.ooniapi_cluster.web_security_group_id
-  ]
+  # ooniapi_service_security_groups = [
+    # module.ooniapi_cluster.web_security_group_id
+  # ]
 
-  stage            = local.environment
-  dns_zone_ooni_io = local.dns_zone_ooni_io
+  # stage            = local.environment
+  # dns_zone_ooni_io = local.dns_zone_ooni_io
 
-  tags = merge(
-    local.tags,
-    { Name = "ooni-tier0-api-frontend" }
-  )
-}
+  # tags = merge(
+    # local.tags,
+    # { Name = "ooni-tier0-api-frontend" }
+  # )
+# }
