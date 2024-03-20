@@ -227,18 +227,16 @@ resource "aws_s3_bucket" "oonith_codepipeline_bucket" {
 # PENDING. Authentication with the connection provider must be completed in the
 # AWS Console.
 # See: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/codestarconnections_connection 
-resource "aws_codestarconnections_connection" "ooniapi" {
+resource "aws_codestarconnections_connection" "oonidevops" {
   name          = "ooniapi"
   provider_type = "GitHub"
 
   depends_on = [module.adm_iam_roles]
 }
 
-resource "aws_codestarconnections_connection" "oonith" {
-  name          = "oonith"
-  provider_type = "GitHub"
-
-  depends_on = [module.adm_iam_roles]
+moved {
+  from = aws_codestarconnections_connection.ooniapi
+  to = aws_codestarconnections_connection.oonidevops
 }
 
 ### OONI Tier0 Backend Proxy
@@ -311,7 +309,7 @@ module "ooniapi_oonirun_deployer" {
   repo                    = "ooni/backend"
   branch_name             = "master"
   buildspec_path          = "ooniapi/services/oonirun/buildspec.yml"
-  codestar_connection_arn = aws_codestarconnections_connection.ooniapi.arn
+  codestar_connection_arn = aws_codestarconnections_connection.oonidevops.arn
 
   codepipeline_bucket = aws_s3_bucket.ooniapi_codepipeline_bucket.bucket
 
@@ -357,7 +355,7 @@ module "ooniapi_ooniauth_deployer" {
   repo                    = "ooni/backend"
   branch_name             = "master"
   buildspec_path          = "ooniapi/services/ooniauth/buildspec.yml"
-  codestar_connection_arn = aws_codestarconnections_connection.ooniapi.arn
+  codestar_connection_arn = aws_codestarconnections_connection.oonidevops.arn
 
   codepipeline_bucket = aws_s3_bucket.ooniapi_codepipeline_bucket.bucket
 
