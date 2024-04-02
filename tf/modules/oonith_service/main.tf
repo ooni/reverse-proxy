@@ -107,12 +107,6 @@ resource "aws_ecs_service" "oonith_service" {
     container_port   = "80"
   }
 
-  load_balancer {
-    target_group_arn = aws_alb_target_group.oonith_service_mapped.id
-    container_name   = local.name
-    container_port   = "80"
-  }
-
   depends_on = [
     aws_alb_listener.oonith_service_http,
   ]
@@ -132,15 +126,18 @@ resource "aws_alb_target_group" "oonith_service_direct" {
   tags = var.tags
 }
 
-# The mapped target group is used for mapping it in the main TH load balancer
-resource "aws_alb_target_group" "oonith_service_mapped" {
-  name     = "${local.name}-mapped"
-  port     = 80
-  protocol = "HTTP"
-  vpc_id   = var.vpc_id
+# TODO(DecFox): Uncomment after we have evaluated how we want to direct 
+# traffic from th.{var.stage}.ooni.io to a specific target group
 
-  tags = var.tags
-}
+# The mapped target group is used for mapping it in the main TH load balancer
+# resource "aws_alb_target_group" "oonith_service_mapped" {
+  # name     = "${local.name}-mapped"
+  # port     = 80
+  # protocol = "HTTP"
+  # vpc_id   = var.vpc_id
+
+  # tags = var.tags
+# }
 
 resource "aws_alb" "oonith_service" {
   name            = local.name
@@ -180,7 +177,7 @@ resource "aws_alb_listener" "front_end_https" {
 
 resource "aws_route53_record" "oonith_service" {
   zone_id = var.dns_zone_ooni_io
-  name    = "${var.service_name}.api.${var.stage}.ooni.io"
+  name    = "${var.service_name}.th.${var.stage}.ooni.io"
   type    = "A"
 
   alias {
@@ -191,7 +188,7 @@ resource "aws_route53_record" "oonith_service" {
 }
 
 resource "aws_acm_certificate" "oonith_service" {
-  domain_name       = "${var.service_name}.api.${var.stage}.ooni.io"
+  domain_name       = "${var.service_name}.th.${var.stage}.ooni.io"
   validation_method = "DNS"
 
   tags = var.tags
