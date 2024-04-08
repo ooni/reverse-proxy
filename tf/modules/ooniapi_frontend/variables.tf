@@ -17,10 +17,13 @@ variable "oonibackend_proxy_target_group_arn" {
 }
 
 variable "ooniapi_oonirun_target_group_arn" {
-  description = "arn for the target group of the oonirun module"
+  description = "arn for the target group of the oonirun service"
 }
 variable "ooniapi_ooniauth_target_group_arn" {
-  description = "arn for the target group of the oonirun module"
+  description = "arn for the target group of the ooniauth service"
+}
+variable "ooniapi_ooniprobe_target_group_arn" {
+  description = "arn for the target group of the ooniprobe service"
 }
 variable "dns_zone_ooni_io" {
   description = "id of the DNS zone for ooni_io"

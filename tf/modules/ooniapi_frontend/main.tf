@@ -81,6 +81,26 @@ resource "aws_lb_listener_rule" "ooniapi_ooniauth_rule" {
   }
 }
 
+resource "aws_lb_listener_rule" "ooniapi_ooniprobe_rule" {
+  listener_arn = aws_alb_listener.ooniapi_listener_https.arn
+  priority     = 102
+
+  action {
+    type             = "forward"
+    target_group_arn = var.ooniapi_ooniprobe_target_group_arn
+  }
+
+  condition {
+    path_pattern {
+      values = [
+        "/api/v2/ooniprobe/*",
+      ]
+    }
+  }
+}
+
+
+
 
 ## DNS
 
