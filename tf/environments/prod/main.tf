@@ -18,15 +18,15 @@ locals {
 
 ## AWS Setup
 
-#provider "aws" {
-#  profile = "oonidevops_user"
-#  region  = var.aws_region
+provider "aws" {
+  profile = "oonidevops_user"
+  region  = var.aws_region
 #  # You will have to setup your own credentials in ~/.aws/credentials like this:
 #  # [oonidevops_user]
 #  # aws_access_key_id = YYYY
 #  # aws_secret_access_key = ZZZ
 #  # role_arn = arn:aws:iam::905418398257:role/oonidevops
-#}
+}
 
 data "aws_availability_zones" "available" {}
 
@@ -52,10 +52,10 @@ data "aws_availability_zones" "available" {}
 # Once this is done, new accounts can be added/removed by just adding their arn
 # to the authorized accounts below.
 
-provider "aws" {
-  profile = "oonidevops_root"
-  region  = var.aws_region
-}
+#provider "aws" {
+#  profile = "oonidevops_root"
+#  region  = var.aws_region
+#}
 
 module "adm_iam_roles" {
   source = "../../modules/adm_iam_roles"
@@ -319,7 +319,7 @@ module "ooniapi_ooniprobe" {
   source = "../../modules/ooniapi_service"
 
   # First run should be set on first run to bootstrap the task definition
-  first_run = true
+  #first_run = true
 
   vpc_id     = module.network.vpc_id
   subnet_ids = module.network.vpc_subnet[*].id
@@ -367,7 +367,7 @@ module "ooniapi_oonirun_deployer" {
 
 module "ooniapi_oonirun" {
   source = "../../modules/ooniapi_service"
-  first_run = true
+  #first_run = true
 
   vpc_id     = module.network.vpc_id
   subnet_ids = module.network.vpc_subnet[*].id
@@ -414,7 +414,7 @@ module "ooniapi_ooniauth_deployer" {
 
 module "ooniapi_ooniauth" {
   source = "../../modules/ooniapi_service"
-  first_run = true
+  #first_run = true
 
   vpc_id     = module.network.vpc_id
   subnet_ids = module.network.vpc_subnet[*].id
@@ -503,7 +503,7 @@ module "oonith_oohelperd_deployer" {
 
 module "oonith_oohelperd" {
   source = "../../modules/oonith_service"
-  first_run = true
+  #first_run = true
 
   vpc_id     = module.network.vpc_id
   subnet_ids = module.network.vpc_subnet[*].id
