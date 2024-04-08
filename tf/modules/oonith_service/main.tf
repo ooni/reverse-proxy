@@ -40,24 +40,20 @@ locals {
   container_port = 80
 }
 
-# data "aws_ecs_task_definition" "oonith_service_current" {
-#   task_definition = "${local.name}-td"
-# }
+data "aws_ecs_task_definition" "oonith_service_current" {
+  task_definition = "${local.name}-td"
+}
 
-# Note: Uncomment the data block after we have an 
-# initial ecs task definition. We can then start 
-# using the image name from the existing deployed 
-# task (commented in the resource)
 resource "aws_ecs_task_definition" "oonith_service" {
   family = "${local.name}-td"
   container_definitions = jsonencode([
     {
       cpu       = var.task_cpu,
       essential = true,
-      # image = try(
-      # jsondecode(data.aws_ecs_task_definition.oonith_service_current.task_definition).ContainerDefinitions[0].image,
-      # var.default_docker_image_url
-      # ),
+      image = try(
+        jsondecode(data.aws_ecs_task_definition.oonith_service_current.task_definition).ContainerDefinitions[0].image,
+        var.default_docker_image_url
+      ),
       image  = var.default_docker_image_url,
       memory = var.task_memory,
       name   = local.name,
@@ -90,6 +86,7 @@ resource "aws_ecs_task_definition" "oonith_service" {
   ])
   execution_role_arn = aws_iam_role.oonith_service_task.arn
   tags               = var.tags
+  track_latest       = true
 }
 
 resource "aws_ecs_service" "oonith_service" {
@@ -131,12 +128,12 @@ resource "aws_alb_target_group" "oonith_service_direct" {
 
 # The mapped target group is used for mapping it in the main TH load balancer
 # resource "aws_alb_target_group" "oonith_service_mapped" {
-  # name     = "${local.name}-mapped"
-  # port     = 80
-  # protocol = "HTTP"
-  # vpc_id   = var.vpc_id
+# name     = "${local.name}-mapped"
+# port     = 80
+# protocol = "HTTP"
+# vpc_id   = var.vpc_id
 
-  # tags = var.tags
+# tags = var.tags
 # }
 
 resource "aws_alb" "oonith_service" {

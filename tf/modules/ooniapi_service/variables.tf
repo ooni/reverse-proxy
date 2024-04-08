@@ -3,6 +3,10 @@ variable "aws_region" {
   default     = "eu-central-1"
 }
 
+variable "first_run" {
+  default = false
+}
+
 variable "key_name" {
   description = "Name of AWS key pair"
 }
