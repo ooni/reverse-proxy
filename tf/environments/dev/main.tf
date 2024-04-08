@@ -236,7 +236,7 @@ resource "aws_codestarconnections_connection" "oonidevops" {
 
 moved {
   from = aws_codestarconnections_connection.ooniapi
-  to = aws_codestarconnections_connection.oonidevops
+  to   = aws_codestarconnections_connection.oonidevops
 }
 
 ### OONI Tier0 Backend Proxy
@@ -309,7 +309,7 @@ module "ooniapi_ooniprobe_deployer" {
   repo                    = "ooni/backend"
   branch_name             = "master"
   buildspec_path          = "ooniapi/services/ooniprobe/buildspec.yml"
-  codestar_connection_arn = aws_codestarconnections_connection.ooniapi.arn
+  codestar_connection_arn = aws_codestarconnections_connection.oonidevops.arn
 
   codepipeline_bucket = aws_s3_bucket.ooniapi_codepipeline_bucket.bucket
 
@@ -319,6 +319,9 @@ module "ooniapi_ooniprobe_deployer" {
 
 module "ooniapi_ooniprobe" {
   source = "../../modules/ooniapi_service"
+
+  # First run should be set on first run to bootstrap the task definition
+  # first_run = true
 
   vpc_id     = module.network.vpc_id
   subnet_ids = module.network.vpc_subnet[*].id
