@@ -25,7 +25,7 @@ provider "aws" {
 #  # [oonidevops_user]
 #  # aws_access_key_id = YYYY
 #  # aws_secret_access_key = ZZZ
-#  # role_arn = arn:aws:iam::905418398257:role/oonidevops
+#  # role_arn = arn:aws:iam::471112720364:role/oonidevops
 }
 
 data "aws_availability_zones" "available" {}
