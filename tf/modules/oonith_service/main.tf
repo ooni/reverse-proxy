@@ -42,6 +42,7 @@ locals {
 
 data "aws_ecs_task_definition" "oonith_service_current" {
   task_definition = "${local.name}-td"
+  count           = var.first_run ? 0 : 1
 }
 
 resource "aws_ecs_task_definition" "oonith_service" {
@@ -51,7 +52,7 @@ resource "aws_ecs_task_definition" "oonith_service" {
       cpu       = var.task_cpu,
       essential = true,
       image = try(
-        jsondecode(data.aws_ecs_task_definition.oonith_service_current.task_definition).ContainerDefinitions[0].image,
+        jsondecode(data.aws_ecs_task_definition.oonith_service_current.0.task_definition).ContainerDefinitions[0].image,
         var.default_docker_image_url
       ),
       image  = var.default_docker_image_url,

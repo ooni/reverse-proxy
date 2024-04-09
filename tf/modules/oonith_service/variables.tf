@@ -70,3 +70,7 @@ variable "oonith_service_security_groups" {
   description = "the shared web security group from the ecs cluster"
   type        = list(string)
 }
+
+variable "first_run" {
+  default = false
+}

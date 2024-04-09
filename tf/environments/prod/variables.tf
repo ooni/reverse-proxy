@@ -4,14 +4,8 @@ variable "aws_region" {
 }
 
 variable "az_count" {
-  description = "Number of AZs to cover in a given AWS region"
-  type        = number
-  default     = "2"
-}
-
-variable "key_name" {
-  description = "Name of AWS key pair"
-  default     = "ooni-devops-prod"
+  description = "The AWS region to create things in."
+  default     = 2
 }
 
 variable "admin_cidr_ingress" {
