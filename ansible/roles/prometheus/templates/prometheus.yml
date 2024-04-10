@@ -107,17 +107,31 @@ scrape_configs:
     static_configs:
       - targets: [ 'api.ooni.io:443' ]
 
-  - job_name: 'ooniapi-services'
+  - job_name: 'ooniapi-services-dev'
     scrape_interval: 5s
     scheme: https
     metrics_path: "/metrics"
     basic_auth:
       username: 'prom'
-      password: '{{ prometheus_metrics_password }}'
+      password: '{{ prometheus_metrics_password_dev }}'
     static_configs:
       targets:
         - ooniauth.api.dev.ooni.io
         - oonirun.api.dev.ooni.io
+        - ooniprobe.api.dev.ooni.io
+
+  - job_name: 'ooniapi-services-prod'
+    scrape_interval: 5s
+    scheme: https
+    metrics_path: "/metrics"
+    basic_auth:
+      username: 'prom'
+      password: '{{ prometheus_metrics_password_dev }}'
+    static_configs:
+      targets:
+        - ooniauth.api.prod.ooni.io
+        - oonirun.api.prod.ooni.io
+        - ooniprobe.api.prod.ooni.io
 
   - job_name: 'ooni-web'
     scrape_interval: 5m
