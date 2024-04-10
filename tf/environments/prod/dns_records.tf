@@ -326,14 +326,6 @@ resource "aws_route53_record" "run-test-ooni-org-_CNAME_" {
   zone_id                          = local.dns_root_zone_ooni_org
 }
 
-resource "aws_route53_record" "shinri-ooni-org-_A_" {
-  name                             = "shinri.ooni.org"
-  records                          = ["93.115.25.177"]
-  ttl                              = "1799"
-  type                             = "A"
-  zone_id                          = local.dns_root_zone_ooni_org
-}
-
 resource "aws_route53_record" "shop-ooni-org-_CNAME_" {
   name                             = "shop.ooni.org"
   records                          = ["shops.myshopify.com"]
