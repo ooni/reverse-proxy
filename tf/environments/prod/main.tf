@@ -6,6 +6,11 @@ locals {
   dns_zone_ooni_nu = "Z05790852M4U3UIVKYQ2N" # prod.ooni.nu hosted zone
   dns_zone_ooni_io = "Z04499311AMTU66QF54HY" # prod.ooni.io hosted zone
 
+  dns_root_zone_ooni_org = "Z0902716K7OR8NEDGPCF" # ooni.org hosted zone
+  dns_root_zone_ooni_io = "Z03735033JOHK3ID0YPTW" # ooni.io hosted zone
+  dns_root_zone_ooni_nu = "Z0562931LCY2YTJ8MEJ4" # ooni.nu hosted zone
+
+
   ooni_main_org_id = "082866812839" # account ID for the admin@openobservatory.org account
   ooni_prod_org_id  = "471112720364" # account ID for the admin+prod@ooni.org account
 
