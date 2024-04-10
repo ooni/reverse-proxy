@@ -115,7 +115,7 @@ scrape_configs:
       username: 'prom'
       password: '{{ prometheus_metrics_password_dev }}'
     static_configs:
-      targets:
+      - targets:
         - ooniauth.api.dev.ooni.io
         - oonirun.api.dev.ooni.io
         - ooniprobe.api.dev.ooni.io
@@ -128,7 +128,7 @@ scrape_configs:
       username: 'prom'
       password: '{{ prometheus_metrics_password_dev }}'
     static_configs:
-      targets:
+      - targets:
         - ooniauth.api.prod.ooni.io
         - oonirun.api.prod.ooni.io
         - ooniprobe.api.prod.ooni.io
