@@ -520,6 +520,10 @@ module "oonith_oohelperd" {
   key_name                 = module.adm_iam_roles.oonidevops_key_name
   ecs_cluster_id           = module.oonith_cluster.cluster_id
 
+  task_secrets = {
+    PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
+  }
+
   oonith_service_security_groups = [
     module.oonith_cluster.web_security_group_id
   ]
