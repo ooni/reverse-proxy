@@ -11,6 +11,26 @@ Install deps:
 pip install ansible dnspython boto3
 ```
 
+Setup AWS credentials, you should add 2 profiles called `oonidevops_user_dev` and `oonidevops_user_prod` which have access to the development and production environment respectively
+
+```
+[oonidevops_user_dev]
+aws_access_key_id = XXX
+aws_secret_access_key = YYY
+source_profile = default
+region = eu-central-1
+# ARN of the dev role
+role_arn = arn:aws:iam::905418398257:role/oonidevops
+
+[oonidevops_user_prod]
+aws_access_key_id = XXX
+aws_secret_access_key = YYY
+source_profile = default
+region = eu-central-1
+# ARN of the prod role
+role_arn = arn:aws:iam::471112720364:role/oonidevops
+```
+
 Run playbook:
 ```
 ansible-playbook playbook.yml -i inventory
