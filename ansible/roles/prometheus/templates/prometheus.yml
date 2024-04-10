@@ -23,12 +23,13 @@ scrape_configs:
   - job_name: "{{ bbjob.name }}"
     metrics_path: /probe
     params:
-      module: [{{ bbjob.module }}]
+      module:
+        - "{{ bbjob.module }}"
     static_configs:
       - targets:
-  {% for target in (bbjob.targets|sort) %}
-        - {{ target }}
-  {% endfor %}
+{% for target in (bbjob.targets|sort) %}
+        - "{{ target }}"
+{% endfor %}
     relabel_configs:
       - source_labels: [__address__]
         regex: (.*)(:80)?
