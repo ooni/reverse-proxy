@@ -24,13 +24,20 @@ locals {
 ## AWS Setup
 
 provider "aws" {
-  profile = "oonidevops_user"
+  profile = "oonidevops_user_prod"
   region  = var.aws_region
-#  # You will have to setup your own credentials in ~/.aws/credentials like this:
-#  # [oonidevops_user]
-#  # aws_access_key_id = YYYY
-#  # aws_secret_access_key = ZZZ
-#  # role_arn = arn:aws:iam::471112720364:role/oonidevops
+
+  # You will have to setup your own credentials in ~/.aws/credentials like this:
+  #
+  # [oonidevops_user]
+  # aws_access_key_id = YYYY
+  # aws_secret_access_key = ZZZ
+  # [oonidevops_user_dev]
+  # role_arn = arn:aws:iam::905418398257:role/oonidevops
+  # source_profile = oonidevops_user
+  # [oonidevops_user_prod]
+  # role_arn = arn:aws:iam::471112720364:role/oonidevops
+  # source_profile = oonidevops_user
 }
 
 data "aws_availability_zones" "available" {}

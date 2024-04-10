@@ -5,7 +5,7 @@ terraform {
     region  = "eu-central-1"
     bucket  = "oonidevops-dev-terraform-state"
     key     = "terraform.tfstate"
-    profile = ""
+    profile = "oonidevops_user_dev"
     encrypt = "true"
 
     dynamodb_table = "oonidevops-dev-terraform-state-lock"
