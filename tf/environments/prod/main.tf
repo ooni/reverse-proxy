@@ -90,7 +90,7 @@ module "terraform_state_backend" {
   attributes = ["state"]
 
   # Comment this out on first start
-  terraform_backend_config_file_path = "."
+  # terraform_backend_config_file_path = "."
   terraform_backend_config_file_name = "backend.tf"
   force_destroy                      = false
   depends_on                         = [module.adm_iam_roles]
