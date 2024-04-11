@@ -450,6 +450,9 @@ module "ooniapi_ooniauth" {
       "arturo@ooni.org",
       "jessie@ooni.org",
       "mehul@ooni.org",
+      "norbel@ooni.org",
+      "maria@ooni.org",
+      "elizaveta@ooni.org",
       "admin+dev@ooni.org",
     ])
   }
