@@ -39,7 +39,7 @@ jobs:
           aws_access_key_id = ${{ secrets.OONIDEVOPS_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key = ${{ secrets.OONIDEVOPS_AWS_SECRET_ACCESS_KEY }}
 
-          [oonidevops_user]
+          [oonidevops_user_dev]
           aws_access_key_id = ${{ secrets.OONIDEVOPS_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key = ${{ secrets.OONIDEVOPS_AWS_SECRET_ACCESS_KEY }}
           EOF
