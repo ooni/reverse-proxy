@@ -478,7 +478,7 @@ module "ooniapi_frontend" {
   oonibackend_proxy_target_group_arn = module.ooni_backendproxy.alb_target_group_id
   ooniapi_oonirun_target_group_arn   = module.ooniapi_oonirun.alb_target_group_id
   ooniapi_ooniauth_target_group_arn  = module.ooniapi_ooniauth.alb_target_group_id
-  ooniapi_ooniprobe_target_group_arn  = module.ooniapi_ooniprobe.alb_target_group_id
+  ooniapi_ooniprobe_target_group_arn = module.ooniapi_ooniprobe.alb_target_group_id
 
   ooniapi_service_security_groups = [
     module.ooniapi_cluster.web_security_group_id
