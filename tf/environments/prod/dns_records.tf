@@ -1005,3 +1005,70 @@ resource "aws_route53_record" "test-ooni-nu-_NS_" {
   type                             = "NS"
   zone_id                          = local.dns_root_zone_ooni_nu
 }
+
+## Records for the th.ooni.org zone
+
+
+resource "aws_route53_record" "_3-th-ooni-org-_AAAA_" {
+  name                             = "3.th.ooni.org"
+  records                          = ["2604:a880:4:1d0::69e:f000"]
+  ttl                              = "60"
+  type                             = "AAAA"
+  zone_id                          = local.dns_root_zone_ooni_org
+}
+
+resource "aws_route53_record" "_3-th-ooni-org-_A_" {
+  name                             = "3.th.ooni.org"
+  records                          = ["146.190.119.3"]
+  ttl                              = "60"
+  type                             = "A"
+  zone_id                          = local.dns_root_zone_ooni_org
+}
+
+resource "aws_route53_record" "_2-th-ooni-org-_A_" {
+  name                             = "2.th.ooni.org"
+  records                          = ["161.35.89.250"]
+  ttl                              = "60"
+  type                             = "A"
+  zone_id                          = local.dns_root_zone_ooni_org
+}
+
+resource "aws_route53_record" "_2-th-ooni-org-_AAAA_" {
+  name                             = "2.th.ooni.org"
+  records                          = ["2a03:b0c0:2:d0::1768:9001"]
+  ttl                              = "60"
+  type                             = "AAAA"
+  zone_id                          = local.dns_root_zone_ooni_org
+}
+
+resource "aws_route53_record" "_1-th-ooni-org-_A_" {
+  name                             = "1.th.ooni.org"
+  records                          = ["161.35.89.250"]
+  ttl                              = "60"
+  type                             = "A"
+  zone_id                          = local.dns_root_zone_ooni_org
+}
+
+resource "aws_route53_record" "_1-th-ooni-org-_AAAA_" {
+  name                             = "1.th.ooni.org"
+  records                          = ["2a03:b0c0:2:d0::1768:9001"]
+  ttl                              = "60"
+  type                             = "AAAA"
+  zone_id                          = local.dns_root_zone_ooni_org
+}
+
+resource "aws_route53_record" "_0-th-ooni-org-_A_" {
+  name                             = "0.th.ooni.org"
+  records                          = ["146.190.119.3"]
+  ttl                              = "60"
+  type                             = "A"
+  zone_id                          = local.dns_root_zone_ooni_org
+}
+
+resource "aws_route53_record" "_0-th-ooni-org-_AAAA_" {
+  name                             = "0.th.ooni.org"
+  records                          = ["2604:a880:4:1d0::69e:f000"]
+  ttl                              = "60"
+  type                             = "AAAA"
+  zone_id                          = local.dns_root_zone_ooni_org
+}
