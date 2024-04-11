@@ -366,14 +366,6 @@ resource "aws_route53_record" "test-lists-test-ooni-org-_CNAME_" {
   zone_id                          = local.dns_root_zone_ooni_org
 }
 
-resource "aws_route53_record" "th-ooni-org-_NS_" {
-  name                             = "th.ooni.org"
-  records                          = ["ns1.digitalocean.com"]
-  ttl                              = "300"
-  type                             = "NS"
-  zone_id                          = local.dns_root_zone_ooni_org
-}
-
 resource "aws_route53_record" "umami-ooni-org-_CNAME_" {
   name                             = "umami.ooni.org"
   records                          = ["xhgyj5se.up.railway.app"]
