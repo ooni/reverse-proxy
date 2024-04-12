@@ -17,7 +17,7 @@ jobs:
   terraform:
     strategy:
       matrix:
-        environment: ["dev"]
+        environment: "dev"
 
     runs-on: ubuntu-latest
     if: ${{ !startsWith(github.event.head_commit.message, 'skip-terraform:') }}
@@ -77,7 +77,6 @@ jobs:
           echo "\$ terraform plan" >> "$GITHUB_OUTPUT"
           terraform plan -no-color | tee -a "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
-        continue-on-error: true
 
       # Temporarily disabled, probably should be moved to a deploy action with stricter checks
       #- name: Terraform Apply
