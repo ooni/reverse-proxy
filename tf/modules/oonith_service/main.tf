@@ -47,6 +47,9 @@ data "aws_ecs_task_definition" "oonith_service_current" {
 
 resource "aws_ecs_task_definition" "oonith_service" {
   family = "${local.name}-td"
+
+  network_mode = "awsvpc"
+
   container_definitions = jsonencode([
     {
       cpu       = var.task_cpu,
@@ -58,12 +61,10 @@ resource "aws_ecs_task_definition" "oonith_service" {
       memory = var.task_memory,
       name   = local.name,
 
-      network_mode = "awsvpc",
 
       portMappings = [
         {
           containerPort = local.container_port,
-          hostPort      = 0
         }
       ],
       environment = [
@@ -118,10 +119,11 @@ resource "aws_ecs_service" "oonith_service" {
 
 # The direct
 resource "aws_alb_target_group" "oonith_service_direct" {
-  name     = "${local.name}-direct"
-  port     = 80
-  protocol = "HTTP"
-  vpc_id   = var.vpc_id
+  name        = "${local.name}-direct"
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = var.vpc_id
+  target_type = "ip"
 
   tags = var.tags
 }

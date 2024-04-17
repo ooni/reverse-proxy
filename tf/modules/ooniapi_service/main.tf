@@ -46,7 +46,9 @@ data "aws_ecs_task_definition" "ooniapi_service_current" {
 }
 
 resource "aws_ecs_task_definition" "ooniapi_service" {
-  family = "${local.name}-td"
+  family       = "${local.name}-td"
+  network_mode = "awsvpc"
+
   container_definitions = jsonencode([
     {
       cpu       = var.task_cpu,
@@ -58,12 +60,9 @@ resource "aws_ecs_task_definition" "ooniapi_service" {
       memory = var.task_memory,
       name   = local.name,
 
-      network_mode = "awsvpc",
-
       portMappings = [
         {
           containerPort = local.container_port,
-          hostPort      = 0
         }
       ],
       environment = [
