@@ -55,7 +55,6 @@ resource "aws_ecs_task_definition" "oonith_service" {
         jsondecode(data.aws_ecs_task_definition.oonith_service_current.0.task_definition).ContainerDefinitions[0].image,
         var.default_docker_image_url
       ),
-      image  = var.default_docker_image_url,
       memory = var.task_memory,
       name   = local.name,
       portMappings = [
@@ -189,6 +188,8 @@ resource "aws_acm_certificate" "oonith_service" {
   domain_name       = "${var.service_name}.th.${var.stage}.ooni.io"
   validation_method = "DNS"
 
+  subject_alternative_names = keys(var.alternative_names)
+
   tags = var.tags
 
   lifecycle {
@@ -202,6 +203,7 @@ resource "aws_route53_record" "oonith_service_validation" {
       name   = dvo.resource_record_name
       record = dvo.resource_record_value
       type   = dvo.resource_record_type
+      domain_name = dvo.domain_name
     }
   }
 
@@ -210,13 +212,28 @@ resource "aws_route53_record" "oonith_service_validation" {
   records         = [each.value.record]
   ttl             = 60
   type            = each.value.type
-  zone_id         = var.dns_zone_ooni_io
+  zone_id         = lookup(var.alternative_names,each.value.domain_name,var.dns_zone_ooni_io)
 }
 
 resource "aws_acm_certificate_validation" "oonith_service" {
   certificate_arn         = aws_acm_certificate.oonith_service.arn
   validation_record_fqdns = [for record in aws_route53_record.oonith_service_validation : record.fqdn]
   depends_on = [
-    aws_route53_record.oonith_service
+    aws_route53_record.oonith_service,
+    aws_route53_record.oonith_service_alias
   ]
+}
+
+resource "aws_route53_record" "oonith_service_alias" {
+  for_each = var.alternative_names
+
+  zone_id = each.value
+  name    = each.key
+  type    = "A"
+
+  alias {
+    name                   = aws_alb.oonith_service.dns_name
+    zone_id                = aws_alb.oonith_service.zone_id
+    evaluate_target_health = true
+  }
 }

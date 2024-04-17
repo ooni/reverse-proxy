@@ -48,6 +48,11 @@ variable "dns_zone_ooni_io" {
   description = "id of the DNS zone for ooni_io"
 }
 
+variable "dns_zone_ooni_org" {
+  description = "id of the DNS zone for ooni_org"
+  default     = ""
+}
+
 variable "default_docker_image_url" {
   description = "the url to the default docker image unless there is one already defined in the task definition"
 }
@@ -73,4 +78,10 @@ variable "oonith_service_security_groups" {
 
 variable "first_run" {
   default = false
+}
+
+variable "alternative_names" {
+  description = "mapping of alternative domain names to zone_id. the domain name should be a fqdn that's in the zone_id being passed, otherwise it will be treated as a label"
+  type = map(string)
+  default = {}
 }
