@@ -535,6 +535,11 @@ module "oonith_oohelperd" {
     PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
   }
 
+  alternative_names = {
+    "5.th.ooni.org" = local.dns_root_zone_ooni_org,
+    "6.th.ooni.org" = local.dns_root_zone_ooni_org,
+  }
+
   oonith_service_security_groups = [
     module.oonith_cluster.web_security_group_id
   ]
