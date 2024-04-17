@@ -203,6 +203,7 @@ resource "aws_route53_record" "oonith_service_validation" {
       name   = dvo.resource_record_name
       record = dvo.resource_record_value
       type   = dvo.resource_record_type
+      domain_name = dvo.domain_name
     }
   }
 
@@ -211,7 +212,7 @@ resource "aws_route53_record" "oonith_service_validation" {
   records         = [each.value.record]
   ttl             = 60
   type            = each.value.type
-  zone_id         = lookup(var.alternative_names, each.value.name, var.dns_zone_ooni_io)
+  zone_id         = lookup(var.alternative_names,each.value.domain_name,var.dns_zone_ooni_io)
 }
 
 resource "aws_acm_certificate_validation" "oonith_service" {
@@ -219,7 +220,7 @@ resource "aws_acm_certificate_validation" "oonith_service" {
   validation_record_fqdns = [for record in aws_route53_record.oonith_service_validation : record.fqdn]
   depends_on = [
     aws_route53_record.oonith_service,
-    aws_route53_record.oonith_service_alias,
+    aws_route53_record.oonith_service_alias
   ]
 }
 
