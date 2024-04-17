@@ -72,6 +72,7 @@ resource "aws_security_group" "web" {
     cidr_blocks = [
       "0.0.0.0/0",
     ]
+    ipv6_cidr_blocks = ["0::0/0"]
   }
 
   tags = var.tags
