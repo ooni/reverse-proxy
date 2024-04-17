@@ -57,6 +57,9 @@ resource "aws_ecs_task_definition" "ooniapi_service" {
       ),
       memory = var.task_memory,
       name   = local.name,
+
+      network_mode = "awsvpc",
+
       portMappings = [
         {
           containerPort = local.container_port,

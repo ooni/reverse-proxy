@@ -57,6 +57,9 @@ resource "aws_ecs_task_definition" "oonith_service" {
       ),
       memory = var.task_memory,
       name   = local.name,
+
+      network_mode = "awsvpc",
+
       portMappings = [
         {
           containerPort = local.container_port,
@@ -200,9 +203,9 @@ resource "aws_acm_certificate" "oonith_service" {
 resource "aws_route53_record" "oonith_service_validation" {
   for_each = {
     for dvo in aws_acm_certificate.oonith_service.domain_validation_options : dvo.domain_name => {
-      name   = dvo.resource_record_name
-      record = dvo.resource_record_value
-      type   = dvo.resource_record_type
+      name        = dvo.resource_record_name
+      record      = dvo.resource_record_value
+      type        = dvo.resource_record_type
       domain_name = dvo.domain_name
     }
   }
@@ -212,7 +215,7 @@ resource "aws_route53_record" "oonith_service_validation" {
   records         = [each.value.record]
   ttl             = 60
   type            = each.value.type
-  zone_id         = lookup(var.alternative_names,each.value.domain_name,var.dns_zone_ooni_io)
+  zone_id         = lookup(var.alternative_names, each.value.domain_name, var.dns_zone_ooni_io)
 }
 
 resource "aws_acm_certificate_validation" "oonith_service" {
