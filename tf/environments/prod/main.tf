@@ -536,6 +536,7 @@ module "oonith_oohelperd" {
   }
 
   alternative_names = {
+    "4.th.ooni.org" = local.dns_root_zone_ooni_org,
     "5.th.ooni.org" = local.dns_root_zone_ooni_org,
     "6.th.ooni.org" = local.dns_root_zone_ooni_org,
   }
