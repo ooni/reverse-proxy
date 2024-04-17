@@ -81,7 +81,7 @@ variable "first_run" {
 }
 
 variable "alternative_names" {
-  description = "list of alternative domain names to that should point to oohelperd"
-  type = list(string)
-  default = []
+  description = "mapping of alternative domain names to zone_id. the domain name should be a fqdn that's in the zone_id being passed, otherwise it will be treated as a label"
+  type = map(string)
+  default = {}
 }

@@ -532,10 +532,10 @@ module "oonith_oohelperd" {
   ]
 
   // Note: Since we do not have a dns zone for ooni org, we test on io domains here
-  alternative_names = [
-    "5.th.ooni.io",
-    "6.th.ooni.io"
-  ]
+  alternative_names = {
+    "5.th.dev.ooni.io" = local.dns_zone_ooni_io,
+    "6.th.dev.ooni.io" = local.dns_zone_ooni_io,
+  }
 
   tags = merge(
     local.tags,
