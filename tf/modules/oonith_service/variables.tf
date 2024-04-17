@@ -82,9 +82,6 @@ variable "first_run" {
 
 variable "alternative_names" {
   description = "list of alternative domain names to that should point to oohelperd"
-  type = list(object({
-    name = string
-    type = string
-  }))
+  type = list(string)
   default = []
 }

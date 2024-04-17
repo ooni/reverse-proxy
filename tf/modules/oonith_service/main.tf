@@ -189,6 +189,8 @@ resource "aws_acm_certificate" "oonith_service" {
   domain_name       = "${var.service_name}.th.${var.stage}.ooni.io"
   validation_method = "DNS"
 
+  subject_alternative_names = var.alternative_names
+
   tags = var.tags
 
   lifecycle {
@@ -225,17 +227,12 @@ resource "aws_route53_record" "oonith_service_alias" {
   count = length(var.alternative_names)
 
   zone_id = var.dns_zone_ooni_io
-  name    = var.alternative_names[count.index].name
-  type    = var.alternative_names[count.index].type
+  name    = var.alternative_names[count.index]
+  type    = "A"
 
   alias {
     name                   = aws_alb.oonith_service.dns_name
     zone_id                = aws_alb.oonith_service.zone_id
     evaluate_target_health = true
   }
-}
-
-resource "aws_acm_certificate_validation" "oonith_service_alias" {
-  certificate_arn         = aws_acm_certificate.oonith_service.arn
-  validation_record_fqdns = [for record in aws_route53_record.oonith_service_alias : record.fqdn]
 }
