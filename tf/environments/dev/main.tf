@@ -531,6 +531,18 @@ module "oonith_oohelperd" {
     module.oonith_cluster.web_security_group_id
   ]
 
+  // Note: Since we do not have a dns zone for ooni org, we test on io domains here
+  alternative_names = [
+    {
+      name = "5.th.ooni.io",
+      type = "A"
+    },
+    {
+      name = "6.th.ooni.io",
+      type = "A"
+    }
+  ]
+
   tags = merge(
     local.tags,
     { Name = "ooni-tier0-oohelperd" }

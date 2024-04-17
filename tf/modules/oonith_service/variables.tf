@@ -48,6 +48,11 @@ variable "dns_zone_ooni_io" {
   description = "id of the DNS zone for ooni_io"
 }
 
+variable "dns_zone_ooni_org" {
+  description = "id of the DNS zone for ooni_org"
+  default     = ""
+}
+
 variable "default_docker_image_url" {
   description = "the url to the default docker image unless there is one already defined in the task definition"
 }
@@ -73,4 +78,13 @@ variable "oonith_service_security_groups" {
 
 variable "first_run" {
   default = false
+}
+
+variable "alternative_names" {
+  description = "list of alternative domain names to that should point to oohelperd"
+  type = list(object({
+    name = string
+    type = string
+  }))
+  default = []
 }
