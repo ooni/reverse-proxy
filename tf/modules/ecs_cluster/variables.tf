@@ -17,6 +17,7 @@ variable "vpc_id" {
 
 variable "subnet_ids" {
   description = "the ids of the subnet of the subnets to deploy the instance into"
+  type        = list(string)
 }
 
 variable "tags" {

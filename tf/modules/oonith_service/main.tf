@@ -66,10 +66,10 @@ resource "aws_ecs_task_definition" "oonith_service" {
       memory = var.task_memory,
       name   = local.name,
 
-
       portMappings = [
         {
           containerPort = local.container_port,
+          hostPort      = local.container_port,
         }
       ],
       environment = [
