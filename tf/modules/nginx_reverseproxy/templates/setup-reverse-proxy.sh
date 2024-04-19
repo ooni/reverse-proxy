@@ -61,7 +61,7 @@ http {
   include /etc/nginx/sites-enabled/*;
 }
 EOF
-sudo mv $tmpfile /etc/nginx/sites-available/default
+sudo mv $tmpfile /etc/nginx/nginx.conf
 
 sudo mkdir -p /var/cache/nginx
 sudo chown -R www-data /var/cache/nginx
