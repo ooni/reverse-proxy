@@ -1,5 +1,10 @@
 locals {
   name = "ooniapi-service-${var.service_name}"
+  # We construct a stripped name that is without the "ooni" substring and all
+  # vocals are stripped.
+  stripped_name = replace(replace(var.service_name, "ooni", ""), "[aeiou]", "")
+  # Short prefix should be less than 5 characters
+  short_prefix = "oo${substr(var.service_name, 0, 3)}"
 }
 
 resource "aws_iam_role" "ooniapi_service_task" {
@@ -46,7 +51,9 @@ data "aws_ecs_task_definition" "ooniapi_service_current" {
 }
 
 resource "aws_ecs_task_definition" "ooniapi_service" {
-  family = "${local.name}-td"
+  family       = "${local.name}-td"
+  network_mode = "awsvpc"
+
   container_definitions = jsonencode([
     {
       cpu       = var.task_cpu,
@@ -57,12 +64,13 @@ resource "aws_ecs_task_definition" "ooniapi_service" {
       ),
       memory = var.task_memory,
       name   = local.name,
+
       portMappings = [
         {
           containerPort = local.container_port,
-          hostPort      = 0
         }
       ],
+
       environment = [
         for k, v in var.task_environment : {
           name  = k,
@@ -89,6 +97,41 @@ resource "aws_ecs_task_definition" "ooniapi_service" {
   track_latest       = true
 }
 
+resource "aws_security_group" "ooniapi_service_ecs" {
+  name        = "${local.name}_ecs-sg"
+  description = "Allow all traffic"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+}
+
 resource "aws_ecs_service" "ooniapi_service" {
   name            = local.name
   cluster         = var.ecs_cluster_id
@@ -96,7 +139,7 @@ resource "aws_ecs_service" "ooniapi_service" {
   desired_count   = var.service_desired_count
 
   deployment_minimum_healthy_percent = 50
-  deployment_maximum_percent         = 100
+  deployment_maximum_percent         = 200
 
   load_balancer {
     target_group_arn = aws_alb_target_group.ooniapi_service_direct.id
@@ -110,6 +153,11 @@ resource "aws_ecs_service" "ooniapi_service" {
     container_port   = "80"
   }
 
+  network_configuration {
+    subnets         = var.private_subnet_ids
+    security_groups = [aws_security_group.ooniapi_service_ecs.id]
+  }
+
   depends_on = [
     aws_alb_listener.ooniapi_service_http,
   ]
@@ -121,27 +169,37 @@ resource "aws_ecs_service" "ooniapi_service" {
 
 # The direct target group is used for the direct domain name mapping
 resource "aws_alb_target_group" "ooniapi_service_direct" {
-  name     = "${local.name}-direct"
-  port     = 80
-  protocol = "HTTP"
-  vpc_id   = var.vpc_id
+  name_prefix = "${local.short_prefix}D"
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = var.vpc_id
+  target_type = "ip"
+
+  lifecycle {
+    create_before_destroy = true
+  }
 
   tags = var.tags
 }
 
 # The mapped target group is used for mapping it in the main API load balancer
 resource "aws_alb_target_group" "ooniapi_service_mapped" {
-  name     = "${local.name}-mapped"
-  port     = 80
-  protocol = "HTTP"
-  vpc_id   = var.vpc_id
+  name_prefix = "${local.short_prefix}M"
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = var.vpc_id
+  target_type = "ip"
+
+  lifecycle {
+    create_before_destroy = true
+  }
 
   tags = var.tags
 }
 
 resource "aws_alb" "ooniapi_service" {
   name            = local.name
-  subnets         = var.subnet_ids
+  subnets         = var.public_subnet_ids
   security_groups = var.ooniapi_service_security_groups
 
   tags = var.tags

@@ -17,6 +17,7 @@ variable "vpc_id" {
 
 variable "subnet_ids" {
   description = "the ids of the subnet of the subnets to deploy the instance into"
+  type        = list(string)
 }
 
 variable "tags" {
@@ -30,13 +31,18 @@ variable "name" {
 }
 
 variable "asg_min" {
-  description = "Min numbers of servers in ASG"
+  description = <<EOT
+                Min numbers of servers in ASG. Keep in mind the ENI restrictions,
+                where small-large have a limit of 3 and micro has a limit of 2.
+                This means that if you plan to run 3 tasks in the ECS cluster with a task count of 2,
+                you need a minimum of 3  in the ASG
+                EOT
   default     = 1
 }
 
 variable "asg_max" {
   description = "Max numbers of servers in ASG"
-  default     = 4
+  default     = 6
 }
 
 variable "asg_desired" {

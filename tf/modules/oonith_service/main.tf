@@ -1,5 +1,10 @@
 locals {
   name = "oonith-service-${var.service_name}"
+  # We construct a stripped name that is without the "ooni" substring and all
+  # vocals are stripped.
+  stripped_name = replace(replace(var.service_name, "ooni", ""), "[aeiou]", "")
+  # Short prefix should be less than 5 characters
+  short_prefix = "oo${substr(var.service_name, 0, 3)}"
 }
 
 resource "aws_iam_role" "oonith_service_task" {
@@ -47,6 +52,9 @@ data "aws_ecs_task_definition" "oonith_service_current" {
 
 resource "aws_ecs_task_definition" "oonith_service" {
   family = "${local.name}-td"
+
+  network_mode = "awsvpc"
+
   container_definitions = jsonencode([
     {
       cpu       = var.task_cpu,
@@ -57,10 +65,11 @@ resource "aws_ecs_task_definition" "oonith_service" {
       ),
       memory = var.task_memory,
       name   = local.name,
+
       portMappings = [
         {
           containerPort = local.container_port,
-          hostPort      = 0
+          hostPort      = local.container_port,
         }
       ],
       environment = [
@@ -89,6 +98,28 @@ resource "aws_ecs_task_definition" "oonith_service" {
   track_latest       = true
 }
 
+resource "aws_security_group" "oonith_service_ecs" {
+  name        = "${local.name}_ecs-sg"
+  description = "Allow all traffic"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+}
+
 resource "aws_ecs_service" "oonith_service" {
   name            = local.name
   cluster         = var.ecs_cluster_id
@@ -96,12 +127,17 @@ resource "aws_ecs_service" "oonith_service" {
   desired_count   = var.service_desired_count
 
   deployment_minimum_healthy_percent = 50
-  deployment_maximum_percent         = 100
+  deployment_maximum_percent         = 200
 
   load_balancer {
     target_group_arn = aws_alb_target_group.oonith_service_direct.id
     container_name   = local.name
     container_port   = "80"
+  }
+
+  network_configuration {
+    subnets         = var.private_subnet_ids
+    security_groups = [aws_security_group.oonith_service_ecs.id]
   }
 
   depends_on = [
@@ -115,10 +151,15 @@ resource "aws_ecs_service" "oonith_service" {
 
 # The direct
 resource "aws_alb_target_group" "oonith_service_direct" {
-  name     = "${local.name}-direct"
-  port     = 80
-  protocol = "HTTP"
-  vpc_id   = var.vpc_id
+  name_prefix = "${local.short_prefix}D"
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = var.vpc_id
+  target_type = "ip"
+
+  lifecycle {
+    create_before_destroy = true
+  }
 
   tags = var.tags
 }
@@ -138,7 +179,7 @@ resource "aws_alb_target_group" "oonith_service_direct" {
 
 resource "aws_alb" "oonith_service" {
   name            = local.name
-  subnets         = var.subnet_ids
+  subnets         = var.public_subnet_ids
   security_groups = var.oonith_service_security_groups
 
   tags = var.tags
@@ -200,9 +241,9 @@ resource "aws_acm_certificate" "oonith_service" {
 resource "aws_route53_record" "oonith_service_validation" {
   for_each = {
     for dvo in aws_acm_certificate.oonith_service.domain_validation_options : dvo.domain_name => {
-      name   = dvo.resource_record_name
-      record = dvo.resource_record_value
-      type   = dvo.resource_record_type
+      name        = dvo.resource_record_name
+      record      = dvo.resource_record_value
+      type        = dvo.resource_record_type
       domain_name = dvo.domain_name
     }
   }
@@ -212,7 +253,7 @@ resource "aws_route53_record" "oonith_service_validation" {
   records         = [each.value.record]
   ttl             = 60
   type            = each.value.type
-  zone_id         = lookup(var.alternative_names,each.value.domain_name,var.dns_zone_ooni_io)
+  zone_id         = lookup(var.alternative_names, each.value.domain_name, var.dns_zone_ooni_io)
 }
 
 resource "aws_acm_certificate_validation" "oonith_service" {
