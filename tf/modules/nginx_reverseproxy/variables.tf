@@ -30,7 +30,11 @@ variable "proxy_pass_url" {
   description = "URL to pass to the proxy_pass directive"
 }
 
-variable "nginx_extra_config" {
+variable "nginx_extra_nginx_config" {
+  description = "extra configuration to pass to nginx"
+  default     = ""
+}
+variable "nginx_extra_path_config" {
   description = "extra configuration to pass to nginx"
   default     = ""
 }

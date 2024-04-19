@@ -43,8 +43,9 @@ resource "aws_launch_template" "nginx" {
   key_name      = var.key_name
 
   user_data = base64encode(templatefile("${path.module}/templates/setup-reverse-proxy.sh", {
-    proxy_pass_url = var.proxy_pass_url,
-    extra_config   = var.nginx_extra_config,
+    proxy_pass_url     = var.proxy_pass_url,
+    extra_path_config  = var.nginx_extra_path_config,
+    extra_nginx_config = var.nginx_extra_nginx_config,
   }))
 
   lifecycle {

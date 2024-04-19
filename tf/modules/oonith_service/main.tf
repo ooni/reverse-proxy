@@ -218,9 +218,9 @@ module "oonith_nginx_cache" {
   instance_type = "t2.micro"
   tags          = var.tags
 
-  name               = "oonith-nginx-cache"
-  proxy_pass_url     = "http://${aws_alb.oonith_service.dns_name}/"
-  nginx_extra_config = <<EOT
+  name                     = "oonith-nginx-cache"
+  proxy_pass_url           = "http://${aws_alb.oonith_service.dns_name}/"
+  nginx_extra_path_config  = <<EOT
       proxy_cache thcache;
       proxy_cache_min_uses 1;
       proxy_cache_lock on;
@@ -229,11 +229,12 @@ module "oonith_nginx_cache" {
       proxy_cache_use_stale error timeout invalid_header updating;
       # Cache POST without headers set by the test helper!
       proxy_cache_methods POST;
-      proxy_cache_key "$request_uri|$request_body";
+      proxy_cache_key "\$request_uri|\$request_body";
       proxy_cache_valid 200 10m;
       proxy_cache_valid any 0;
-      add_header X-Cache-Status $upstream_cache_status;
+      add_header X-Cache-Status \$upstream_cache_status;
       EOT
+  nginx_extra_nginx_config = "proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=thcache:100M max_size=5g inactive=24h use_temp_path=off;"
 }
 
 resource "aws_alb" "front_end" {
