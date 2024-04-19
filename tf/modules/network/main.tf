@@ -28,11 +28,6 @@ resource "aws_subnet" "public" {
   }
 }
 
-moved {
-  from = aws_subnet.main
-  to   = aws_subnet.public
-}
-
 resource "aws_subnet" "private" {
   count = var.az_count
 
@@ -84,11 +79,6 @@ resource "aws_egress_only_internet_gateway" "egress_gw" {
   tags = {
     Name = "ooni-egressonly-gw"
   }
-}
-
-moved {
-  from = aws_egress_only_internet_gateway.gw
-  to   = aws_egress_only_internet_gateway.egress_gw
 }
 
 resource "aws_route_table" "public" {
