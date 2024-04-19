@@ -277,9 +277,9 @@ module "ooniapi_cluster" {
   vpc_id     = module.network.vpc_id
   subnet_ids = module.network.vpc_subnet_public[*].id
 
-  asg_min     = 3
-  asg_max     = 8
-  asg_desired = 3
+  asg_min     = 4
+  asg_max     = 10
+  asg_desired = 4
 
   instance_type = "t2.small"
 
