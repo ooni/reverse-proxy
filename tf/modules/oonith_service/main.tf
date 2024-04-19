@@ -106,7 +106,7 @@ resource "aws_security_group" "oonith_service_ecs" {
   ingress {
     from_port        = 80
     to_port          = 80
-    protocol         = "-1"
+    protocol         = "tcp"
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
   }
@@ -137,7 +137,7 @@ resource "aws_ecs_service" "oonith_service" {
 
   network_configuration {
     subnets         = var.subnet_ids
-    security_groups = aws_security_group.oonith_service_ecs.id
+    security_groups = [aws_security_group.oonith_service_ecs.id]
   }
 
   depends_on = [
