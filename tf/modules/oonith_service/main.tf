@@ -127,7 +127,7 @@ resource "aws_ecs_service" "oonith_service" {
   desired_count   = var.service_desired_count
 
   deployment_minimum_healthy_percent = 50
-  deployment_maximum_percent         = 100
+  deployment_maximum_percent         = 200
 
   load_balancer {
     target_group_arn = aws_alb_target_group.oonith_service_direct.id

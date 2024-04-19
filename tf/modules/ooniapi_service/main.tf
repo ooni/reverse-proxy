@@ -103,16 +103,16 @@ resource "aws_security_group" "ooniapi_service_ecs" {
   vpc_id      = var.vpc_id
 
   ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
-    from_port        = 80
-    to_port          = 80
-    protocol         = "tcp"
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
     ipv6_cidr_blocks = ["::/0"]
   }
 
@@ -139,7 +139,7 @@ resource "aws_ecs_service" "ooniapi_service" {
   desired_count   = var.service_desired_count
 
   deployment_minimum_healthy_percent = 50
-  deployment_maximum_percent         = 100
+  deployment_maximum_percent         = 200
 
   load_balancer {
     target_group_arn = aws_alb_target_group.ooniapi_service_direct.id
