@@ -98,6 +98,28 @@ resource "aws_ecs_task_definition" "oonith_service" {
   track_latest       = true
 }
 
+resource "aws_security_group" "oonith_service_ecs" {
+  name        = "${local.name}_ecs-sg"
+  description = "Allow all traffic"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    from_port        = 80
+    to_port          = 80
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+}
+
 resource "aws_ecs_service" "oonith_service" {
   name            = local.name
   cluster         = var.ecs_cluster_id
@@ -114,7 +136,8 @@ resource "aws_ecs_service" "oonith_service" {
   }
 
   network_configuration {
-    subnets = var.subnet_ids
+    subnets         = var.subnet_ids
+    security_groups = aws_security_group.oonith_service_ecs.id
   }
 
   depends_on = [
