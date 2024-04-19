@@ -103,20 +103,33 @@ resource "aws_security_group" "ooniapi_service_ecs" {
   vpc_id      = var.vpc_id
 
   ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
     from_port        = 80
     to_port          = 80
     protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
     from_port        = 0
     to_port          = 0
     protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
   }
+
 }
 
 resource "aws_ecs_service" "ooniapi_service" {
@@ -141,7 +154,7 @@ resource "aws_ecs_service" "ooniapi_service" {
   }
 
   network_configuration {
-    subnets         = var.subnet_ids
+    subnets         = var.private_subnet_ids
     security_groups = [aws_security_group.ooniapi_service_ecs.id]
   }
 
@@ -186,7 +199,7 @@ resource "aws_alb_target_group" "ooniapi_service_mapped" {
 
 resource "aws_alb" "ooniapi_service" {
   name            = local.name
-  subnets         = var.subnet_ids
+  subnets         = var.public_subnet_ids
   security_groups = var.ooniapi_service_security_groups
 
   tags = var.tags

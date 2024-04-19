@@ -104,9 +104,9 @@ resource "aws_security_group" "oonith_service_ecs" {
   vpc_id      = var.vpc_id
 
   ingress {
-    from_port        = 80
-    to_port          = 80
-    protocol         = "tcp"
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
   }
@@ -136,7 +136,7 @@ resource "aws_ecs_service" "oonith_service" {
   }
 
   network_configuration {
-    subnets         = var.subnet_ids
+    subnets         = var.private_subnet_ids
     security_groups = [aws_security_group.oonith_service_ecs.id]
   }
 
@@ -179,7 +179,7 @@ resource "aws_alb_target_group" "oonith_service_direct" {
 
 resource "aws_alb" "oonith_service" {
   name            = local.name
-  subnets         = var.subnet_ids
+  subnets         = var.public_subnet_ids
   security_groups = var.oonith_service_security_groups
 
   tags = var.tags

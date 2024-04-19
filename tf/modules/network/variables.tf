@@ -9,7 +9,7 @@ variable "aws_availability_zones_available" {
 }
 
 variable "vpc_main_cidr_block" {
-  description = "the CIDR block of the default VPC"
+  description = "the start address of the main VPC cidr"
   default     = "10.0.0.0/16"
 }
 

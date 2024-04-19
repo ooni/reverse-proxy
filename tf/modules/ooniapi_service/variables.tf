@@ -23,7 +23,12 @@ variable "vpc_id" {
   description = "the id of the VPC to deploy the instance into"
 }
 
-variable "subnet_ids" {
+variable "public_subnet_ids" {
+  description = "the ids of the subnet of the subnets to deploy the instance into"
+  type        = list(string)
+}
+
+variable "private_subnet_ids" {
   description = "the ids of the subnet of the subnets to deploy the instance into"
   type        = list(string)
 }
@@ -36,16 +41,16 @@ variable "tags" {
 
 variable "service_desired_count" {
   description = "Desired numbers of instances in the ecs service"
-  default     = 2
+  default     = 1
 }
 
 variable "task_cpu" {
-  default     = 256
+  default     = 512
   description = "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size"
 }
 
 variable "task_memory" {
-  default     = 512
+  default     = 1024
   description = "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size"
 }
 
