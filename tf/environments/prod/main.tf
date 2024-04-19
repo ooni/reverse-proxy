@@ -143,7 +143,7 @@ module "oonipg" {
   name                     = "ooni-tier0-postgres"
   aws_region               = var.aws_region
   vpc_id                   = module.network.vpc_id
-  subnet_ids               = module.network.vpc_subnet[*].id
+  subnet_ids               = module.network.vpc_subnet_public[*].id
   db_instance_class        = "db.t3.micro"
   db_storage_type          = "standard"
   db_allocated_storage     = "5"
@@ -256,7 +256,7 @@ module "ooni_backendproxy" {
   source = "../../modules/ooni_backendproxy"
 
   vpc_id     = module.network.vpc_id
-  subnet_ids = module.network.vpc_subnet[*].id
+  subnet_ids = module.network.vpc_subnet_public[*].id
 
   key_name      = module.adm_iam_roles.oonidevops_key_name
   instance_type = "t2.micro"
@@ -275,7 +275,7 @@ module "ooniapi_cluster" {
   name       = "ooniapi-ecs-cluster"
   key_name   = module.adm_iam_roles.oonidevops_key_name
   vpc_id     = module.network.vpc_id
-  subnet_ids = module.network.vpc_subnet[*].id
+  subnet_ids = module.network.vpc_subnet_public[*].id
 
   asg_min     = 2
   asg_max     = 6
@@ -295,7 +295,7 @@ module "oonith_cluster" {
   name       = "oonith-ecs-cluster"
   key_name   = module.adm_iam_roles.oonidevops_key_name
   vpc_id     = module.network.vpc_id
-  subnet_ids = module.network.vpc_subnet[*].id
+  subnet_ids = module.network.vpc_subnet_public[*].id
 
   asg_min     = 2
   asg_max     = 6
@@ -334,8 +334,9 @@ module "ooniapi_ooniprobe" {
   # First run should be set on first run to bootstrap the task definition
   #first_run = true
 
-  vpc_id     = module.network.vpc_id
-  subnet_ids = module.network.vpc_subnet[*].id
+  vpc_id             = module.network.vpc_id
+  private_subnet_ids = module.network.vpc_subnet_private[*].id
+  public_subnet_ids  = module.network.vpc_subnet_public[*].id
 
   service_name             = "ooniprobe"
   default_docker_image_url = "ooni/api-ooniprobe:latest"
@@ -382,8 +383,9 @@ module "ooniapi_oonirun" {
   source = "../../modules/ooniapi_service"
   #first_run = true
 
-  vpc_id     = module.network.vpc_id
-  subnet_ids = module.network.vpc_subnet[*].id
+  vpc_id             = module.network.vpc_id
+  private_subnet_ids = module.network.vpc_subnet_private[*].id
+  public_subnet_ids  = module.network.vpc_subnet_public[*].id
 
   service_name             = "oonirun"
   default_docker_image_url = "ooni/api-oonirun:latest"
@@ -429,8 +431,9 @@ module "ooniapi_ooniauth" {
   source = "../../modules/ooniapi_service"
   #first_run = true
 
-  vpc_id     = module.network.vpc_id
-  subnet_ids = module.network.vpc_subnet[*].id
+  vpc_id             = module.network.vpc_id
+  private_subnet_ids = module.network.vpc_subnet_private[*].id
+  public_subnet_ids  = module.network.vpc_subnet_public[*].id
 
   service_name             = "ooniauth"
   default_docker_image_url = "ooni/api-ooniauth:latest"
@@ -480,7 +483,7 @@ module "ooniapi_frontend" {
   source = "../../modules/ooniapi_frontend"
 
   vpc_id     = module.network.vpc_id
-  subnet_ids = module.network.vpc_subnet[*].id
+  subnet_ids = module.network.vpc_subnet_public[*].id
 
   oonibackend_proxy_target_group_arn = module.ooni_backendproxy.alb_target_group_id
   ooniapi_oonirun_target_group_arn   = module.ooniapi_oonirun.alb_target_group_id
@@ -521,8 +524,9 @@ module "oonith_oohelperd" {
   source = "../../modules/oonith_service"
   #first_run = true
 
-  vpc_id     = module.network.vpc_id
-  subnet_ids = module.network.vpc_subnet[*].id
+  vpc_id             = module.network.vpc_id
+  private_subnet_ids = module.network.vpc_subnet_private[*].id
+  public_subnet_ids  = module.network.vpc_subnet_public[*].id
 
   service_name             = "oohelperd"
   default_docker_image_url = "ooni/oonith-oohelperd:latest"
