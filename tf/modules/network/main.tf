@@ -52,28 +52,38 @@ resource "aws_subnet" "private" {
   }
 }
 
-resource "aws_eip" "main" {
+resource "aws_eip" "nat" {
   count      = var.az_count
   domain     = "vpc"
   depends_on = [aws_internet_gateway.gw]
 }
 
 resource "aws_nat_gateway" "nat_gw" {
-  count         = var.az_count
-  subnet_id     = element(aws_subnet.private[*].id, count.index)
-  allocation_id = element(aws_eip.main[*].id, count.index)
+  count = var.az_count
+
+  allocation_id = element(aws_eip.nat[*].id, count.index)
+  subnet_id     = element(aws_subnet.public[*].id, count.index)
 
   depends_on = [aws_internet_gateway.gw]
+
+  tags = {
+    Name = "ooni-nat-gw"
+  }
 }
 
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.main.id
+  tags = {
+    Name = "ooni-internet-gw"
+  }
 }
 
 resource "aws_egress_only_internet_gateway" "egress_gw" {
   vpc_id = aws_vpc.main.id
 
-  tags = var.tags
+  tags = {
+    Name = "ooni-egressonly-gw"
+  }
 }
 
 moved {
@@ -120,7 +130,7 @@ resource "aws_route_table" "private" {
   }
 
   tags = {
-    Name = "ooni-public-route-table-${count.index}"
+    Name = "ooni-private-route-table-${count.index}"
   }
 }
 
