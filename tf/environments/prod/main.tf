@@ -281,7 +281,7 @@ module "ooniapi_cluster" {
   asg_max     = 10
   asg_desired = 4
 
-  instance_type = "t2.small"
+  instance_type = "t3.small"
 
   tags = merge(
     local.tags,
@@ -301,7 +301,7 @@ module "oonith_cluster" {
   asg_max     = 6
   asg_desired = 2
 
-  instance_type = "t2.small"
+  instance_type = "t3.small"
 
   tags = merge(
     local.tags,

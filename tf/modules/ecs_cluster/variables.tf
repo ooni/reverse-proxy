@@ -55,7 +55,7 @@ variable "admin_cidr_ingress" {
 }
 
 variable "instance_type" {
-  default = "t2.small"
+  default = "t3.small"
 }
 
 variable "instance_volume_size" {
