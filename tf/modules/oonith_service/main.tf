@@ -129,6 +129,16 @@ resource "aws_ecs_service" "oonith_service" {
   deployment_minimum_healthy_percent = 50
   deployment_maximum_percent         = 200
 
+  ordered_placement_strategy {
+    type  = "spread"
+    field = "attribute:ecs.availability-zone"
+  }
+
+  ordered_placement_strategy {
+    type  = "spread"
+    field = "instanceId"
+  }
+
   load_balancer {
     target_group_arn = aws_alb_target_group.oonith_service_direct.id
     container_name   = local.name
