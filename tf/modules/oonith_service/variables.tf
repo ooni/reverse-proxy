@@ -41,12 +41,12 @@ variable "service_desired_count" {
 }
 
 variable "task_cpu" {
-  default     = 512
+  default     = 1024
   description = "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size"
 }
 
 variable "task_memory" {
-  default     = 512
+  default     = 1024
   description = "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size"
 }
 
