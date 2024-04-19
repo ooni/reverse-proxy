@@ -277,9 +277,9 @@ module "ooniapi_cluster" {
   vpc_id     = module.network.vpc_id
   subnet_ids = module.network.vpc_subnet_public[*].id
 
-  asg_min     = 2
-  asg_max     = 6
-  asg_desired = 2
+  asg_min     = 3
+  asg_max     = 8
+  asg_desired = 3
 
   instance_type = "t2.small"
 
@@ -345,6 +345,8 @@ module "ooniapi_ooniprobe" {
   key_name                 = module.adm_iam_roles.oonidevops_key_name
   ecs_cluster_id           = module.ooniapi_cluster.cluster_id
 
+  service_desired_count = 2
+
   task_secrets = {
     POSTGRESQL_URL              = aws_secretsmanager_secret_version.oonipg_url.arn
     JWT_ENCRYPTION_KEY          = aws_secretsmanager_secret_version.jwt_secret.arn
@@ -394,6 +396,8 @@ module "ooniapi_oonirun" {
   key_name                 = module.adm_iam_roles.oonidevops_key_name
   ecs_cluster_id           = module.ooniapi_cluster.cluster_id
 
+  service_desired_count = 2
+
   task_secrets = {
     POSTGRESQL_URL              = aws_secretsmanager_secret_version.oonipg_url.arn
     JWT_ENCRYPTION_KEY          = aws_secretsmanager_secret_version.jwt_secret.arn
@@ -441,6 +445,8 @@ module "ooniapi_ooniauth" {
   dns_zone_ooni_io         = local.dns_zone_ooni_io
   key_name                 = module.adm_iam_roles.oonidevops_key_name
   ecs_cluster_id           = module.ooniapi_cluster.cluster_id
+
+  service_desired_count = 2
 
   task_secrets = {
     POSTGRESQL_URL              = aws_secretsmanager_secret_version.oonipg_url.arn
@@ -534,6 +540,8 @@ module "oonith_oohelperd" {
   dns_zone_ooni_io         = local.dns_zone_ooni_io
   key_name                 = module.adm_iam_roles.oonidevops_key_name
   ecs_cluster_id           = module.oonith_cluster.cluster_id
+
+  service_desired_count = 2
 
   task_secrets = {
     PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
