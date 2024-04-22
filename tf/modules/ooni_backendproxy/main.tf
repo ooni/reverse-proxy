@@ -98,6 +98,10 @@ resource "aws_alb_target_group" "oonibackend_proxy" {
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
 
+  lifecycle {
+    create_before_destroy = true
+  }
+
   tags = var.tags
 }
 
