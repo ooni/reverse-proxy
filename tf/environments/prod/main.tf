@@ -556,7 +556,7 @@ module "oonith_oohelperd" {
   key_name                 = module.adm_iam_roles.oonidevops_key_name
   ecs_cluster_id           = module.oonith_cluster.cluster_id
 
-  service_desired_count = 2
+  service_desired_count = 3
 
   task_secrets = {
     PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
