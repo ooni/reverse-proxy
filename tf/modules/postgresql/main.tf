@@ -1,8 +1,8 @@
 resource "aws_security_group" "pg" {
   description = "controls access to postgresql database"
 
-  vpc_id = var.vpc_id
-  name   = "${var.name}-sg"
+  vpc_id      = var.vpc_id
+  name_prefix = "oonipg"
 
   ingress {
     protocol    = "tcp"
@@ -19,6 +19,10 @@ resource "aws_security_group" "pg" {
     cidr_blocks = [
       "0.0.0.0/0",
     ]
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 
   tags = var.tags

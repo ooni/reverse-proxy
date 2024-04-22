@@ -109,7 +109,7 @@ module "network" {
   source = "../../modules/network"
 
   az_count            = var.az_count
-  vpc_main_cidr_block = "10.0.0.0/16"
+  vpc_main_cidr_block = "10.42.0.0/16"
   tags = merge(
     local.tags,
     { Name = "ooni-main-vpc" }

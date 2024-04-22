@@ -6,6 +6,7 @@ data "aws_ssm_parameter" "ubuntu_22_ami" {
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group#recreating-a-security-group
 resource "aws_security_group" "nginx_sg" {
   description = "security group for nginx"
+  name_prefix = "ooni-bckprx"
 
   vpc_id = var.vpc_id
 
@@ -31,6 +32,10 @@ resource "aws_security_group" "nginx_sg" {
     cidr_blocks = [
       "0.0.0.0/0",
     ]
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 
   tags = var.tags

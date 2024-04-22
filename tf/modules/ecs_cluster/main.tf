@@ -47,8 +47,8 @@ EOF
 resource "aws_security_group" "web" {
   description = "controls access to the applications ELB web endpoint"
 
-  vpc_id = var.vpc_id
-  name   = "${var.name}-web-sg"
+  vpc_id      = var.vpc_id
+  name_prefix = "ooni-ecs-web"
 
   ingress {
     protocol    = "tcp"
@@ -75,6 +75,10 @@ resource "aws_security_group" "web" {
     ipv6_cidr_blocks = ["::/0"]
   }
 
+  lifecycle {
+    create_before_destroy = true
+  }
+
   tags = var.tags
 }
 
@@ -94,7 +98,7 @@ resource "aws_iam_role_policy" "container_host" {
 resource "aws_security_group" "container_host" {
   description = "controls direct access to application instances"
   vpc_id      = var.vpc_id
-  name        = "${var.name}-container-host-sg"
+  name_prefix = "ooni-ecs-container"
 
   ingress {
     protocol  = "tcp"
@@ -122,6 +126,10 @@ resource "aws_security_group" "container_host" {
     protocol         = "-1"
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 
   tags = var.tags

@@ -1,3 +1,6 @@
+locals {
+  private_net_offset = 100
+}
 
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_main_cidr_block
@@ -35,9 +38,9 @@ resource "aws_subnet" "public" {
 resource "aws_subnet" "private" {
   count = var.az_count
 
-  cidr_block = cidrsubnet(aws_vpc.main.cidr_block, 8, var.az_count + count.index)
+  cidr_block = cidrsubnet(aws_vpc.main.cidr_block, 8, local.private_net_offset + count.index)
 
-  ipv6_cidr_block                 = cidrsubnet(aws_vpc.main.ipv6_cidr_block, 8, var.az_count + count.index)
+  ipv6_cidr_block                 = cidrsubnet(aws_vpc.main.ipv6_cidr_block, 8, local.private_net_offset + count.index)
   assign_ipv6_address_on_creation = true
 
   availability_zone       = element(var.aws_availability_zones_available.names, count.index)
