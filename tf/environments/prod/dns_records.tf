@@ -1000,23 +1000,6 @@ resource "aws_route53_record" "test-ooni-nu-_NS_" {
 
 ## Records for the th.ooni.org zone
 
-
-resource "aws_route53_record" "_3-th-ooni-org-_AAAA_" {
-  name    = "3.th.ooni.org"
-  records = ["2604:a880:4:1d0::69e:f000"]
-  ttl     = "60"
-  type    = "AAAA"
-  zone_id = local.dns_root_zone_ooni_org
-}
-
-resource "aws_route53_record" "_3-th-ooni-org-_A_" {
-  name    = "3.th.ooni.org"
-  records = ["146.190.119.3"]
-  ttl     = "60"
-  type    = "A"
-  zone_id = local.dns_root_zone_ooni_org
-}
-
 resource "aws_route53_record" "_2-th-ooni-org-_A_" {
   name    = "2.th.ooni.org"
   records = ["161.35.89.250"]
