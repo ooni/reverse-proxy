@@ -23,6 +23,10 @@ resource "aws_subnet" "public" {
 
   depends_on = [aws_internet_gateway.gw]
 
+  lifecycle {
+    create_before_destroy = true
+  }
+
   tags = {
     Name = "ooni-public-subnet-${count.index}"
   }
@@ -41,6 +45,10 @@ resource "aws_subnet" "private" {
   map_public_ip_on_launch = false
 
   depends_on = [aws_internet_gateway.gw]
+
+  lifecycle {
+    create_before_destroy = true
+  }
 
   tags = {
     Name = "ooni-private-subnet-${count.index}"
