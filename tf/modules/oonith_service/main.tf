@@ -192,6 +192,10 @@ resource "aws_alb" "oonith_service" {
   subnets         = var.public_subnet_ids
   security_groups = var.oonith_service_security_groups
 
+  lifecycle {
+    create_before_destroy = true
+  }
+
   tags = var.tags
 }
 
