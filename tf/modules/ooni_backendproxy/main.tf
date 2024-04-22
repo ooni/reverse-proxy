@@ -93,10 +93,10 @@ resource "aws_autoscaling_group" "oonibackend_proxy" {
 }
 
 resource "aws_alb_target_group" "oonibackend_proxy" {
-  name     = var.name
-  port     = 80
-  protocol = "HTTP"
-  vpc_id   = var.vpc_id
+  name_prefix = "oobpx"
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = var.vpc_id
 
   tags = var.tags
 }
