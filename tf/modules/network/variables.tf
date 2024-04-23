@@ -19,3 +19,8 @@ variable "tags" {
   type        = map(string)
 }
 
+variable "enable_codesign_network" {
+  description = "Enable codesign network"
+  default     = false
+  type        = bool
+}
