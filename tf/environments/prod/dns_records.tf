@@ -326,6 +326,14 @@ resource "aws_route53_record" "run-test-ooni-org-_CNAME_" {
   zone_id = local.dns_root_zone_ooni_org
 }
 
+resource "aws_route53_record" "run-v2-ooni-org-_CNAME_" {
+  name    = "run-v2.ooni.org"
+  records = ["cname.vercel-dns.com"]
+  ttl     = "300"
+  type    = "CNAME"
+  zone_id = local.dns_root_zone_ooni_org
+}
+
 resource "aws_route53_record" "shop-ooni-org-_CNAME_" {
   name    = "shop.ooni.org"
   records = ["shops.myshopify.com"]
