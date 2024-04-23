@@ -59,24 +59,6 @@ resource "aws_subnet" "private" {
   }
 }
 
-resource "aws_subnet" "cloudhsm" {
-  count      = var.enable_codesign_network ? 1 : 0
-  cidr_block = cidrsubnet(aws_vpc.main.cidr_block, 8, local.cloudhsm_net_offset)
-
-  availability_zone       = var.aws_availability_zones_available.names[0]
-  vpc_id                  = aws_vpc.main.id
-  map_public_ip_on_launch = false
-
-  depends_on = [aws_internet_gateway.gw]
-
-  lifecycle {
-    create_before_destroy = true
-  }
-
-  tags = {
-    Name = "ooni-cloudhsm-subnet-0"
-  }
-}
 
 resource "aws_eip" "nat" {
   count      = var.az_count
@@ -163,4 +145,42 @@ resource "aws_route_table_association" "private" {
   lifecycle {
     create_before_destroy = true
   }
+}
+
+resource "aws_subnet" "cloudhsm" {
+  count      = var.enable_codesign_network ? 1 : 0
+  cidr_block = cidrsubnet(aws_vpc.main.cidr_block, 8, local.cloudhsm_net_offset)
+
+  availability_zone       = var.aws_availability_zones_available.names[0]
+  vpc_id                  = aws_vpc.main.id
+  map_public_ip_on_launch = false
+
+  depends_on = [aws_internet_gateway.gw]
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tags = {
+    Name = "ooni-cloudhsm-subnet-0"
+  }
+}
+
+resource "aws_route_table" "cloudhsm" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.gw.id
+  }
+
+  tags = {
+    Name = "ooni-cloudhsm-route-table"
+  }
+}
+
+resource "aws_route_table_association" "cloudhsm" {
+  count          = var.enable_codesign_network ? 1 : 0
+  subnet_id      = element(aws_subnet.cloudhsm[*].id, count.index)
+  route_table_id = aws_route_table.cloudhsm.id
 }
