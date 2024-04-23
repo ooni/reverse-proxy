@@ -54,8 +54,13 @@ data "aws_ami" "amazon_linux" {
 resource "aws_instance" "codesign_box" {
   ami = data.aws_ami.amazon_linux.id
 
-  instance_type   = "t3.micro"
-  security_groups = [aws_security_group.hsm.name]
+  key_name      = var.key_name
+  instance_type = "t3.micro"
+
+  subnet_id              = var.subnet_id
+  vpc_security_group_ids = [aws_security_group.hsm.id]
+
+  associate_public_ip_address = true
 
   user_data = <<-EOF
                 #!/bin/bash
@@ -65,4 +70,6 @@ resource "aws_instance" "codesign_box" {
                 sudo yum install -y openssl
                 sudo yum install -y engine_pkcs11 opensc
                 EOF
+
+  tags = merge(var.tags, { Name = "codesign-box" })
 }
