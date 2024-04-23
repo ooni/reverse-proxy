@@ -51,8 +51,8 @@ resource "aws_instance" "clickhouse_server_prod_tier1" {
   }
 
   user_data = templatefile("${path.module}/templates/clickhouse-setup.sh", {
-    hostname        = local.clickhouse_hostname,
-    device_name     = local.clickhouse_device_name
+    hostname    = local.clickhouse_hostname,
+    device_name = local.clickhouse_device_name
   })
 
   tags = merge(
@@ -110,7 +110,7 @@ resource "aws_eip" "clickhouse_ip" {
 }
 
 resource "aws_security_group" "clickhouse_sg" {
-  name        = "clickhouse_sg"
+  name_prefix = "clickhouse"
   description = "Allow Clickhouse traffic"
 
   vpc_id = var.aws_vpc_id
@@ -138,6 +138,10 @@ resource "aws_security_group" "clickhouse_sg" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 
   tags = local.tags

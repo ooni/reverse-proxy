@@ -1,3 +1,6 @@
+locals {
+  private_net_offset = 100
+}
 
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_main_cidr_block
@@ -23,6 +26,10 @@ resource "aws_subnet" "public" {
 
   depends_on = [aws_internet_gateway.gw]
 
+  lifecycle {
+    create_before_destroy = true
+  }
+
   tags = {
     Name = "ooni-public-subnet-${count.index}"
   }
@@ -31,16 +38,20 @@ resource "aws_subnet" "public" {
 resource "aws_subnet" "private" {
   count = var.az_count
 
-  cidr_block = cidrsubnet(aws_vpc.main.cidr_block, 8, var.az_count + count.index)
+  cidr_block = cidrsubnet(aws_vpc.main.cidr_block, 8, local.private_net_offset + count.index)
 
-  ipv6_cidr_block                 = cidrsubnet(aws_vpc.main.ipv6_cidr_block, 8, var.az_count + count.index)
+  ipv6_cidr_block                 = cidrsubnet(aws_vpc.main.ipv6_cidr_block, 8, local.private_net_offset + count.index)
   assign_ipv6_address_on_creation = true
 
-  availability_zone       = element(var.aws_availability_zones_available.names, var.az_count + count.index)
+  availability_zone       = element(var.aws_availability_zones_available.names, count.index)
   vpc_id                  = aws_vpc.main.id
   map_public_ip_on_launch = false
 
   depends_on = [aws_internet_gateway.gw]
+
+  lifecycle {
+    create_before_destroy = true
+  }
 
   tags = {
     Name = "ooni-private-subnet-${count.index}"
@@ -128,4 +139,8 @@ resource "aws_route_table_association" "private" {
   count          = var.az_count
   subnet_id      = element(aws_subnet.private[*].id, count.index)
   route_table_id = element(aws_route_table.private[*].id, count.index)
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }

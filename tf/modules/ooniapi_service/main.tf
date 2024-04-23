@@ -98,7 +98,7 @@ resource "aws_ecs_task_definition" "ooniapi_service" {
 }
 
 resource "aws_security_group" "ooniapi_service_ecs" {
-  name        = "${local.name}_ecs-sg"
+  name_prefix = "ooniapi-service"
   description = "Allow all traffic"
   vpc_id      = var.vpc_id
 
@@ -130,6 +130,9 @@ resource "aws_security_group" "ooniapi_service_ecs" {
     ipv6_cidr_blocks = ["::/0"]
   }
 
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_ecs_service" "ooniapi_service" {

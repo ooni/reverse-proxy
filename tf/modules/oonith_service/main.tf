@@ -99,7 +99,7 @@ resource "aws_ecs_task_definition" "oonith_service" {
 }
 
 resource "aws_security_group" "oonith_service_ecs" {
-  name        = "${local.name}_ecs-sg"
+  name_prefix = "oonith-service"
   description = "Allow all traffic"
   vpc_id      = var.vpc_id
 
@@ -117,6 +117,10 @@ resource "aws_security_group" "oonith_service_ecs" {
     protocol         = "-1"
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
