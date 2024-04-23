@@ -32,10 +32,16 @@ resource "aws_security_group" "hsm" {
 
 data "aws_ami" "amazon_linux" {
   most_recent = true
+  owners      = ["amazon"]
 
   filter {
     name   = "name"
-    values = ["debian-12-amd64-*"]
+    values = ["al2023-ami-*"]
+  }
+
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
   }
 
   filter {
@@ -43,14 +49,12 @@ data "aws_ami" "amazon_linux" {
     values = ["hvm"]
   }
 
-  owners = ["136693071363"] # Debian's official AWS account ID
 }
 
 resource "aws_instance" "codesign_box" {
   ami = data.aws_ami.amazon_linux.id
 
   instance_type   = "t3.micro"
-  subnet_id       = var.subnet_id
   security_groups = [aws_security_group.hsm.name]
 
   user_data = <<-EOF
