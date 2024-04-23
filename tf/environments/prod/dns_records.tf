@@ -1031,19 +1031,3 @@ resource "aws_route53_record" "_1-th-ooni-org-_AAAA_" {
   type    = "AAAA"
   zone_id = local.dns_root_zone_ooni_org
 }
-
-resource "aws_route53_record" "_0-th-ooni-org-_A_" {
-  name    = "0.th.ooni.org"
-  records = ["146.190.119.3"]
-  ttl     = "60"
-  type    = "A"
-  zone_id = local.dns_root_zone_ooni_org
-}
-
-resource "aws_route53_record" "_0-th-ooni-org-_AAAA_" {
-  name    = "0.th.ooni.org"
-  records = ["2604:a880:4:1d0::69e:f000"]
-  ttl     = "60"
-  type    = "AAAA"
-  zone_id = local.dns_root_zone_ooni_org
-}
