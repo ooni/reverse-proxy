@@ -65,10 +65,13 @@ resource "aws_instance" "codesign_box" {
   user_data = <<-EOF
                 #!/bin/bash
                 sudo yum update -y
-                sudo yum install -y amazon-cloudhsm-cli
-                sudo amazon-linux-extras install -y epel
-                sudo yum install -y openssl
-                sudo yum install -y engine_pkcs11 opensc
+                curl -o cloudhsm.rpm https://s3.amazonaws.com/cloudhsmv2-software/CloudHsmClient/Amzn2023/cloudhsm-cli-latest.amzn2023.x86_64.rpm
+                sudo yum install -y ./cloudhsm-cli.rpm
+                rm cloudhsm-cli.rpm
+
+                curl -o  cloudhsm-pkcs11.rpm https://s3.amazonaws.com/cloudhsmv2-software/CloudHsmClient/Amzn2023/cloudhsm-pkcs11-latest.amzn2023.x86_64.rpm
+                sudo yum install -y ./cloudhsm-pkcs11.rpm
+                rm cloudhsm-pkcs11.rpm
                 EOF
 
   tags = merge(var.tags, { Name = "codesign-box" })
