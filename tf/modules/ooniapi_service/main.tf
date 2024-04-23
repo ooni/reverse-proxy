@@ -45,8 +45,11 @@ locals {
   container_port = 80
 }
 
-data "aws_ecs_task_definition" "ooniapi_service_current" {
+// This is done to retrieve the image name of the current task definition
+// It's important to keep aligned the container_name and task_definitions
+data "aws_ecs_container_definition" "ooniapi_service_current" {
   task_definition = "${local.name}-td"
+  container_name  = local.name
   count           = var.first_run ? 0 : 1
 }
 
@@ -59,7 +62,7 @@ resource "aws_ecs_task_definition" "ooniapi_service" {
       cpu       = var.task_cpu,
       essential = true,
       image = try(
-        jsondecode(data.aws_ecs_task_definition.ooniapi_service_current.0.task_definition).ContainerDefinitions[0].image,
+        data.aws_ecs_container_definition.ooniapi_service_current[0].image,
         var.default_docker_image_url
       ),
       memory = var.task_memory,
