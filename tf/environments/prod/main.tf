@@ -278,23 +278,9 @@ module "ooniapi_cluster" {
   subnet_ids = module.network.vpc_subnet_public[*].id
 
   # You need be careful how these are tweaked.
-  # Considerations are that each instance cannot have more than 3 network
-  # interfaces for instance_types small-large.
-  # This means that there can be no more than 2 tasks running on a single
-  # instance.
-  # For each service running look at its desired service_count and increase it
-  # by 1. The extra 1 is to account for the extra task started when it needs to
-  # be upgraded.
-  # Then sum all the parts and get the min number of instances, which you then
-  # divide by 2 and take the ceiling.
-  # To support instance refresh, take that number and multiply it by 2.
-  # For example if each task has a count of 2 and you have 3 services, you get
-  # to this value: (2 + 1 * 3)/2 = 5
-  # If you care to support multiple availability zones, it's probably wise to
-  # increase this value by 2.
-  asg_min     = 7
-  asg_max     = 14
-  asg_desired = 7
+  asg_min     = 5
+  asg_max     = 12
+  asg_desired = 5
 
   instance_type = "t3.small"
 
@@ -312,9 +298,9 @@ module "oonith_cluster" {
   vpc_id     = module.network.vpc_id
   subnet_ids = module.network.vpc_subnet_public[*].id
 
-  asg_min     = 4
-  asg_max     = 8
-  asg_desired = 4
+  asg_min     = 3
+  asg_max     = 7
+  asg_desired = 3
 
   instance_type = "t3.small"
 
