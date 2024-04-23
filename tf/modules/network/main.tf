@@ -1,5 +1,6 @@
 locals {
-  private_net_offset = 100
+  private_net_offset  = 100
+  cloudhsm_net_offset = 200
 }
 
 resource "aws_vpc" "main" {
@@ -55,6 +56,25 @@ resource "aws_subnet" "private" {
 
   tags = {
     Name = "ooni-private-subnet-${count.index}"
+  }
+}
+
+resource "aws_subnet" "cloudhsm" {
+  count      = var.enable_codesign_network ? 1 : 0
+  cidr_block = cidrsubnet(aws_vpc.main.cidr_block, 8, local.cloudhsm_net_offset)
+
+  availability_zone       = var.aws_availability_zones_available.names[0]
+  vpc_id                  = aws_vpc.main.id
+  map_public_ip_on_launch = false
+
+  depends_on = [aws_internet_gateway.gw]
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tags = {
+    Name = "ooni-cloudhsm-subnet-0"
   }
 }
 

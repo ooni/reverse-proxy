@@ -122,6 +122,8 @@ module "network" {
 
   aws_availability_zones_available = data.aws_availability_zones.available
 
+  enable_codesign_network = true
+
   depends_on = [module.adm_iam_roles]
 }
 
@@ -562,4 +564,15 @@ module "oonith_oohelperd" {
     local.tags,
     { Name = "ooni-tier0-oohelperd" }
   )
+}
+
+## Code signing setup
+
+module "codesigning" {
+  source = "../../modules/cloudhsm"
+
+  vpc_id            = module.network.vpc_id
+  subnet_id         = module.network.vpc_subnet_cloudhsm[0].id
+  subnet_cidr_block = module.network.vpc_subnet_cloudhsm[0].cidr_block
+  key_name          = module.adm_iam_roles.oonidevops_key_name
 }
