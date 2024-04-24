@@ -47,7 +47,9 @@ resource "aws_launch_template" "ooni_backendproxy" {
   instance_type = var.instance_type
   key_name      = var.key_name
 
-  user_data = filebase64("${path.module}/templates/setup-backend-proxy.sh")
+  user_data = base64encode(templatefile("${path.module}/templates/setup-backend-proxy.sh", {
+    backend_url = var.backend_url
+  }))
 
   lifecycle {
     create_before_destroy = true
