@@ -256,6 +256,8 @@ module "ooni_backendproxy" {
   key_name      = module.adm_iam_roles.oonidevops_key_name
   instance_type = "t2.micro"
 
+  backend_url = "https://backend-hel.ooni.org/"
+
   tags = merge(
     local.tags,
     { Name = "ooni-tier0-backendproxy" }
