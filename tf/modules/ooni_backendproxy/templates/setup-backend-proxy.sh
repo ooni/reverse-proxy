@@ -12,7 +12,7 @@ server {
     server_name _;
 
     location / {
-        proxy_pass https://backend-fsn.ooni.org/;
+        proxy_pass ${backend_url};
         proxy_http_version 1.1;
         proxy_set_header Host \$host;
     }

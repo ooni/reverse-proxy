@@ -24,3 +24,8 @@ variable "name" {
 variable "instance_type" {
   default = "t2.micro"
 }
+
+variable "backend_url" {
+  type = string
+  default = "https://backend-fsn.ooni.org/"
+}
