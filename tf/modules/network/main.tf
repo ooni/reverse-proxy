@@ -167,6 +167,8 @@ resource "aws_subnet" "cloudhsm" {
 }
 
 resource "aws_route_table" "cloudhsm" {
+  count = var.enable_codesign_network ? 1 : 0
+
   vpc_id = aws_vpc.main.id
 
   route {
@@ -182,5 +184,5 @@ resource "aws_route_table" "cloudhsm" {
 resource "aws_route_table_association" "cloudhsm" {
   count          = var.enable_codesign_network ? 1 : 0
   subnet_id      = element(aws_subnet.cloudhsm[*].id, count.index)
-  route_table_id = aws_route_table.cloudhsm.id
+  route_table_id = aws_route_table.cloudhsm[count.index].id
 }
