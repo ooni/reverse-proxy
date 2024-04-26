@@ -573,8 +573,8 @@ module "oonith_oohelperd" {
 module "codesigning" {
   source = "../../modules/cloudhsm"
 
-  vpc_id            = module.network.vpc_id
-  subnet_id         = module.network.vpc_subnet_cloudhsm[0].id
-  subnet_cidr_block = module.network.vpc_subnet_cloudhsm[0].cidr_block
-  key_name          = module.adm_iam_roles.oonidevops_key_name
+  vpc_id             = module.network.vpc_id
+  subnet_ids         = module.network.vpc_subnet_cloudhsm[*].id
+  subnet_cidr_blocks = module.network.vpc_subnet_cloudhsm[*].cidr_block
+  key_name           = module.adm_iam_roles.oonidevops_key_name
 }

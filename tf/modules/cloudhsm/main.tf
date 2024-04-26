@@ -1,8 +1,11 @@
-resource "aws_cloudhsm_v2_cluster" "hsm" {
-  hsm_type   = "hsm1.medium"
-  subnet_ids = [var.subnet_id]
+data "aws_cloudhsm_v2_cluster" "hsm_cluster" {
+  cluster_id = "cluster-qsvghm4oqok"
+}
 
-  tags = var.tags
+resource "aws_cloudhsm_v2_hsm" "hsm" {
+  count      = length(var.subnet_ids)
+  subnet_id  = var.subnet_ids[count.index]
+  cluster_id = data.aws_cloudhsm_v2_cluster.hsm_cluster.cluster_id
 }
 
 resource "aws_security_group" "hsm" {
@@ -19,7 +22,7 @@ resource "aws_security_group" "hsm" {
     from_port   = 2223 # Port for CloudHSM
     to_port     = 2225
     protocol    = "tcp"
-    cidr_blocks = [var.subnet_cidr_block]
+    cidr_blocks = var.subnet_cidr_blocks
   }
 
   egress {
@@ -57,7 +60,7 @@ resource "aws_instance" "codesign_box" {
   key_name      = var.key_name
   instance_type = "t3.micro"
 
-  subnet_id              = var.subnet_id
+  subnet_id              = var.subnet_ids[0]
   vpc_security_group_ids = [aws_security_group.hsm.id]
 
   associate_public_ip_address = true

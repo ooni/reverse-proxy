@@ -147,11 +147,15 @@ resource "aws_route_table_association" "private" {
   }
 }
 
-resource "aws_subnet" "cloudhsm" {
-  count      = var.enable_codesign_network ? 1 : 0
-  cidr_block = cidrsubnet(aws_vpc.main.cidr_block, 8, local.cloudhsm_net_offset)
+locals {
+  cloudhsm_network_count = (var.enable_codesign_network ? 1 : 0) * var.az_count
+}
 
-  availability_zone       = var.aws_availability_zones_available.names[0]
+resource "aws_subnet" "cloudhsm" {
+  count      = local.cloudhsm_network_count
+  cidr_block = cidrsubnet(aws_vpc.main.cidr_block, 8, local.cloudhsm_net_offset + count.index)
+
+  availability_zone       = var.aws_availability_zones_available.names[count.index]
   vpc_id                  = aws_vpc.main.id
   map_public_ip_on_launch = false
 
@@ -162,12 +166,12 @@ resource "aws_subnet" "cloudhsm" {
   }
 
   tags = {
-    Name = "ooni-cloudhsm-subnet-0"
+    Name = "ooni-cloudhsm-subnet-${count.index}"
   }
 }
 
 resource "aws_route_table" "cloudhsm" {
-  count = var.enable_codesign_network ? 1 : 0
+  count = local.cloudhsm_network_count
 
   vpc_id = aws_vpc.main.id
 
@@ -182,7 +186,7 @@ resource "aws_route_table" "cloudhsm" {
 }
 
 resource "aws_route_table_association" "cloudhsm" {
-  count          = var.enable_codesign_network ? 1 : 0
+  count          = local.cloudhsm_network_count
   subnet_id      = element(aws_subnet.cloudhsm[*].id, count.index)
   route_table_id = aws_route_table.cloudhsm[count.index].id
 }
