@@ -2,6 +2,7 @@ data "aws_cloudhsm_v2_cluster" "hsm_cluster" {
   cluster_id = "cluster-qsvghm4oqok"
 }
 
+## Temporarily disabled, see: https://github.com/ooni/devops/issues/55
 #resource "aws_cloudhsm_v2_hsm" "hsm" {
 #  count      = length(var.subnet_ids)
 #  subnet_id  = var.subnet_ids[count.index]
@@ -68,7 +69,7 @@ resource "aws_instance" "codesign_box" {
   user_data = <<-EOF
                 #!/bin/bash
                 sudo yum update -y
-                curl -o cloudhsm.rpm https://s3.amazonaws.com/cloudhsmv2-software/CloudHsmClient/Amzn2023/cloudhsm-cli-latest.amzn2023.x86_64.rpm
+                curl -o cloudhsm-cli.rpm https://s3.amazonaws.com/cloudhsmv2-software/CloudHsmClient/Amzn2023/cloudhsm-cli-latest.amzn2023.x86_64.rpm
                 sudo yum install -y ./cloudhsm-cli.rpm
                 rm cloudhsm-cli.rpm
 
