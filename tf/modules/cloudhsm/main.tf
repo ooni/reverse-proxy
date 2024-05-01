@@ -2,11 +2,11 @@ data "aws_cloudhsm_v2_cluster" "hsm_cluster" {
   cluster_id = "cluster-qsvghm4oqok"
 }
 
-resource "aws_cloudhsm_v2_hsm" "hsm" {
-  count      = length(var.subnet_ids)
-  subnet_id  = var.subnet_ids[count.index]
-  cluster_id = data.aws_cloudhsm_v2_cluster.hsm_cluster.cluster_id
-}
+#resource "aws_cloudhsm_v2_hsm" "hsm" {
+#  count      = length(var.subnet_ids)
+#  subnet_id  = var.subnet_ids[count.index]
+#  cluster_id = data.aws_cloudhsm_v2_cluster.hsm_cluster.cluster_id
+#}
 
 resource "aws_security_group" "hsm" {
   vpc_id = var.vpc_id
