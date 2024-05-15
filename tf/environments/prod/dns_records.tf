@@ -302,14 +302,6 @@ resource "aws_route53_record" "prometheus-ooni-org-_CNAME_" {
   zone_id = local.dns_root_zone_ooni_org
 }
 
-resource "aws_route53_record" "quic-ooni-org-_A_" {
-  name    = "quic.ooni.org"
-  records = ["167.99.36.132"]
-  ttl     = "1799"
-  type    = "A"
-  zone_id = local.dns_root_zone_ooni_org
-}
-
 resource "aws_route53_record" "run-ooni-org-_CNAME_" {
   name    = "run.ooni.org"
   records = ["cname.vercel-dns.com"]
