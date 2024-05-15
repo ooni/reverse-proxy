@@ -80,6 +80,7 @@ resource "aws_instance" "codesign_box" {
 
   tags = merge(var.tags, { Name = "codesign-box" })
 
+  // NOTE: remove the ignore_changes rule to deploy 
   lifecycle {
     ignore_changes = all
   }
