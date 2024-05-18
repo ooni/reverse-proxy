@@ -68,6 +68,7 @@ module "adm_iam_roles" {
 
   authorized_accounts = [
     "arn:aws:iam::${local.ooni_dev_org_id}:user/mehul",
+    "arn:aws:iam::${local.ooni_main_org_id}:user/mehul",
     "arn:aws:iam::${local.ooni_dev_org_id}:user/art",
     "arn:aws:iam::${local.ooni_main_org_id}:user/art"
   ]
@@ -215,6 +216,17 @@ resource "aws_secretsmanager_secret_version" "oonipg_url" {
     module.oonipg.pg_endpoint,
     module.oonipg.pg_db_name
   )
+}
+
+resource "aws_secretsmanager_secret" "ooniclickhouse_url" {
+  name = "oonidevops/ooni-tier0-clickhouse/clickhouse_url"
+  tags = local.tags
+}
+
+// TODO(decfox): replace with working ooniclickhouse_url
+resource "aws_secretsmanager_secret_version" "oonipg_url" {
+  secret_id = aws_secretsmanager_secret.ooniclickhouse_url.id
+  secret_string = ""
 }
 
 resource "random_id" "artifact_id" {

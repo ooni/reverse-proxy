@@ -94,6 +94,7 @@ jobs:
           script: |
             const terraformPlanOutput = `${{ steps.plan.outputs.terraform_plan }}`;
             const terraformApplyOutput = `${{ steps.apply.outputs.terraform_apply }}`;
+            const terraformValidateOutput = `${{ steps.validate.outputs.terraform_validate }}`;
 
             const terraformPlanPlanLine = terraformPlanOutput.split('\n').find(line => line.startsWith('Plan:'));
             const terraformApplyPlanLine = terraformApplyOutput.split('\n').find(line => line.startsWith('Plan:'));
@@ -107,7 +108,7 @@ jobs:
             <details><summary>Validation Output</summary>
 
             \`\`\`\n
-            ${{ steps.validate.outputs.terraform_validate }}
+            ${terraformValidateOutput}
             \`\`\`
 
             </details>
