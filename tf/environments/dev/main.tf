@@ -224,7 +224,7 @@ resource "aws_secretsmanager_secret" "ooniclickhouse_url" {
 }
 
 // TODO(decfox): replace with working ooniclickhouse_url
-resource "aws_secretsmanager_secret_version" "oonipg_url" {
+resource "aws_secretsmanager_secret_version" "ooniclickhouse_url" {
   secret_id = aws_secretsmanager_secret.ooniclickhouse_url.id
   secret_string = ""
 }
