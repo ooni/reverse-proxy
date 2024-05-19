@@ -510,6 +510,7 @@ module "oonith_oohelperd_deployer" {
   repo                    = "ooni/probe-cli"
   branch_name             = "master"
   buildspec_path          = "oonith/buildspec.yml"
+  trigger_tag             = "release*"
   codestar_connection_arn = aws_codestarconnections_connection.oonidevops.arn
 
   codepipeline_bucket = aws_s3_bucket.oonith_codepipeline_bucket.bucket
