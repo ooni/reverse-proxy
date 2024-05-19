@@ -67,6 +67,7 @@ module "adm_iam_roles" {
   source = "../../modules/adm_iam_roles"
 
   authorized_accounts = [
+    "arn:aws:iam::${local.ooni_main_org_id}:user/mehul",
     "arn:aws:iam::${local.ooni_dev_org_id}:user/mehul",
     "arn:aws:iam::${local.ooni_dev_org_id}:user/art",
     "arn:aws:iam::${local.ooni_main_org_id}:user/art"
@@ -317,6 +318,7 @@ module "ooniapi_ooniprobe_deployer" {
   repo                    = "ooni/backend"
   branch_name             = "master"
   buildspec_path          = "ooniapi/services/ooniprobe/buildspec.yml"
+  trigger_path            = "ooniapi/services/ooniprobe/**"
   codestar_connection_arn = aws_codestarconnections_connection.oonidevops.arn
 
   codepipeline_bucket = aws_s3_bucket.ooniapi_codepipeline_bucket.bucket
@@ -358,7 +360,6 @@ module "ooniapi_ooniprobe" {
   )
 }
 
-
 #### OONI Run service
 
 module "ooniapi_oonirun_deployer" {
@@ -368,6 +369,7 @@ module "ooniapi_oonirun_deployer" {
   repo                    = "ooni/backend"
   branch_name             = "master"
   buildspec_path          = "ooniapi/services/oonirun/buildspec.yml"
+  trigger_path            = "ooniapi/services/oonirun/**"
   codestar_connection_arn = aws_codestarconnections_connection.oonidevops.arn
 
   codepipeline_bucket = aws_s3_bucket.ooniapi_codepipeline_bucket.bucket
@@ -415,6 +417,7 @@ module "ooniapi_ooniauth_deployer" {
   repo                    = "ooni/backend"
   branch_name             = "master"
   buildspec_path          = "ooniapi/services/ooniauth/buildspec.yml"
+  trigger_path            = "ooniapi/services/ooniauth/**"
   codestar_connection_arn = aws_codestarconnections_connection.oonidevops.arn
 
   codepipeline_bucket = aws_s3_bucket.ooniapi_codepipeline_bucket.bucket
