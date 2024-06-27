@@ -30,6 +30,7 @@ We divide our infrastructure components into 3 tiers:
 - [x] OONI Explorer
 - [x] OONI Run
 - [ ] OONI Data analysis pipeline
+- [ ] OONI Findings API
 - [x] Website analytics
 
 ### Tier 2 (Non-Essential) components
