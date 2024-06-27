@@ -22,6 +22,7 @@ We divide our infrastructure components into 3 tiers:
 - [ ] OONI bridges
 - [ ] OONI.org website
 - [x] Web Connectivity test helpers
+- [ ] Code signing
 
 ### Tier 1 (Essential) components
 
