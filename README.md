@@ -25,7 +25,7 @@ We divide our infrastructure components into 3 tiers:
 
 ### Tier 1 (Essential) components
 
-- OONI API measurement listing
+- [ ] OONI API measurement listing
 - [x] OONI Explorer
 - [x] OONI Run
 - [ ] OONI Data analysis pipeline
