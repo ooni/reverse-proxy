@@ -56,7 +56,7 @@ resource "aws_instance" "ansible_controller" {
     create_before_destroy = true
   }
 
-  security_groups = [aws_security_group.ansible_ctrl_sg.id]
+  vpc_security_group_ids = [aws_security_group.ansible_ctrl_sg.id]
 
   tags = var.tags
 }
