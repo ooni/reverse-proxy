@@ -585,6 +585,7 @@ module "ansible_controller" {
   source = "../../modules/ansible_controller"
 
   vpc_id   = module.network.vpc_id
+  subnet_id = module.network.vpc_subnet_public[0].id
   key_name = module.adm_iam_roles.oonidevops_key_name
 
   dns_zone_ooni_io = local.dns_zone_ooni_io

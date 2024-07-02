@@ -2,6 +2,11 @@ variable "vpc_id" {
   description = "the id of the VPC to deploy the instance into"
 }
 
+variable "subnet_id" {
+  description = "the id of the subnet to deploy the instance into"
+}
+
+
 variable "tags" {
   description = "tags to apply to the resources"
   default     = {}
