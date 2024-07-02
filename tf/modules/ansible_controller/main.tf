@@ -66,11 +66,10 @@ resource "aws_instance" "ansible_controller" {
 resource "aws_route53_record" "oonith_service_alias" {
   zone_id = var.dns_zone_ooni_io
   name    = "ansible-controller"
-  type    = "A"
+  type    = "CNAME"
+  ttl     = 300
 
-  alias {
-    name                   = aws_instance.ansible_controller.public_dns
-    zone_id                = var.dns_zone_ooni_io
-    evaluate_target_health = true
-  }
+  records = [
+    aws_instance.ansible_controller.public_dns
+  ]
 }
