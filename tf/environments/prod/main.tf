@@ -578,3 +578,14 @@ module "codesigning" {
   subnet_cidr_blocks = module.network.vpc_subnet_cloudhsm[*].cidr_block
   key_name           = module.adm_iam_roles.oonidevops_key_name
 }
+
+## Ansible controller setup
+
+module "ansible_controller" {
+  source = "../../modules/ansible_controller"
+
+  vpc_id   = module.network.vpc_id
+  key_name = module.adm_iam_roles.oonidevops_key_name
+
+  dns_zone_ooni_io = local.dns_zone_ooni_io
+}
