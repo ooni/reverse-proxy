@@ -11,3 +11,7 @@ tasks:
         - "vim"
       state: "latest"
       update_cache: "yes"
+
+  - name: set the hostname
+    ansible.builtin.hostname:
+      name: "ansible-controller"
