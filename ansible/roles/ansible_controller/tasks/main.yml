@@ -1,17 +1,17 @@
-tasks:
-  - name: install base deps
-    ansible.builtin.apt:
-      name:
-        - "awscli"
-        - "etckeeper"
-        - "git"
-        - "python3-dnspython"
-        - "python3-boto3"
-        - "tmux"
-        - "vim"
-      state: "latest"
-      update_cache: "yes"
+---
+- name: install base deps
+  ansible.builtin.apt:
+    name:
+      - "awscli"
+      - "etckeeper"
+      - "git"
+      - "python3-dnspython"
+      - "python3-boto3"
+      - "tmux"
+      - "vim"
+    state: "latest"
+    update_cache: "yes"
 
-  - name: set the hostname
-    ansible.builtin.hostname:
-      name: "ansible-controller"
+- name: set the hostname
+  ansible.builtin.hostname:
+    name: "ansible-controller"
