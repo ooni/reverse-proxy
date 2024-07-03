@@ -37,6 +37,6 @@
   user:
     name: "{{ item }}"
     state: "absent"
-    remove: "yes"
+    remove: yes
   with_items: user_list.stdout_lines
-  when: "item is not nobody and item not in admin_usernames | union(non_admin_usernames)"
+  when: "item != 'nobody' and item not in (admin_usernames | union(non_admin_usernames))"
