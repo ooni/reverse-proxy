@@ -13,7 +13,7 @@
   tags: ssh_users
   user:
     name: "{{ item }}"
-    group: "{{ item }}"
+    group: "users"
     comment: "{{ ssh_users[item].comment }}"
     shell: /bin/bash
     state: present
