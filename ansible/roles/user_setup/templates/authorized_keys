@@ -1,0 +1,5 @@
+# managed by ansible
+# see roles/adm/templates/authorized_keys
+{% for k in passwd[item]['keys'] %}
+{{ k }}
+{% endfor %}

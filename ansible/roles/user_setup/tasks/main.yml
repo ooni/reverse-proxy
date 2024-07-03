@@ -1,0 +1,42 @@
+---
+- name: create admin users
+  tags: ssh_users
+  user:
+    name: "{{ item }}"
+    group: "admin"
+    comment: "{{ ssh_users[item].comment }}"
+    shell: /bin/bash
+    state: present
+  with_items: "{{ admin_usernames }}"
+
+- name: create non-admin users
+  tags: ssh_users
+  user:
+    name: "{{ item }}"
+    group: "{{ item }}"
+    comment: "{{ ssh_users[item].comment }}"
+    shell: /bin/bash
+    state: present
+  with_items: "{{ non_admin_usernames }}"
+
+- name: create .ssh dir in user homes
+  tags: ssh_users
+  file: path=/home/{{item}}/.ssh state=directory owner={{item}} group={{item}} mode=0700
+  with_items: "{{ admin_usernames | union(non_admin_usernames) }}"
+
+- name: create .ssh/authorized_keys for each user
+  tags: ssh_users
+  template: src=authorized_keys dest=/home/{{item}}/.ssh/authorized_keys owner={{item}} group={{item}} mode=0400
+  with_items: "{{ admin_usernames | union(non_admin_usernames) }}"
+
+- name: list all users currently on the system
+  shell: "getent passwd | awk -F: '$3 > 1000 {print $1}'"
+  register: user_list
+
+- name: remove any stale users
+  user:
+    name: "{{ item }}"
+    state: "absent"
+    remove: "yes"
+  with_items: user_list.stdout_lines
+  when: "item is not nobody and item not in admin_usernames | union(non_admin_usernames)"
