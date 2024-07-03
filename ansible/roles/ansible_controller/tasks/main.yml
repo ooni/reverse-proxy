@@ -1,0 +1,22 @@
+---
+- name: install base deps
+  ansible.builtin.apt:
+    name:
+      - "awscli"
+      - "etckeeper"
+      - "git"
+      - "python3-dnspython"
+      - "python3-boto3"
+      - "tmux"
+      - "vim"
+    state: "latest"
+    update_cache: "yes"
+
+- name: set the hostname
+  ansible.builtin.hostname:
+    name: "ansible-controller"
+
+- name: clone devops repo into /srv/devops
+  ansible.builtin.git:
+    repo: "https://github.com/ooni/devops.git"
+    dest: /srv/devops
