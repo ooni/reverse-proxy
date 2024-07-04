@@ -73,7 +73,6 @@ blackbox_jobs:
     module: "http_2xx"
     targets:
       - "https://api.ooni.io/api/v1/measurements"
-      - "https://ams-pg-test.ooni.org/api/v1/measurements"
 
   - name: "ooni API test-list urls"
     module: "https_2xx_json_meta"
@@ -107,13 +106,6 @@ blackbox_jobs:
     targets:
       - "https://ooni.torproject.org"
       - "https://ooni.org"
-
-  # Make sure that we can still access the .well-known/acme-challenge dir
-  # TODO(bassosimone): we should monitor all hosts here.
-  - name: "check for .well-known/acme-challenge availability"
-    module: "http_2xx"
-    targets:
-      - http://ams-pg-test.ooni.org/.well-known/acme-challenge/ooni-acme-canary
 
   - name: "orchestrate"
     module: "ooni_orchestrate"
