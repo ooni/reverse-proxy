@@ -63,6 +63,7 @@
     owner: "{{ item }}"
     group: "{{ item }}"
     mode: "600"
+  with_items: "{{ non_admin_usernames | union(admin_usernames) }}"
 
 - name: Include per-user custom config
   ansible.builtin.copy:
