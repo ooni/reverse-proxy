@@ -41,7 +41,7 @@
 
 - name: setup .ssh config for user
   ansible.builtin.copy:
-    conttent: |
+    content: |
       # Do not edit! ansible managed via ooni/devops
       UserKnownHostsFile ~/.ssh/known_hosts /srv/devops/ansible/known_hosts /srv/devops/ansible/known_hosts_legacy
       IdentitiesOnly yes
