@@ -3,7 +3,7 @@
   tags: ssh_users
   user:
     name: "{{ item }}"
-    group: "admin"
+    group: "{{ admin_group_name }}"
     comment: "{{ ssh_users[item].comment }}"
     shell: /bin/bash
     state: present
@@ -25,7 +25,6 @@
     path: "/home/{{item}}/.ssh"
     state: directory
     owner: "{{item}}"
-    group: "admin"
     mode: 0700
   with_items: "{{ admin_usernames }}"
 
@@ -35,7 +34,6 @@
     path: "/home/{{item}}/.ssh"
     state: directory
     owner: "{{item}}"
-    group: "users"
     mode: 0700
   with_items: "{{ non_admin_usernames }}"
 
@@ -44,7 +42,6 @@
   template:
     src: authorized_keys
     dest: "/home/{{item}}/.ssh/authorized_keys"
-    owner: "{{item}}"
     mode: 0400
   with_items: "{{ admin_usernames | union(non_admin_usernames) }}"
 
@@ -60,6 +57,16 @@
   with_items: user_list.stdout_lines
   when: "item != 'nobody' and item not in (admin_usernames | union(non_admin_usernames))"
 
-
 - name: sudoers.d/80-admins
-  template: src=sudoers dest=/etc/sudoers.d/80-admins owner=root group=root mode=0440 validate='visudo -cf %s'
+  template:
+    src: sudoers
+    dest: /etc/sudoers.d/80-admins
+    owner: root
+    group: root
+    mode: 0440
+    validate: 'visudo -cf %s'
+
+- name: sudoers.d/adm
+  ansible.builtin.file:
+    path: /etc/sudoers.d/adm
+    state: absent
