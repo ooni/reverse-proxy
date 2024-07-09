@@ -19,4 +19,5 @@ ssh_users:
       - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDEZSA9TKUaYWG8gfnMoyDZO2S6vsy87xma4R/EzNpveZiOZTYSNn+UDL8NpQRuH5YgdWuQV2E7sKw/PIYA0lC/QTiq8Btqf6sEK5YWXtQy+yn9q5kB/rmi8zjaz0FUNigRrjL+26ao+c7NKpgmR+TRqbRd5VeJ46PuFD5M3c+MBeUoF1PT0zfioQFJ1mQoXwVix0n260clEXQDp4t0GZuNpWGTS+YTuJZ2vl6TDZtt8jrnENd99QArr2KU+NMTq8T2KYcPeQOoYsm7v/1TBkbv9UStllhjdE7HZSivPT8oRkF2YZYgytDxtCZG8i5iCK+vbNn6QmZMjuXPoBUeW+Njm70tlsirrKpUX+QiogA2qljxPD9st2eUkA7cATyOBkK7WLh1HYv2xyKpPtkkaELG+EHjmaVjVdyVAgUYwqg+MbIw1OyDpNmMZcW3iOpGpflXPMmLjKNMhee0//G7NxcGfwmIMbIiBkeofOnWDrMo+0PRULFtn6C7aA7ddirck+k="
 
 admin_usernames: [ art, majakomel, mehul ]
+root_usernames: [ art, mehul ]
 non_admin_usernames: [ agrabeli ]
