@@ -53,7 +53,6 @@
     path: "/home/{{ item }}/.ssh/config.d/"
     state: directory
     owner: "{{ item }}"
-    group: "{{ item }}"
     mode: "700"
   with_items: "{{ non_admin_usernames | union(admin_usernames) }}"
 
@@ -62,7 +61,6 @@
     path: "/home/{{ item }}/.ssh/config.d/custom"
     state: file
     owner: "{{ item }}"
-    group: "{{ item }}"
     mode: "600"
   with_items: "{{ non_admin_usernames | union(admin_usernames) }}"
 
