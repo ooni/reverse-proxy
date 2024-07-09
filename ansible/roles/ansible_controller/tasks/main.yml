@@ -56,14 +56,6 @@
     mode: "700"
   with_items: "{{ non_admin_usernames | union(admin_usernames) }}"
 
-- name: Create config.d custom file for each user
-  ansible.builtin.file:
-    path: "/home/{{ item }}/.ssh/config.d/custom"
-    state: file
-    owner: "{{ item }}"
-    mode: "600"
-  with_items: "{{ non_admin_usernames | union(admin_usernames) }}"
-
 - name: Include per-user custom config
   ansible.builtin.copy:
     dest: "/home/{{ item }}/.ssh/config"
