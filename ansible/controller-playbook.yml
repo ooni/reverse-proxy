@@ -5,7 +5,3 @@
   roles:
     - ssh_users
     - ansible_controller
-
-- hosts: all:!no_ssh_users
-  roles:
-    - ssh_users

@@ -1,0 +1,4 @@
+---
+- hosts: all:!no_ssh_users
+  roles:
+    - ssh_users
