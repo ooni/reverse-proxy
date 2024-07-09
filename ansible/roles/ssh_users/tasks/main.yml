@@ -60,6 +60,5 @@
   with_items: user_list.stdout_lines
   when: "item != 'nobody' and item not in (admin_usernames | union(non_admin_usernames))"
 
-
 - name: sudoers.d/80-admins
   template: src=sudoers dest=/etc/sudoers.d/80-admins owner=root group=root mode=0440 validate='visudo -cf %s'

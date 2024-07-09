@@ -28,3 +28,12 @@
     recurse: yes
     owner: ubuntu
     group: admin
+
+- name: set global gitconfig for each user
+  ansible.builtin.copy:
+    content: |
+      # Do not edit! ansible managed via ooni/devops
+      [safe]
+        directory = /srv/devops
+    dest: "/home/{{ item }}/.gitconfig"
+  with_items: "{{ non_admin_usernames | union(admin_usernames) }}"
