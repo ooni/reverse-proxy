@@ -55,6 +55,7 @@
     owner: "{{ item }}"
     group: "{{ item }}"
     mode: "700"
+  with_items: "{{ non_admin_usernames | union(admin_usernames) }}"
 
 - name: Create config.d custom file for each user
   ansible.builtin.file:
