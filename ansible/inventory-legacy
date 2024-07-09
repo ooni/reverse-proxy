@@ -67,7 +67,7 @@ ams-slack-1.ooni.org
 [psk_clickhouse]
 backend-fsn.ooni.org
 backend-hel.ooni.org
-ams-pg-test.ooni.org
+#ams-pg-test.ooni.org
 
 [psk_hkgmetadb]
 
@@ -82,8 +82,8 @@ ams-pg-test.ooni.org
 [psk_orchestra_prod]
 # Used to populate the vault_orchestra_psiphon_config_file_content var
 ams-ps.ooni.nu
-ams-pg.ooni.org
-ams-pg-test.ooni.org
+#ams-pg.ooni.org
+#ams-pg-test.ooni.org
 backend-fsn.ooni.org
 backend-hel.ooni.org
 
@@ -108,8 +108,8 @@ mia-httpth.ooni.nu
 ams-slack-1.ooni.org
 
 [have_nftables]
-ams-pg.ooni.org
-ams-pg-test.ooni.org
+#ams-pg.ooni.org
+#ams-pg-test.ooni.org
 backend-fsn.ooni.org
 backend-hel.ooni.org
 
@@ -136,8 +136,8 @@ ams-ps.ooni.nu
 [db_standby]
 
 [have_netdata]
-ams-pg.ooni.org
-ams-pg-test.ooni.org
+#ams-pg.ooni.org
+#ams-pg-test.ooni.org
 backend-fsn.ooni.org
 backend-hel.ooni.org
 
@@ -153,6 +153,8 @@ monitoring.ooni.org
 # Stopped VMs that should be deleted from GH and DNS after some grace period:
 #
 # since YYYY-MM-DD # fqdn.example.org # as dead as Lenin, see https://github.com/ooni/sysadmin/issues/NNNN
+# since 2024-07-04 # ams-pg-test.ooni.org is stopped
+# since 2024-07-04 # ams-pg.ooni.org is stopped
 # since 2019-10-29 # hkgbouncer.ooni.nu has been migrated to ams-ps.ooni.nu. Check again in a bit to see if it still has traffic
 # since 2019-10-29 # notify.proteus.ooni.io (37.218.242.67)
 # since 2019-10-29 # events.proteus.ooni.io (37.218.242.63)
@@ -181,3 +183,5 @@ monitoring.ooni.org
 # probe-th1.ooni.org         : ok=0    changed=0    unreachable=1    failed=0    skipped=0    rescued=0    ignored=0
 # probe-ua1.ooni.org         : ok=0    changed=0    unreachable=1    failed=0    skipped=0    rescued=0    ignored=0
 # shinri.ooni.org            : ok=0    changed=0    unreachable=1    failed=0    skipped=0    rescued=0    ignored=0
+# ams-pg-test.ooni.org
+# ams-pg.ooni.org
