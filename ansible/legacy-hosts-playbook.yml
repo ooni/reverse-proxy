@@ -1,4 +1,6 @@
 ---
 - hosts: all:!no_ssh_users
+  vars:
+    admin_group_name: adm
   roles:
     - ssh_users

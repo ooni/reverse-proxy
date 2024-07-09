@@ -3,7 +3,7 @@
   tags: ssh_users
   user:
     name: "{{ item }}"
-    group: "admin"
+    group: "{{ admin_group_name }}"
     comment: "{{ ssh_users[item].comment }}"
     shell: /bin/bash
     state: present
@@ -25,7 +25,7 @@
     path: "/home/{{item}}/.ssh"
     state: directory
     owner: "{{item}}"
-    group: "admin"
+    group: "{{ admin_group_name }}"
     mode: 0700
   with_items: "{{ admin_usernames }}"
 
