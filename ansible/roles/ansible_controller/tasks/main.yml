@@ -20,3 +20,11 @@
   ansible.builtin.git:
     repo: "https://github.com/ooni/devops.git"
     dest: /srv/devops
+
+- name: Set permissions on /src/devops
+  ansible.builtin.file:
+    path: /srv/devops
+    state: directory
+    recurse: yes
+    owner: ubuntu
+    group: admin
