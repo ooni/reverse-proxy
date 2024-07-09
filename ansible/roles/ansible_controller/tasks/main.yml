@@ -28,7 +28,7 @@
     recurse: yes
     owner: ubuntu
     group: admin
-    mode: "u=rw,g=rw,o=r"
+    mode: "u=rwX,g=rwX,o=r"
 
 - name: set global gitconfig for each user
   ansible.builtin.copy:
