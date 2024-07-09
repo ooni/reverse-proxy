@@ -47,3 +47,29 @@
       UserKnownHostsFile ~/.ssh/known_hosts /srv/devops/ansible/known_hosts /srv/devops/ansible/known_hosts_legacy
       IdentitiesOnly yes
   with_items: "{{ non_admin_usernames | union(admin_usernames) }}"
+
+- name: Create config.d directory for each user
+  ansible.builtin.file:
+    path: "/home/{{ item }}/.ssh/config.d/"
+    state: directory
+    owner: "{{ item }}"
+    group: "{{ item }}"
+    mode: "700"
+
+- name: Create config.d custom file for each user
+  ansible.builtin.file:
+    path: "/home/{{ item }}/.ssh/config.d/custom"
+    state: file
+    owner: "{{ item }}"
+    group: "{{ item }}"
+    mode: "600"
+
+- name: Include per-user custom config
+  ansible.builtin.copy:
+    dest: "/home/{{ item }}/.ssh/config"
+    content: |
+      # Do not edit! ansible managed via ooni/devops
+      UserKnownHostsFile ~/.ssh/known_hosts /srv/devops/ansible/known_hosts /srv/devops/ansible/known_hosts_legacy
+      IdentitiesOnly yes
+      Include config.d/*
+  with_items: "{{ non_admin_usernames | union(admin_usernames) }}"
