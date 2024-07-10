@@ -45,17 +45,12 @@
     mode: 0400
   with_items: "{{ admin_usernames | union(non_admin_usernames) }}"
 
-- name: list all users currently on the system
-  shell: "getent passwd | awk -F: '$3 > 1000 {print $1}'"
-  register: user_list
-
 - name: remove any stale users
   user:
     name: "{{ item }}"
     state: "absent"
     remove: yes
-  with_items: user_list.stdout_lines
-  when: "item != 'nobody' and item not in (admin_usernames | union(non_admin_usernames))"
+  with_items: "{{ deactivated_usernames }}"
 
 - name: sudoers.d/80-admins
   template:

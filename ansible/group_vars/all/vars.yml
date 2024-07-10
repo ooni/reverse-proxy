@@ -21,3 +21,4 @@ ssh_users:
 admin_usernames: [ art, majakomel, mehul ]
 root_usernames: [ art, mehul ]
 non_admin_usernames: [ agrabeli ]
+deactivated_usernames: [ sbs, federico, sarath ]
