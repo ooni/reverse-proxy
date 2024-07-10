@@ -17,7 +17,12 @@ ssh_users:
     comment: Mehul Gulati
     keys:
       - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDEZSA9TKUaYWG8gfnMoyDZO2S6vsy87xma4R/EzNpveZiOZTYSNn+UDL8NpQRuH5YgdWuQV2E7sKw/PIYA0lC/QTiq8Btqf6sEK5YWXtQy+yn9q5kB/rmi8zjaz0FUNigRrjL+26ao+c7NKpgmR+TRqbRd5VeJ46PuFD5M3c+MBeUoF1PT0zfioQFJ1mQoXwVix0n260clEXQDp4t0GZuNpWGTS+YTuJZ2vl6TDZtt8jrnENd99QArr2KU+NMTq8T2KYcPeQOoYsm7v/1TBkbv9UStllhjdE7HZSivPT8oRkF2YZYgytDxtCZG8i5iCK+vbNn6QmZMjuXPoBUeW+Njm70tlsirrKpUX+QiogA2qljxPD9st2eUkA7cATyOBkK7WLh1HYv2xyKpPtkkaELG+EHjmaVjVdyVAgUYwqg+MbIw1OyDpNmMZcW3iOpGpflXPMmLjKNMhee0//G7NxcGfwmIMbIiBkeofOnWDrMo+0PRULFtn6C7aA7ddirck+k="
+  norbel:
+    login: norbel
+    comment: Norbel Ambanumben
+    keys:
+      - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDBXprrutdT6AhrV9hWBKjyzq6RqGmCBWpWxi3qwJyRcBJfkiEYKV9QWl3H0g/Sg9JzLd9lWG2yfAai7cyBAT4Ih0+OhwQ0V7wkhBn4YkNjs7d4BGPHjuLIywS9VtmiyH7VafikMjmqPLL/uPBIbRrx9RuSfLkAuN9XFZpVmqzWY8ePpcRCvnG6ucPxEY8o+4j5nfTrgxSaIT31kH16/PFJe07tn1SZjxZE4sZTz/p9xKt6s8HXmlP3RdnXSpXWmH8ZwYDrNhkcH8m6mC3giiqSKThFdwvQVflRRvn9pAlUOhy6KIBtAt1KobVJtOCPrrkcLhQ1C+2P9wKhfYspCGrScFGnrUqumLxPpwlqILxJvmgqGAtkm8Ela9f2D9sEv8CUv5x9XptZKlyRhtOLixvLYoJlwfXXnmXa8T1pg8+4063BhHUOu/bg0InpSp3hdscOfk0R8FtDlXnn6COwbPXynIt4PxzIxD/WQhP0ymgH3ky6ClB5wRBVhOqYvxQw32n2QFS9A5ocga+nATiOE7BTOufgmDCA/OIXfJ/GukXRaMCBsvlx7tObHS1LOMt0I+WdoOEjI0ARUrFzwoiTrs9QYmd922e7S35EnheT3JjnCTjebJrCNtwritUy8vjsN/M27wJs7MAXleT7drwXXnm+3xYrH+4KQ+ru0dxMe1zfBw== aanorbel@gmail.com"
 
-admin_usernames: [ art, majakomel, mehul ]
+admin_usernames: [ art, majakomel, mehul, norbel ]
 root_usernames: [ art, mehul ]
 non_admin_usernames: [ agrabeli ]
