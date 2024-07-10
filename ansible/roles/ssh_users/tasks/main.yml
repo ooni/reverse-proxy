@@ -48,7 +48,7 @@
 
 - name: kill processes running as deactivated users
   ansible.builtin.shell:
-    cmd: "killall -u {{ item }}"
+    cmd: "pkill -U {{ item }}"
   with_items: "{{ deactivated_usernames }}"
 
 - name: remove any stale users
