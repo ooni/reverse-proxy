@@ -16,6 +16,15 @@
   ansible.builtin.hostname:
     name: "ansible-controller"
 
+- name: create ansible roles directory
+  ansible.builtin.file:
+    state: directory
+    path: /etc/ansible/roles
+    recurse: yes
+    owner: ubuntu
+    group: admin
+    mode: "u=rwX,g=rwX,o=r"
+
 - name: clone devops repo into /srv/devops
   ansible.builtin.git:
     repo: "https://github.com/ooni/devops.git"
@@ -29,6 +38,13 @@
     owner: ubuntu
     group: admin
     mode: "u=rwX,g=rwX,o=r"
+
+- name: Install ansible galaxy dependencies
+  become: yes
+  become_user: ubuntu
+  ansible.builtin.shell:
+    cmd: ansible-galaxy install -r requirements.yml
+    chdir: /srv/devops/ansible
 
 - name: set global gitconfig for each user
   ansible.builtin.copy:
