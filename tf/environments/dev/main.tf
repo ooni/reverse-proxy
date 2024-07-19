@@ -407,7 +407,7 @@ module "ooniapi_oonirun" {
 }
 
 
-#### OONI Run service
+#### OONI Findings service
 
 module "ooniapi_oonifindings_deployer" {
   source = "../../modules/ooniapi_service_deployer"
@@ -533,6 +533,7 @@ module "ooniapi_frontend" {
   ooniapi_oonirun_target_group_arn   = module.ooniapi_oonirun.alb_target_group_id
   ooniapi_ooniauth_target_group_arn  = module.ooniapi_ooniauth.alb_target_group_id
   ooniapi_ooniprobe_target_group_arn = module.ooniapi_ooniprobe.alb_target_group_id
+  ooniapi_oonifindings_target_group_arn = module.ooniapi_oonifindings_alb_target_group
 
   ooniapi_service_security_groups = [
     module.ooniapi_cluster.web_security_group_id
