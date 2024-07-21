@@ -43,8 +43,6 @@
 - name: Install ansible galaxy dependencies
   become: yes
   become_user: ubuntu
-  vars:
-    allow_world_readable_tmpfiles: true
   ansible.builtin.shell:
     cmd: ansible-galaxy install -r requirements.yml
     chdir: /srv/devops/ansible
