@@ -9,7 +9,6 @@
       - "python3-boto3"
       - "tmux"
       - "vim"
-      - "acl"
     state: "latest"
     update_cache: "yes"
 
@@ -44,7 +43,7 @@
   become: yes
   become_user: ubuntu
   ansible.builtin.shell:
-    cmd: ansible-galaxy install -r requirements.yml
+    cmd: ansible-galaxy install -p /etc/ansible/roles -r requirements.yml
     chdir: /srv/devops/ansible
 
 - name: set global gitconfig for each user
