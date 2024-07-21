@@ -73,3 +73,9 @@
   ansible.builtin.file:
     path: /etc/sudoers.d/adm
     state: absent
+
+- name: configure sshd
+  include_role: willshersystems.ssh
+  vars:
+    AllowUsers: "{{item}}"
+  with_items: "{{ admin_usernames | union(non_admin_usernames) }}"
