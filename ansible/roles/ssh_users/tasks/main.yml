@@ -76,7 +76,7 @@
 
 - name: configure sshd
   include_role: 
-    name: willshersystems.ssh
+    name: willshersystems.sshd
   vars:
     AllowUsers: "{{item}}"
   with_items: "{{ admin_usernames | union(non_admin_usernames) }}"
