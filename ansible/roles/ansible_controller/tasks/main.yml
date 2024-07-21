@@ -9,6 +9,7 @@
       - "python3-boto3"
       - "tmux"
       - "vim"
+      - "acl"
     state: "latest"
     update_cache: "yes"
 
