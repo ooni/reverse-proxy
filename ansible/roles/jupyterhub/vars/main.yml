@@ -1,0 +1,6 @@
+letsencrypt_email: admin@openobservatory.org
+
+tljh_admin_user: admin
+tljh_admin_pass: oonity!
+tljh_prefix: /opt/tljh
+jupyterhub_config_dest: /opt/tljh/config/jupyterhub_config.d/tljh.py

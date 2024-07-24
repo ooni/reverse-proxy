@@ -1,0 +1,71 @@
+- name: Check if TLJH is installed
+  stat:
+    path: "{{ tljh_prefix }}"
+  register: tljh_directory
+
+- name: Install TLJH if not installed
+  block:
+    - name: Install required packages for TLJH
+      become: true
+      apt:
+        name:
+          - curl
+          - python3
+          - python3-pip
+          - python3-dev
+          - python3-venv
+          - build-essential
+          - cifs-utils
+        state: latest
+        update_cache: yes
+
+    - name: Download the TLJH installer
+      become: true
+      get_url:
+        url: "https://tljh.jupyter.org/bootstrap.py"
+        dest: "/tmp/tljh-bootstrap.py"
+        checksum: "sha256:2e20bf204c94e1b6eef31499c93f6a14324117deec2eb398a142cb14acbeedd1"
+        mode: 0700
+
+    - name: Run the TLJH installer
+      become: true
+      shell: |
+        python3 /tmp/tljh-bootstrap.py --admin {{ tljh_admin_user }}:{{ tljh_admin_password }}
+
+    - name: Restart the JupyterHub service with daemon-reload
+      become: true
+      tags:
+        - config
+      systemd:
+        name: jupyterhub
+        state: restarted
+        enabled: yes
+        daemon_reload: yes
+
+    - name: Configure Let's Encrypt email and domain
+      become: true
+      shell: |
+        tljh-config set https.enabled true
+        tljh-config set https.letsencrypt.email {{ letsencrypt_email }}
+        tljh-config add-item https.letsencrypt.domains {{ letsencrypt_domain }}
+        tljh-config reload proxy
+      vars:
+        letsencrypt_domain: "{{ inventory_hostname }}"
+  when: not tljh_directory.stat.exists
+
+- name: Copy the JupyterHub config
+  become: true
+  template:
+    src: jupyterhub_config.py
+    dest: "{{ jupyterhub_config_dest }}"
+    mode: preserve
+
+- name: Restart the JupyterHub service with daemon-reload
+  become: true
+  tags:
+    - config
+  systemd:
+    name: jupyterhub
+    state: restarted
+    enabled: yes
+    daemon_reload: yes

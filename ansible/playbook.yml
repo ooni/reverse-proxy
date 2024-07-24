@@ -20,3 +20,10 @@
     - prometheus
     - prometheus_blackbox_exporter
     - prometheus_alertmanager
+
+- name: Deploy data.ooni.org host
+  hosts: data.ooni.org
+  become: yes
+  roles:
+    - clickhouse
+    - jupyterhub
