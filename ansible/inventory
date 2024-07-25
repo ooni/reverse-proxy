@@ -1,3 +1,5 @@
 [all]
 monitoring.ooni.org
+
+[jupyterhub]
 data.ooni.org

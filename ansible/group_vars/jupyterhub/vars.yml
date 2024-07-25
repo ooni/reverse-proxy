@@ -1,0 +1,29 @@
+extra_users:
+  - joss
+  - ingrid
+  - siti
+extra_ssh_users:
+  joss:
+    login: joss
+    comment: Joss Wright
+    keys:
+      [
+        "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC6/FkHyHF01XBziPA/+GqL+SsI9tvRZRVnF0gmaHDn1ssDkKwMKXhHcquOyhWR716UKC7RUq7gqzYjndMV8TwcX2tP8QT6iNBH/kF7sclyDme8R8dVgV2uIo61+plS/G1lREJ5FUqk9HaFe+zUFf9lkwmYG/GcK+TxcU9K+cEDZNFW+S6dIOi1fbPtvwqTFgdqH7UKX+0BnFGX81BxcPMWEZPYrhrtEZeIFxtipNs4m4J32B5ZbRD60RKqqnnRaqb2sYrAdAK16jWSLxeYaRhQXzo9UEN6TVj3LhT7C8Us4znvbZvY29+SzzaiPGVrleKLzqUbcwwYIa9INHt7XwinQ6zNC6ZLSJtEik2A7SPLT+e6vc9Jk2R6/rV6EHKkh8rTk8yk7lekLLl8sFfCmJks672Ro1KeLN5I8NmEPf6Wdr/gXiVvOzgpVXFfgWAaUix1pYNcZWUjYW3KLlGvq6U82HB2Av8Fo+0at14Vhiu3CRrwnm4aSrLgs0IgGO7PyhE=",
+      ]
+  ingrid:
+    login: ingrid
+    commment: Ingrid Epure
+    keys:
+      [
+        "ssh-rsa AAAB3NzaC1yc2EAAAADAQABAAACAQCTJQDb/Ucq5CRGqSJbNz33pB6fYtk7Pi+6LlIaV9QLhByp/G2/g6ae6Eb/TimZtxpdeIwpAmACmUn2p+mCLMHjpollUK2f3dUjmXiUSNGMPRPRxQoIvzf56patUCQRS+S7zDUKTDW/5e18CrIj0sFCC27y/pS6mmmeedHA6gmpW7L6kM57BlsxFu79rr/o/nrNH+qceJBEd8fM93yoIdEwxPHZyKJ5kj9+lh+4TtDLxxkwFfc6Kce1d0qxfpX1NzIbK5Vp8JlXrGEWbOFFT8S7Ru+j1/g/ptUjsXJ7DpH1wwlF6wYsU0DJuhkLv6XFZQuoHYwpZ4jmnJRWrXSgdylPk67M5Dr9aB2j0WGJNZysiXVZQZmoMUhfrNxaGVv6gB48krE6ysUoLrenR68aLOYqF8Yqvu1lCIyds1ORtjnpxWxFB7NS89us4KFofAMW+qeg/g3nEYvln9/S0b58goToNIw/p7wP9WOeh7JuM/FBT5ahJbeYpXapJh1WW6Rt48RGVwxFLXbcnH8wpCfhUw7fIVpXMhbfhtWTlWVJEAyk3eLWdNEJ7AH6jaqTdfTa4qBgrof0MgoZrb64qFDAsG9Z80Uj9oC2Zdy+gwDu76WJQfSKaD7hmq0w8khoFSVju7fvcfd5HWgLZbptCIw51mJSMQIQWs8Y/iGijTSckXXCXQ==",
+      ]
+  siti:
+    login: siti
+    comment: Siti Nurliza
+    keys:
+      [
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKqG1VepfzDdSp3zG27jZq3S9/62CKPLh93F///ht9rf",
+      ]
+ssh_users: {{ ssh_users | ansible.builtin.combine(extra_users) }}
+non_admin_usernames: {{ non_admin_usernames + extra_users }}
+jupyterhub_allowed_users: {{ non_admin_usernames + admin_usernames }}
