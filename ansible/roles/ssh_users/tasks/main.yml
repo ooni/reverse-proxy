@@ -1,4 +1,9 @@
 ---
+- name: ensure admin group exists
+  group:
+    name: "{{ admin_group_name }}"
+    state: present
+
 - name: create admin users
   tags: ssh_users
   user:
