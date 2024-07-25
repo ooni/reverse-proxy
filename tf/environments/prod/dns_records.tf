@@ -997,3 +997,11 @@ resource "aws_route53_record" "test-ooni-nu-_NS_" {
   type    = "NS"
   zone_id = local.dns_root_zone_ooni_nu
 }
+
+resource "aws_route53_record" "openvpn-server1-prod-ooni-io-_A_" {
+  name    = "openvpn-server1.prod.ooni.io"
+  records = ["37.218.243.98"]
+  ttl     = "60"
+  type    = "A"
+  zone_id = local.dns_root_zone_ooni_io
+}
