@@ -22,17 +22,8 @@
     - prometheus_alertmanager
 
 - name: Setup OpenVPN server
-  hosts: openvpn-server1.prod.ooni.io
-  become: yes
-  vars:
-    extra_users:
-      - ain
-    extra_ssh_users:
-      ain:
-        login: ain
-        comment: Ain
-        keys: ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH6Js4xtJq7AoYA8mFraQg8vYgKz/glil9AaPq4lDwtg ain@intertubes"]
-    ssh_users: "{{ ssh_users | ansible.builtin.combine(extra_ssh_users) }}"
-    admin_usernames: "{{ admin_usernames + extra_users }}"
+  hosts: openvpn-server1.ooni.io
+  become: true
+  remote_user: root
   roles:
     - ssh_users
