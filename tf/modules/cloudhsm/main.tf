@@ -68,8 +68,8 @@ resource "aws_instance" "codesign_box" {
 
 resource "aws_launch_template" "codesign_box_template" {
   name = "codesign-box"
-  # Ubuntu 18.04
-  image_id = "ami-03cea216f9d507835"
+  # Ubuntu 22.04
+  image_id = "ami-0a43b9fc420cabb27"
 
   instance_type = "t3.micro"
 
@@ -77,20 +77,32 @@ resource "aws_launch_template" "codesign_box_template" {
 
   network_interfaces {
     subnet_id                   = var.subnet_ids[0]
+    security_groups             = [aws_security_group.hsm.id]
     associate_public_ip_address = true
   }
-  vpc_security_group_ids = [aws_security_group.hsm.id]
 
   user_data = base64encode(<<-EOF
                 #!/bin/bash
-                curl -o cloudhsm-cli.deb https://s3.amazonaws.com/cloudhsmv2-software/CloudHsmClient/Bionic/cloudhsm-client_latest_u18.04_amd64.deb
+                sudo apt update
+                curl -o cloudhsm-cli.deb https://s3.amazonaws.com/cloudhsmv2-software/CloudHsmClient/Jammy/cloudhsm-cli_latest_u22.04_amd64.deb
                 sudo apt install ./cloudhsm-cli.deb
 
-                curl -o cloudhsm-pkcs11.deb https://s3.amazonaws.com/cloudhsmv2-software/CloudHsmClient/Bionic/cloudhsm-client-pkcs11_latest_u18.04_amd64.deb
+                curl -o cloudhsm-pkcs11.deb https://s3.amazonaws.com/cloudhsmv2-software/CloudHsmClient/Jammy/cloudhsm-pkcs11_latest_u22.04_amd64.deb
                 sudo apt install ./cloudhsm-pkcs11.deb
 
+                sudo apt install libengine-pkcs11-openssl
                 EOF
   )
+
+  update_default_version = true
+
+  tag_specifications {
+    resource_type = "instance"
+
+    tags = {
+      Name = "codesign-box"
+    }
+  }
 
   tags = merge(var.tags, { Name = "codesign-box-template" })
 }
