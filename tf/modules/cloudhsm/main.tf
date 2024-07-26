@@ -67,6 +67,7 @@ resource "aws_instance" "codesign_box" {
 }
 
 resource "aws_launch_template" "codesign_box_template" {
+  name = "codesign-box"
   # Ubuntu 18.04
   image_id = "ami-03cea216f9d507835"
 
