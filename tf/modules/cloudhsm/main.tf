@@ -65,3 +65,31 @@ resource "aws_instance" "codesign_box" {
     ignore_changes = all
   }
 }
+
+resource "aws_launch_template" "codesign_box_template" {
+  # Ubuntu 18.04
+  image_id = "ami-03cea216f9d507835"
+
+  instance_type = "t3.micro"
+
+  key_name = var.key_name
+
+  network_interfaces {
+    subnet_id                   = var.subnet_ids[0]
+    associate_public_ip_address = true
+  }
+  vpc_security_group_ids = [aws_security_group.hsm.id]
+
+  user_data = base64encode(<<-EOF
+                #!/bin/bash
+                curl -o cloudhsm-cli.deb https://s3.amazonaws.com/cloudhsmv2-software/CloudHsmClient/Bionic/cloudhsm-client_latest_u18.04_amd64.deb
+                sudo apt install ./cloudhsm-cli.deb
+
+                curl -o cloudhsm-pkcs11.deb https://s3.amazonaws.com/cloudhsmv2-software/CloudHsmClient/Bionic/cloudhsm-client-pkcs11_latest_u18.04_amd64.deb
+                sudo apt install ./cloudhsm-pkcs11.deb
+
+                EOF
+  )
+
+  tags = merge(var.tags, { Name = "codesign-box-template" })
+}
