@@ -34,29 +34,9 @@ resource "aws_security_group" "hsm" {
   }
 }
 
-data "aws_ami" "amazon_linux" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["al2023-ami-*"]
-  }
-
-  filter {
-    name   = "architecture"
-    values = ["x86_64"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-}
-
 resource "aws_instance" "codesign_box" {
-  ami = data.aws_ami.amazon_linux.id
+  # Amazon linux
+  ami = "ami-03bb61bfa8e4d149e"
 
   key_name      = var.key_name
   instance_type = "t3.micro"
