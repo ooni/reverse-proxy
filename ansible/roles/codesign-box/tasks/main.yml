@@ -1,11 +1,21 @@
 ---
+- name: Create .ssh/authorized_keys in ubuntu home
+  ansible.builtin.template:
+    src: authorized_keys
+    dest: "/home/ubuntu/.ssh/authorized_keys"
+    owner: "ubuntu"
+    mode: "0400"
+  with_items: "{{ codesign_usernames }}"
+
 - name: Install cloudhsm-cli
   ansible.builtin.apt:
     deb: https://s3.amazonaws.com/cloudhsmv2-software/CloudHsmClient/Jammy/cloudhsm-cli_latest_u22.04_amd64.deb
     update_cache: true
+
 - name: Install cloudhsm-pkcs11
   ansible.builtin.apt:
     deb: https://s3.amazonaws.com/cloudhsmv2-software/CloudHsmClient/Jammy/cloudhsm-pkcs11_latest_u22.04_amd64.deb
+
 - name: Install cloudhsm-pkcs11
   ansible.builtin.apt:
     name:
