@@ -42,8 +42,8 @@ echo "Extracting IP addresses of created HSM tokens..."
 IP_ADDRESSES=$(aws cloudhsmv2 describe-clusters --filters clusterIds=$CLUSTER_ID --query "Clusters[0].Hsms[*].EniIp" --output text)
 echo "IP Addresses of created HSM tokens: $IP_ADDRESSES"
 
-IP_ADDRESS_1=$(echo IP_ADDRESSES | cut -d ' ' -f1)
-IP_ADDRESS_2=$(echo IP_ADDRESSES | cut -d ' ' -f2)
+IP_ADDRESS_1=$(echo $IP_ADDRESSES | cut -d ' ' -f1)
+IP_ADDRESS_2=$(echo $IP_ADDRESSES | cut -d ' ' -f2)
 
 echo "[+] writing cloudhsm-cli.cfg"
 cat <<EOF > /tmp/cloudhsm-cli.cfg
