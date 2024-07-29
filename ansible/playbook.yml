@@ -27,3 +27,10 @@
   remote_user: root
   roles:
     - ssh_users
+
+- name: Setup codesign box
+  hosts: codesign-box
+  become: true
+  remote_user: ubuntu
+  roles:
+    - codesign_box

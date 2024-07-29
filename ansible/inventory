@@ -1,3 +1,4 @@
 [all]
 monitoring.ooni.org
 openvpn-server1.ooni.io
+codesign-box
