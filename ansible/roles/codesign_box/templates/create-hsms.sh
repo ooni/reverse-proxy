@@ -8,7 +8,7 @@ create_hsm_token() {
        exit 1
     fi
     AVAILABILITY_ZONE=$1
-    aws cloudhsmv2 create-hsm --cluster-id $CLUSTER_ID --availability-zone $AVAILABILITY_ZONE --hsm-type hsm1.medium
+    aws cloudhsmv2 create-hsm --cluster-id $CLUSTER_ID --availability-zone $AVAILABILITY_ZONE
     echo "Creating HSM Token in $AVAILABILITY_ZONE..."
     sleep 5
 
