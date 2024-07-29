@@ -81,19 +81,6 @@ resource "aws_launch_template" "codesign_box_template" {
     associate_public_ip_address = true
   }
 
-  user_data = base64encode(<<-EOF
-                #!/bin/bash
-                sudo apt update
-                curl -o cloudhsm-cli.deb https://s3.amazonaws.com/cloudhsmv2-software/CloudHsmClient/Jammy/cloudhsm-cli_latest_u22.04_amd64.deb
-                sudo apt install ./cloudhsm-cli.deb
-
-                curl -o cloudhsm-pkcs11.deb https://s3.amazonaws.com/cloudhsmv2-software/CloudHsmClient/Jammy/cloudhsm-pkcs11_latest_u22.04_amd64.deb
-                sudo apt install ./cloudhsm-pkcs11.deb
-
-                sudo apt install libengine-pkcs11-openssl
-                EOF
-  )
-
   update_default_version = true
 
   tag_specifications {
