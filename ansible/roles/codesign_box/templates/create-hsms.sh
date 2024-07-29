@@ -12,19 +12,26 @@ create_hsm_token() {
     echo "Creating HSM Token in $AVAILABILITY_ZONE..."
     sleep 5
 
+}
+
+
+wait_for_hsm_tokens() {
+
     while true; do
         STATE=$(aws cloudhsmv2 describe-clusters --filters clusterIds=$CLUSTER_ID --query "Clusters[0].Hsms[?State=='ACTIVE'] | length(@)")
         if [ "$STATE" -ge 2 ]; then
-            echo "HSM Token $AVAILABILITY_ZONE created and active."
+            echo "HSM Tokens created and active."
             break
         fi
         echo "Waiting for HSM Token $TOKEN_NAME to become active..."
         sleep 10
     done
+
 }
 
 create_hsm_token eu-central-1a
 create_hsm_token eu-central-1b
+wait_for_hsm_tokens
 
 echo "Extracting IP addresses of created HSM tokens..."
 IP_ADDRESSES=$(aws cloudhsmv2 describe-clusters --filters clusterIds=$CLUSTER_ID --query "Clusters[0].Hsms[*].EniIp" --output text)
