@@ -47,6 +47,7 @@
   template:
     src: authorized_keys
     dest: "/home/{{item}}/.ssh/authorized_keys"
+    owner: "{{item}}"
     mode: 0400
   with_items: "{{ admin_usernames | union(non_admin_usernames) }}"
 
