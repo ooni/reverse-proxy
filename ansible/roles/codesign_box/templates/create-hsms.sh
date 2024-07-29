@@ -29,13 +29,21 @@ wait_for_hsm_tokens() {
 
 }
 
-create_hsm_token eu-central-1a
-create_hsm_token eu-central-1b
-wait_for_hsm_tokens
+CURRENT_TOKEN_COUNT=$(aws cloudhsmv2 describe-clusters --filters clusterIds=$CLUSTER_ID --query "Clusters[0].Hsms[?State=='ACTIVE'] | length(@)")
+if [ "$CURRENT_TOKEN_COUNT" -ge 2 ]; then
+    echo "Enough HSMs already exist, skipping creation"
+else
+    create_hsm_token eu-central-1a
+    create_hsm_token eu-central-1b
+    wait_for_hsm_tokens
+fi
 
 echo "Extracting IP addresses of created HSM tokens..."
 IP_ADDRESSES=$(aws cloudhsmv2 describe-clusters --filters clusterIds=$CLUSTER_ID --query "Clusters[0].Hsms[*].EniIp" --output text)
 echo "IP Addresses of created HSM tokens: $IP_ADDRESSES"
+
+IP_ADDRESS_1=$(echo IP_ADDRESSES | cut -d ' ' -f1)
+IP_ADDRESS_2=$(echo IP_ADDRESSES | cut -d ' ' -f2)
 
 echo "[+] writing cloudhsm-cli.cfg"
 cat <<EOF > /tmp/cloudhsm-cli.cfg
@@ -46,12 +54,12 @@ cat <<EOF > /tmp/cloudhsm-cli.cfg
             "hsm_ca_file": "/opt/cloudhsm/etc/customerCA.crt",
             "servers":[
                 {
-                    "hostname": "${IP_ADDRESSES[0]}",
+                    "hostname": "$IP_ADDRESS_1",
                     "port": 2223,
                     "enable": true
                 },
                 {
-                    "hostname": "${IP_ADDRESSES[1]}",
+                    "hostname": "$IP_ADDRESS_2",
                     "port": 2223,
                     "enable": true
                 }
@@ -80,12 +88,12 @@ cat <<EOF > /tmp/cloudhsm-pkcs11.cfg
             "hsm_ca_file": "/opt/cloudhsm/etc/customerCA.crt",
             "servers":[
                 {
-                    "hostname": "${IP_ADDRESSES[0]}",
+                    "hostname": "$IP_ADDRESS_1",
                     "port": 2223,
                     "enable": true
                 },
                 {
-                    "hostname": "${IP_ADDRESSES[1]}",
+                    "hostname": "$IP_ADDRESS_2",
                     "port": 2223,
                     "enable": true
                 }
