@@ -52,7 +52,7 @@
     owner: ubuntu
     group: adm
     mode: "u=rw,g=,o="
-    force: true
+    force: false
 
 - name: Write sign-windows-exe.sh command
   ansible.builtin.template:
