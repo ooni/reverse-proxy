@@ -28,3 +28,18 @@
     - clickhouse
     - ssh_users
     - jupyterhub
+
+- name: Setup OpenVPN server
+  hosts: openvpn-server1.ooni.io
+  become: true
+  remote_user: root
+  roles:
+    - ssh_users
+
+# commented out due to the fact it requires manual config of ~/.ssh/config
+#- name: Setup codesign box
+#  hosts: codesign-box
+#  become: true
+#  remote_user: ubuntu
+#  roles:
+#    - codesign_box

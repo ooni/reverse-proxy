@@ -1,7 +1,3 @@
-data "aws_ssm_parameter" "ubuntu_22_ami" {
-  name = "/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id"
-}
-
 resource "aws_security_group" "ansible_ctrl_sg" {
   description = "security group for ansible controller"
   name_prefix = "ooni-ansible-ctrl"
@@ -40,7 +36,8 @@ resource "aws_security_group" "ansible_ctrl_sg" {
 }
 
 resource "aws_instance" "ansible_controller" {
-  ami           = data.aws_ssm_parameter.ubuntu_22_ami.value
+  # Ubuntu 22.04
+  ami           = "ami-07652eda1fbad7432"
   instance_type = var.instance_type
   key_name      = var.key_name
 
@@ -60,7 +57,7 @@ resource "aws_instance" "ansible_controller" {
 
   vpc_security_group_ids = [aws_security_group.ansible_ctrl_sg.id]
 
-  tags = var.tags
+  tags = merge(var.tags, { Name = "ansible-controller" })
 }
 
 resource "aws_route53_record" "oonith_service_alias" {
