@@ -27,7 +27,7 @@
   roles:
     - clickhouse
     - ssh_users
-    - jupyterhub
+    #- jupyterhub
 
 - name: Setup OpenVPN server
   hosts: openvpn-server1.ooni.io
