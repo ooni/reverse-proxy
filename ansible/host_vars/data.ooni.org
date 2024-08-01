@@ -35,18 +35,19 @@ ssh_users:
       ]
   ingrid:
     login: ingrid
-    commment: Ingrid Epure
+    comment: Ingrid Epure
     keys:
       [
         "ssh-rsa AAAB3NzaC1yc2EAAAADAQABAAACAQCTJQDb/Ucq5CRGqSJbNz33pB6fYtk7Pi+6LlIaV9QLhByp/G2/g6ae6Eb/TimZtxpdeIwpAmACmUn2p+mCLMHjpollUK2f3dUjmXiUSNGMPRPRxQoIvzf56patUCQRS+S7zDUKTDW/5e18CrIj0sFCC27y/pS6mmmeedHA6gmpW7L6kM57BlsxFu79rr/o/nrNH+qceJBEd8fM93yoIdEwxPHZyKJ5kj9+lh+4TtDLxxkwFfc6Kce1d0qxfpX1NzIbK5Vp8JlXrGEWbOFFT8S7Ru+j1/g/ptUjsXJ7DpH1wwlF6wYsU0DJuhkLv6XFZQuoHYwpZ4jmnJRWrXSgdylPk67M5Dr9aB2j0WGJNZysiXVZQZmoMUhfrNxaGVv6gB48krE6ysUoLrenR68aLOYqF8Yqvu1lCIyds1ORtjnpxWxFB7NS89us4KFofAMW+qeg/g3nEYvln9/S0b58goToNIw/p7wP9WOeh7JuM/FBT5ahJbeYpXapJh1WW6Rt48RGVwxFLXbcnH8wpCfhUw7fIVpXMhbfhtWTlWVJEAyk3eLWdNEJ7AH6jaqTdfTa4qBgrof0MgoZrb64qFDAsG9Z80Uj9oC2Zdy+gwDu76WJQfSKaD7hmq0w8khoFSVju7fvcfd5HWgLZbptCIw51mJSMQIQWs8Y/iGijTSckXXCXQ==",
       ]
   siti:
     login: siti
-    comment: Siti Nurliza
+    comment: "Siti Nurliza"
     keys:
       [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKqG1VepfzDdSp3zG27jZq3S9/62CKPLh93F///ht9rf",
       ]
 admin_usernames: [ art, majakomel, mehul, norbel ]
-ssh_users: [ art, majakomel, mehul, norbel, ain, siti, ingrid, joss ]
+non_admin_usernames: [ ain, siti, ingrid, joss ]
 jupyterhub_allowed_users: "{{ ssh_users }}"
+admin_group_name: adm

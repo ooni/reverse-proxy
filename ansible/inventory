@@ -3,6 +3,4 @@ monitoring.ooni.org
 openvpn-server1.ooni.io
 # This requires manual setup of ~/.ssh/config
 #codesign-box
-
-[jupyterhub]
 data.ooni.org
