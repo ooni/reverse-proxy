@@ -25,7 +25,7 @@
   hosts: data.ooni.org
   become: true
   roles:
-    - clickhouse
+    #- clickhouse
     - ssh_users
     #- jupyterhub
 
