@@ -7,9 +7,7 @@ resource "aws_vpc" "main" {
   cidr_block           = var.vpc_main_cidr_block
   enable_dns_hostnames = true
   enable_dns_support   = true
-
-  assign_generated_ipv6_cidr_block = true
-
+ 
   tags = var.tags
 }
 
@@ -17,9 +15,6 @@ resource "aws_subnet" "public" {
   count = var.az_count
 
   cidr_block = cidrsubnet(aws_vpc.main.cidr_block, 8, count.index)
-
-  ipv6_cidr_block                 = cidrsubnet(aws_vpc.main.ipv6_cidr_block, 8, count.index)
-  assign_ipv6_address_on_creation = true
 
   availability_zone       = element(var.aws_availability_zones_available.names, count.index)
   vpc_id                  = aws_vpc.main.id
@@ -40,9 +35,6 @@ resource "aws_subnet" "private" {
   count = var.az_count
 
   cidr_block = cidrsubnet(aws_vpc.main.cidr_block, 8, local.private_net_offset + count.index)
-
-  ipv6_cidr_block                 = cidrsubnet(aws_vpc.main.ipv6_cidr_block, 8, local.private_net_offset + count.index)
-  assign_ipv6_address_on_creation = true
 
   availability_zone       = element(var.aws_availability_zones_available.names, count.index)
   vpc_id                  = aws_vpc.main.id
@@ -66,25 +58,12 @@ resource "aws_internet_gateway" "gw" {
   }
 }
 
-resource "aws_egress_only_internet_gateway" "egress_gw" {
-  vpc_id = aws_vpc.main.id
-
-  tags = {
-    Name = "ooni-egressonly-gw"
-  }
-}
-
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.gw.id
-  }
-
-  route {
-    ipv6_cidr_block        = "::/0"
-    egress_only_gateway_id = aws_egress_only_internet_gateway.egress_gw.id
   }
 
   tags = {
@@ -101,11 +80,6 @@ resource "aws_route_table_association" "public" {
 resource "aws_route_table" "private" {
   count  = var.az_count
   vpc_id = aws_vpc.main.id
-
-  route {
-    ipv6_cidr_block        = "::/0"
-    egress_only_gateway_id = aws_egress_only_internet_gateway.egress_gw.id
-  }
 
   tags = {
     Name = "ooni-private-route-table-${count.index}"
