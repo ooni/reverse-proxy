@@ -107,7 +107,7 @@ module "ansible_inventory" {
 }
 
 module "network" {
-  source = "../../modules/network"
+  source = "../../modules/no_nat_network"
 
   az_count            = var.az_count
   vpc_main_cidr_block = "10.0.0.0/16"
