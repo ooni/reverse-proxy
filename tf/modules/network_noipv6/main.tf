@@ -38,7 +38,7 @@ resource "aws_subnet" "private" {
 
   availability_zone       = element(var.aws_availability_zones_available.names, count.index)
   vpc_id                  = aws_vpc.main.id
-  map_public_ip_on_launch = false
+  map_public_ip_on_launch = true
 
   depends_on = [aws_internet_gateway.gw]
 
@@ -78,18 +78,22 @@ resource "aws_route_table_association" "public" {
 }
 
 resource "aws_route_table" "private" {
-  count  = var.az_count
   vpc_id = aws_vpc.main.id
 
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.gw.id
+  }
+
   tags = {
-    Name = "ooni-private-route-table-${count.index}"
+    Name = "ooni-private-route-table"
   }
 }
 
 resource "aws_route_table_association" "private" {
   count          = var.az_count
   subnet_id      = element(aws_subnet.private[*].id, count.index)
-  route_table_id = element(aws_route_table.private[*].id, count.index)
+  route_table_id = aws_route_table.private.id
 
   lifecycle {
     create_before_destroy = true

@@ -273,7 +273,7 @@ module "ooniapi_cluster" {
   name       = "ooniapi-ecs-cluster"
   key_name   = module.adm_iam_roles.oonidevops_key_name
   vpc_id     = module.network.vpc_id
-  subnet_ids = module.network.vpc_subnet_public[*].id
+  subnet_ids = module.network.vpc_subnet_private[*].id
 
   asg_min     = 2
   asg_max     = 6
@@ -293,7 +293,7 @@ module "oonith_cluster" {
   name       = "oonith-ecs-cluster"
   key_name   = module.adm_iam_roles.oonidevops_key_name
   vpc_id     = module.network.vpc_id
-  subnet_ids = module.network.vpc_subnet_public[*].id
+  subnet_ids = module.network.vpc_subnet_private[*].id
 
   asg_min     = 1
   asg_max     = 4
