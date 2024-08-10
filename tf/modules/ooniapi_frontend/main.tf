@@ -101,7 +101,7 @@ resource "aws_lb_listener_rule" "ooniapi_ooniprobe_rule" {
 
 resource "aws_lb_listener_rule" "ooniapi_oonifindings_rule" {
   listener_arn = aws_alb_listener.ooniapi_listener_https.arn
-  priority     = 100
+  priority     = 103
 
   action {
     type             = "forward"
