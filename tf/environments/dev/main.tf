@@ -67,6 +67,7 @@ module "adm_iam_roles" {
   source = "../../modules/adm_iam_roles"
 
   authorized_accounts = [
+    "arn:aws:iam::${local.ooni_main_org_id}:user/mehul",
     "arn:aws:iam::${local.ooni_dev_org_id}:user/mehul",
     "arn:aws:iam::${local.ooni_dev_org_id}:user/art",
     "arn:aws:iam::${local.ooni_main_org_id}:user/art"
@@ -106,7 +107,7 @@ module "ansible_inventory" {
 }
 
 module "network" {
-  source = "../../modules/network"
+  source = "../../modules/network_noipv6"
 
   az_count            = var.az_count
   vpc_main_cidr_block = "10.0.0.0/16"
@@ -272,7 +273,7 @@ module "ooniapi_cluster" {
   name       = "ooniapi-ecs-cluster"
   key_name   = module.adm_iam_roles.oonidevops_key_name
   vpc_id     = module.network.vpc_id
-  subnet_ids = module.network.vpc_subnet_public[*].id
+  subnet_ids = module.network.vpc_subnet_private[*].id
 
   asg_min     = 2
   asg_max     = 6
@@ -292,7 +293,7 @@ module "oonith_cluster" {
   name       = "oonith-ecs-cluster"
   key_name   = module.adm_iam_roles.oonidevops_key_name
   vpc_id     = module.network.vpc_id
-  subnet_ids = module.network.vpc_subnet_public[*].id
+  subnet_ids = module.network.vpc_subnet_private[*].id
 
   asg_min     = 1
   asg_max     = 4

@@ -55,7 +55,7 @@ data "aws_ecs_container_definition" "ooniapi_service_current" {
 
 resource "aws_ecs_task_definition" "ooniapi_service" {
   family       = "${local.name}-td"
-  network_mode = "awsvpc"
+  network_mode = "bridge"
 
   container_definitions = jsonencode([
     {
@@ -100,44 +100,6 @@ resource "aws_ecs_task_definition" "ooniapi_service" {
   track_latest       = true
 }
 
-resource "aws_security_group" "ooniapi_service_ecs" {
-  name_prefix = "ooniapi-service"
-  description = "Allow all traffic"
-  vpc_id      = var.vpc_id
-
-  ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
 resource "aws_ecs_service" "ooniapi_service" {
   name            = local.name
   cluster         = var.ecs_cluster_id
@@ -169,11 +131,6 @@ resource "aws_ecs_service" "ooniapi_service" {
     container_port   = "80"
   }
 
-  network_configuration {
-    subnets         = var.private_subnet_ids
-    security_groups = [aws_security_group.ooniapi_service_ecs.id]
-  }
-
   depends_on = [
     aws_alb_listener.ooniapi_service_http,
   ]
@@ -189,7 +146,7 @@ resource "aws_alb_target_group" "ooniapi_service_direct" {
   port        = 80
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
-  target_type = "ip"
+  target_type = "instance"
 
   lifecycle {
     create_before_destroy = true
@@ -204,7 +161,7 @@ resource "aws_alb_target_group" "ooniapi_service_mapped" {
   port        = 80
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
-  target_type = "ip"
+  target_type = "instance"
 
   lifecycle {
     create_before_destroy = true

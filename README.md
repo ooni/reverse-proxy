@@ -15,23 +15,26 @@ We divide our infrastructure components into 3 tiers:
 
 ### Tier 0 (Critical) components
 
-- Probe Services (collector specifically)
-- Fastpath (part responsible for storing post-cans)
-- DNS configuration
-- Monitoring
-- OONI bridges
-- OONI.org website
+- [ ] Probe Services (collector specifically)
+- [ ] Fastpath (part responsible for storing post-cans)
+- [x] DNS configuration
+- [ ] Monitoring
+- [ ] OONI bridges
+- [ ] OONI.org website
+- [x] Web Connectivity test helpers
+- [ ] Code signing
 
 ### Tier 1 (Essential) components
 
-- OONI API measurement listing
-- OONI Explorer
-- OONI Run
-- OONI Data analysis pipeline
-- Website analytics
+- [ ] OONI API measurement listing
+- [x] OONI Explorer
+- [x] OONI Run
+- [ ] OONI Data analysis pipeline
+- [ ] OONI Findings API
+- [x] Website analytics
 
 ### Tier 2 (Non-Essential) components
 
-- Test list editor
-- Jupyter notebooks
-- Countly
+- [ ] Test list editor
+- [ ] Jupyter notebooks
+- [ ] Countly

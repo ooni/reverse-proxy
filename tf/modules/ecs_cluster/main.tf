@@ -157,7 +157,6 @@ resource "aws_launch_template" "container_host" {
   network_interfaces {
     associate_public_ip_address = true
     delete_on_termination       = true
-    ipv6_address_count          = 1
     security_groups = [
       aws_security_group.container_host.id,
     ]
