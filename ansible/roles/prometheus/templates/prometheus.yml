@@ -81,8 +81,6 @@ scrape_configs:
       format: [prometheus]
     static_configs:
       - targets:
-        - ams-pg-test.ooni.org:19999
-        - ams-pg.ooni.org:19999
         - backend-fsn.ooni.org:19999
         - backend-hel.ooni.org:19999
 
@@ -148,6 +146,4 @@ scrape_configs:
     static_configs:
       - targets:
         - backend-hel.ooni.org:444
-        - ams-pg-test.ooni.org:444
-
 ...

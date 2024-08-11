@@ -1,0 +1,76 @@
+---
+- name: Check if TLJH is installed
+  ansible.builtin.stat:
+    path: "{{ jupyterhub_tljh_prefix }}"
+  register: tljh_directory
+
+- name: Install required packages for TLJH
+  become: true
+  ansible.builtin.apt:
+    name:
+      - curl
+      - python3
+      - python3-pip
+      - python3-dev
+      - python3-venv
+      - build-essential
+      - cifs-utils
+    state: present
+    update_cache: true
+
+- name: Download the TLJH installer
+  become: true
+  ansible.builtin.get_url:
+    url: "https://tljh.jupyter.org/bootstrap.py"
+    dest: "/tmp/tljh-bootstrap.py"
+    checksum: "sha256:2e20bf204c94e1b6eef31499c93f6a14324117deec2eb398a142cb14acbeedd1"
+    mode: "0700"
+  when: not tljh_directory.stat.exists
+
+- name: Run the TLJH installer
+  become: true
+  ansible.builtin.shell: |
+    python3 /tmp/tljh-bootstrap.py --admin {{ jupyterhub_tljh_admin_user }}:{{ jupyterhub_tljh_admin_password }}
+  creates: "{{ jupyterhub_tljh_prefix }}"
+  when: not tljh_directory.stat.exists
+
+- name: Restart the JupyterHub service with daemon-reload
+  become: true
+  tags:
+    - config
+  ansible.builtin.systemd:
+    name: jupyterhub
+    state: restarted
+    enabled: true
+    daemon_reload: true
+  when: not tljh_directory.stat.exists
+
+- name: Configure Let's Encrypt email and domain
+  become: true
+  ansible.builtin.shell: |
+    tljh-config set https.enabled true
+    tljh-config set https.letsencrypt.email {{ jupyterhub_letsencrypt_email }}
+    tljh-config add-item https.letsencrypt.domains {{ jupyterhub_letsencrypt_domain }}
+    tljh-config reload proxy
+  vars:
+    jupyterhub_letsencrypt_domain: "{{ inventory_hostname }}"
+  register: tljh_letsencrypt
+  changes_when: tljh_letsencrypt.rc != 0
+  when: not tljh_directory.stat.exists
+
+- name: Copy the JupyterHub config
+  become: true
+  ansible.builtin.template:
+    src: jupyterhub_config.py.j2
+    dest: "{{ jupyterhub_config_dest }}"
+    mode: preserve
+
+- name: Restart the JupyterHub service with daemon-reload
+  become: true
+  tags:
+    - config
+  ansible.builtin.systemd:
+    name: jupyterhub
+    state: restarted
+    enabled: true
+    daemon_reload: true

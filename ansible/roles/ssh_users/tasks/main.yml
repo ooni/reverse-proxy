@@ -1,0 +1,89 @@
+---
+- name: ensure admin group exists
+  group:
+    name: "{{ admin_group_name }}"
+    state: present
+
+- name: create admin users
+  tags: ssh_users
+  user:
+    name: "{{ item }}"
+    group: "{{ admin_group_name }}"
+    comment: "{{ ssh_users[item].comment }}"
+    shell: /bin/bash
+    state: present
+  with_items: "{{ admin_usernames }}"
+
+- name: create non-admin users
+  tags: ssh_users
+  user:
+    name: "{{ item }}"
+    group: "users"
+    comment: "{{ ssh_users[item].comment }}"
+    shell: /bin/bash
+    state: present
+  with_items: "{{ non_admin_usernames }}"
+
+- name: create .ssh dir for admin users
+  tags: ssh_users
+  file:
+    path: "/home/{{item}}/.ssh"
+    state: directory
+    owner: "{{item}}"
+    mode: 0700
+  with_items: "{{ admin_usernames }}"
+
+- name: create .ssh dir for non-admin users
+  tags: ssh_users
+  file:
+    path: "/home/{{item}}/.ssh"
+    state: directory
+    owner: "{{item}}"
+    mode: 0700
+  with_items: "{{ non_admin_usernames }}"
+
+- name: create .ssh/authorized_keys for each user
+  tags: ssh_users
+  template:
+    src: authorized_keys
+    dest: "/home/{{item}}/.ssh/authorized_keys"
+    owner: "{{item}}"
+    mode: 0400
+  with_items: "{{ admin_usernames | union(non_admin_usernames) }}"
+
+
+- name: kill processes running as deactivated users
+  ansible.builtin.shell:
+    cmd: "pkill -U {{ item }}"
+  ignore_errors: true
+  with_items: "{{ deactivated_usernames }}"
+
+- name: remove any stale users
+  user:
+    name: "{{ item }}"
+    state: "absent"
+    remove: yes
+    force: yes
+  with_items: "{{ deactivated_usernames }}"
+
+- name: sudoers.d/80-admins
+  template:
+    src: sudoers
+    dest: /etc/sudoers.d/80-admins
+    owner: root
+    group: root
+    mode: 0440
+    validate: 'visudo -cf %s'
+
+- name: sudoers.d/adm
+  ansible.builtin.file:
+    path: /etc/sudoers.d/adm
+    state: absent
+
+- name: configure sshd
+  include_role: 
+    name: willshersystems.sshd
+  vars:
+    sshd_skip_defaults: false
+    sshd:
+      AllowUsers: "{{ admin_usernames | union(non_admin_usernames) | sort | join(' ') }}"
