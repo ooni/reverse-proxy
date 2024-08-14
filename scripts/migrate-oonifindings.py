@@ -43,6 +43,7 @@ def dump_oonifindings_clickhouse():
             "deleted": d["deleted"],
             "email_address": d["email_address"],
             "country_codes": json.dumps(d["CCs"]),
+            "tags": json.dumps(d["tags"]),
             "asns": json.dumps(d["ASNs"]),
             "domains": json.dumps(d["domains"]),
             "links": json.dumps(d["links"]),
