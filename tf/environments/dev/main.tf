@@ -34,6 +34,11 @@ provider "aws" {
   # source_profile = oonidevops_user
 }
 
+# In order for this provider to work you have to set the following environment
+# variable to your DigitalOcean API token:
+# DIGITALOCEAN_ACCESS_TOKEN=
+provider "digitalocean" {}
+
 data "aws_availability_zones" "available" {}
 
 ### !!! IMPORTANT !!!
@@ -248,6 +253,13 @@ moved {
 
 ### OONI Tier0 Backend Proxy
 
+module "ooni_th_droplet" {
+  source            = "../../modules/ooni_th_droplet"
+  instance_location = "fra1"
+  instance_size     = "s-1vcpu-1gb"
+  droplet_count     = 1
+}
+
 module "ooni_backendproxy" {
   source = "../../modules/ooni_backendproxy"
 
@@ -257,7 +269,9 @@ module "ooni_backendproxy" {
   key_name      = module.adm_iam_roles.oonidevops_key_name
   instance_type = "t2.micro"
 
-  backend_url = "https://backend-hel.ooni.org/"
+  backend_url        = "https://backend-hel.ooni.org/"
+  wcth_addresses     = module.ooni_th_droplet.droplet_ipv4_address
+  wcth_domain_suffix = "th.ooni.dev.io"
 
   tags = merge(
     local.tags,
@@ -530,10 +544,10 @@ module "ooniapi_frontend" {
   vpc_id     = module.network.vpc_id
   subnet_ids = module.network.vpc_subnet_public[*].id
 
-  oonibackend_proxy_target_group_arn = module.ooni_backendproxy.alb_target_group_id
-  ooniapi_oonirun_target_group_arn   = module.ooniapi_oonirun.alb_target_group_id
-  ooniapi_ooniauth_target_group_arn  = module.ooniapi_ooniauth.alb_target_group_id
-  ooniapi_ooniprobe_target_group_arn = module.ooniapi_ooniprobe.alb_target_group_id
+  oonibackend_proxy_target_group_arn    = module.ooni_backendproxy.alb_target_group_id
+  ooniapi_oonirun_target_group_arn      = module.ooniapi_oonirun.alb_target_group_id
+  ooniapi_ooniauth_target_group_arn     = module.ooniapi_ooniauth.alb_target_group_id
+  ooniapi_ooniprobe_target_group_arn    = module.ooniapi_ooniprobe.alb_target_group_id
   ooniapi_oonifindings_target_group_arn = module.ooniapi_oonifindings.alb_target_group_id
 
   ooniapi_service_security_groups = [

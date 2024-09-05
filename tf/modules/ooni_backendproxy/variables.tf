@@ -26,6 +26,18 @@ variable "instance_type" {
 }
 
 variable "backend_url" {
-  type = string
+  type    = string
   default = "https://backend-fsn.ooni.org/"
+}
+
+variable "wcth_addresses" {
+  type        = list(string)
+  default     = []
+  description = "list of web connectivity test helper domain names or ips to connect to (must listen on port 80)"
+}
+
+variable "wcth_domain_suffix" {
+  type        = string
+  default     = "th.ooni.org"
+  description = "domain suffix to filter web connectivity test helper requests (eg. th.ooni.org)"
 }

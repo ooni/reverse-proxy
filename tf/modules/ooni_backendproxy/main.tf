@@ -33,7 +33,7 @@ resource "aws_security_group" "nginx_sg" {
       "0.0.0.0/0",
     ]
   }
-  
+
   egress {
     from_port        = 0
     to_port          = 0
@@ -48,15 +48,28 @@ resource "aws_security_group" "nginx_sg" {
   tags = var.tags
 }
 
+data "cloudinit_config" "ooni_backendproxy" {
+  base64_encode = true
+
+  part {
+    filename     = "init.cfg"
+    content_type = "text/cloud-config"
+    content = templatefile("${path.module}/templates/cloud-init.yml", {
+      wcth_addresses     = var.wcth_addresses,
+      wcth_domain_suffix = var.wcth_domain_suffix,
+      backend_url        = var.backend_url
+    })
+  }
+
+}
+
 resource "aws_launch_template" "ooni_backendproxy" {
-  name_prefix   = "${var.name}-nginx-tmpl-"
+  name_prefix   = "${var.name}-bkprx-tmpl-"
   image_id      = data.aws_ssm_parameter.ubuntu_22_ami.value
   instance_type = var.instance_type
   key_name      = var.key_name
 
-  user_data = base64encode(templatefile("${path.module}/templates/setup-backend-proxy.sh", {
-    backend_url = var.backend_url
-  }))
+  user_data = data.cloudinit_config.ooni_backendproxy.rendered
 
   lifecycle {
     create_before_destroy = true
