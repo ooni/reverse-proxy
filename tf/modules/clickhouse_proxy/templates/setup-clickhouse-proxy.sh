@@ -15,10 +15,12 @@ stream {
         listen 9000;
 
        proxy_pass clickhouse_backend; 
-    } 
+    }
+
+    error_log /var/log/nginx/error.log;
 }
 EOF
-sudo mv $tmpfile /etc/nginx/sites-available/default
+sudo mv $tmpfile /etc/nginx/modules-enabled/stream.conf
 
 sudo nginx -t
 sudo systemctl reload nginx

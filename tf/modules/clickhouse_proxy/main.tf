@@ -6,7 +6,7 @@ data "aws_ssm_parameter" "ubuntu_22_ami" {
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group#recreating-a-security-group
 resource "aws_security_group" "ckprx_sg" {
   description = "security group for nginx"
-  name_prefix = "ooni-clickhouse"
+  name_prefix = "ooni-ckprx"
 
   vpc_id = var.vpc_id
 
@@ -66,6 +66,7 @@ resource "aws_launch_template" "clickhouse_proxy" {
   network_interfaces {
     delete_on_termination       = true
     associate_public_ip_address = true
+    subnet_id = var.subnet_id
     security_groups = [
       aws_security_group.ckprx_sg.id,
     ]
@@ -82,14 +83,12 @@ resource "aws_instance" "clickhouse_proxy" {
     id      = aws_launch_template.clickhouse_proxy.id
     version = "$Latest"
   }
-
-  subnet_id = var.subnet_id
   
   lifecycle {
     create_before_destroy = true
   }
 
-  tags = merge(var.tags, { Name = "ansible-controller" })
+  tags = merge(var.tags, { Name = "clickhouse-proxy" })
 }
 
 resource "aws_route53_record" "clickhouse_proxy_alias" {
