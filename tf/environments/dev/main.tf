@@ -324,6 +324,7 @@ module "ooniapi_ooniprobe_deployer" {
   repo                    = "ooni/backend"
   branch_name             = "master"
   buildspec_path          = "ooniapi/services/ooniprobe/buildspec.yml"
+  trigger_path            = "ooniapi/services/ooniprobe/**"
   codestar_connection_arn = aws_codestarconnections_connection.oonidevops.arn
 
   codepipeline_bucket = aws_s3_bucket.ooniapi_codepipeline_bucket.bucket
@@ -365,7 +366,6 @@ module "ooniapi_ooniprobe" {
   )
 }
 
-
 #### OONI Run service
 
 module "ooniapi_oonirun_deployer" {
@@ -375,6 +375,7 @@ module "ooniapi_oonirun_deployer" {
   repo                    = "ooni/backend"
   branch_name             = "master"
   buildspec_path          = "ooniapi/services/oonirun/buildspec.yml"
+  trigger_path            = "ooniapi/services/oonirun/**"
   codestar_connection_arn = aws_codestarconnections_connection.oonidevops.arn
 
   codepipeline_bucket = aws_s3_bucket.ooniapi_codepipeline_bucket.bucket
@@ -471,6 +472,7 @@ module "ooniapi_ooniauth_deployer" {
   repo                    = "ooni/backend"
   branch_name             = "master"
   buildspec_path          = "ooniapi/services/ooniauth/buildspec.yml"
+  trigger_path            = "ooniapi/services/ooniauth/**"
   codestar_connection_arn = aws_codestarconnections_connection.oonidevops.arn
 
   codepipeline_bucket = aws_s3_bucket.ooniapi_codepipeline_bucket.bucket
@@ -564,6 +566,7 @@ module "oonith_oohelperd_deployer" {
   repo                    = "ooni/probe-cli"
   branch_name             = "master"
   buildspec_path          = "oonith/buildspec.yml"
+  trigger_tag             = "release*"
   codestar_connection_arn = aws_codestarconnections_connection.oonidevops.arn
 
   codepipeline_bucket = aws_s3_bucket.oonith_codepipeline_bucket.bucket
