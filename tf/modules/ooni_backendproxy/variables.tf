@@ -2,8 +2,12 @@ variable "vpc_id" {
   description = "the id of the VPC to deploy the instance into"
 }
 
-variable "subnet_ids" {
-  description = "the ids of the subnet of the subnets to deploy the instance into"
+variable "subnet_id" {
+  description = "the ids of the subnet to deploy the instance into"
+}
+
+variable "private_subnet_cidr" {
+  description = "the cidr block of the private subnet to allow traffic from for the clickhouse proxy"
 }
 
 variable "tags" {
@@ -28,4 +32,21 @@ variable "instance_type" {
 variable "backend_url" {
   type = string
   default = "https://backend-fsn.ooni.org/"
+}
+
+variable "stage" {
+  default = "one of dev, stage, test, prod"
+}
+
+variable "dns_zone_ooni_io" {
+  description = "id of the DNS zone for ooni_io"
+}
+
+variable "clickhouse_url" {
+  description = "clickhouse url to proxy requests to"
+  default = "backend-fsn.ooni.org" 
+}
+
+variable "clickhouse_port" {
+  description = "clickhouse port for the backend"
 }

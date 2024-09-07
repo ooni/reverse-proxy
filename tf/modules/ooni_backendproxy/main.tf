@@ -17,6 +17,13 @@ resource "aws_security_group" "nginx_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress { 
+    protocol    = "tcp"
+    from_port   = 9000
+    to_port     = 9000
+    cidr_blocks = var.private_subnet_cidr
+  }
+
   ingress {
     protocol    = "tcp"
     from_port   = 22
@@ -55,7 +62,9 @@ resource "aws_launch_template" "ooni_backendproxy" {
   key_name      = var.key_name
 
   user_data = base64encode(templatefile("${path.module}/templates/setup-backend-proxy.sh", {
-    backend_url = var.backend_url
+    backend_url = var.backend_url,
+    clickhouse_url = var.clickhouse_url,
+    clickhouse_port = var.clickhouse_port
   }))
 
   lifecycle {
@@ -65,6 +74,7 @@ resource "aws_launch_template" "ooni_backendproxy" {
   network_interfaces {
     delete_on_termination       = true
     associate_public_ip_address = true
+    subnet_id = var.subnet_id
     security_groups = [
       aws_security_group.nginx_sg.id,
     ]
@@ -76,7 +86,7 @@ resource "aws_launch_template" "ooni_backendproxy" {
   }
 }
 
-resource "aws_autoscaling_group" "oonibackend_proxy" {
+resource "aws_instance" "oonibackend_proxy" {
   launch_template {
     id      = aws_launch_template.ooni_backendproxy.id
     version = "$Latest"
@@ -86,19 +96,7 @@ resource "aws_autoscaling_group" "oonibackend_proxy" {
     create_before_destroy = true
   }
 
-  name_prefix = "${var.name}-asg-"
-
-  min_size            = 1
-  max_size            = 2
-  desired_capacity    = 1
-  vpc_zone_identifier = var.subnet_ids
-
-  instance_refresh {
-    strategy = "Rolling"
-    preferences {
-      min_healthy_percentage = 50
-    }
-  }
+  tags = var.tags
 }
 
 resource "aws_alb_target_group" "oonibackend_proxy" {
@@ -114,7 +112,18 @@ resource "aws_alb_target_group" "oonibackend_proxy" {
   tags = var.tags
 }
 
-resource "aws_autoscaling_attachment" "oonibackend_proxy" {
-  autoscaling_group_name = aws_autoscaling_group.oonibackend_proxy.id
-  lb_target_group_arn    = aws_alb_target_group.oonibackend_proxy.arn
+resource "aws_lb_target_group_attachment" "oonibackend_proxy" {
+  target_id = aws_instance.oonibackend_proxy.id
+  target_group_arn    = aws_alb_target_group.oonibackend_proxy.arn
+}
+
+resource "aws_route53_record" "clickhouse_proxy_alias" {
+  zone_id = var.dns_zone_ooni_io
+  name    = "clickhouse.${var.stage}.ooni.io"
+  type    = "CNAME"
+  ttl     = 300
+
+  records = [
+    aws_instance.oonibackend_proxy.public_dns
+  ]
 }
