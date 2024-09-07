@@ -23,7 +23,7 @@ EOF
 sudo mv $tmpfile /etc/nginx/sites-available/default
 
 
-tmpfile_stream=$(mktemp /tmp/nginx-config.XXXXXX)
+tmpfile_stream=$(mktemp /tmp/nginx-stream-config.XXXXXX)
 cat > $tmpfile_stream <<EOF
 stream {
     upstream clickhouse_backend {
@@ -39,7 +39,7 @@ stream {
     error_log /var/log/nginx/error.log;
 }
 EOF
-sudo mv $tmpfile_stream /etc/nginx/modules-enabled/stream.config
+sudo mv $tmpfile_stream /etc/nginx/modules-enabled/stream.conf
 
 sudo nginx -t
 sudo systemctl reload nginx
