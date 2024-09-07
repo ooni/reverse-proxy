@@ -251,27 +251,8 @@ moved {
 module "ooni_backendproxy" {
   source = "../../modules/ooni_backendproxy"
 
-  vpc_id     = module.network.vpc_id
-  subnet_ids = module.network.vpc_subnet_public[*].id
+  stage = local.environment
 
-  key_name      = module.adm_iam_roles.oonidevops_key_name
-  instance_type = "t2.micro"
-
-  backend_url = "https://backend-hel.ooni.org/"
-
-  tags = merge(
-    local.tags,
-    { Name = "ooni-tier0-backendproxy" }
-  )
-}
-
-### OONI clickhouse proxy
-
-module "ooni_clickhouse_proxy" {
-  source = "../../modules/clickhouse_proxy"
-
-  stage      = local.environment
-  
   vpc_id     = module.network.vpc_id
   subnet_id = module.network.vpc_subnet_public[0].id
   private_subnet_cidr = module.network.vpc_subnet_private[*].cidr_block 
@@ -280,13 +261,14 @@ module "ooni_clickhouse_proxy" {
   key_name      = module.adm_iam_roles.oonidevops_key_name
   instance_type = "t2.micro"
 
+  backend_url = "https://backend-hel.ooni.org/"
   clickhouse_url = "backend-fsn.ooni.org"
   clickhouse_port = "9000"
-  
+
   tags = merge(
     local.tags,
-    { Name = "ooni-clickhouse-proxy" }
-  ) 
+    { Name = "ooni-tier0-backendproxy" }
+  )
 }
 
 ### OONI Services Clusters
