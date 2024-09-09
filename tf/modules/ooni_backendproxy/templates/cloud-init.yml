@@ -37,5 +37,21 @@ write_files:
         error_log /var/log/nginx/error.log;
       }
 
+  - path: /etc/nginx/modules-enabled/stream.conf
+    content: |
+      stream {
+        upstream clickhouse_backend {
+          server ${clickhouse_url}:${clickhouse_port};
+        }
+      
+        server {
+          listen 9000;
+
+          proxy_pass clickhouse_backend; 
+        }
+
+        error_log /var/log/nginx/error.log;
+      }
+
 runcmd:
   - service nginx restart
