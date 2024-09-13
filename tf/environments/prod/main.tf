@@ -257,11 +257,20 @@ moved {
 module "ooni_backendproxy" {
   source = "../../modules/ooni_backendproxy"
 
-  vpc_id     = module.network.vpc_id
-  subnet_ids = module.network.vpc_subnet_public[*].id
+  stage = local.environment
+
+  vpc_id    = module.network.vpc_id
+  subnet_id = module.network.vpc_subnet_public[0].id
+
+  private_subnet_cidr = module.network.vpc_subnet_private[*].cidr_block
+  dns_zone_ooni_io    = local.dns_zone_ooni_io
 
   key_name      = module.adm_iam_roles.oonidevops_key_name
   instance_type = "t2.micro"
+
+  backend_url     = "https://backend-fsn.ooni.org/"
+  clickhouse_url  = "backend-fsn.ooni.org"
+  clickhouse_port = "9000"
 
   tags = merge(
     local.tags,
@@ -417,6 +426,54 @@ module "ooniapi_oonirun" {
   )
 }
 
+#### OONI Findings service
+
+module "ooniapi_oonifindings_deployer" {
+  source = "../../modules/ooniapi_service_deployer"
+
+  service_name            = "oonifindings"
+  repo                    = "ooni/backend"
+  branch_name             = "master"
+  buildspec_path          = "ooniapi/services/oonifindings/buildspec.yml"
+  codestar_connection_arn = aws_codestarconnections_connection.oonidevops.arn
+
+  codepipeline_bucket = aws_s3_bucket.ooniapi_codepipeline_bucket.bucket
+
+  ecs_service_name = module.ooniapi_oonifindings.ecs_service_name
+  ecs_cluster_name = module.ooniapi_cluster.cluster_name
+}
+
+module "ooniapi_oonifindings" {
+  source = "../../modules/ooniapi_service"
+
+  vpc_id             = module.network.vpc_id
+  public_subnet_ids  = module.network.vpc_subnet_public[*].id
+  private_subnet_ids = module.network.vpc_subnet_private[*].id
+
+  service_name             = "oonifindings"
+  default_docker_image_url = "ooni/api-oonifindings:latest"
+  stage                    = local.environment
+  dns_zone_ooni_io         = local.dns_zone_ooni_io
+  key_name                 = module.adm_iam_roles.oonidevops_key_name
+  ecs_cluster_id           = module.ooniapi_cluster.cluster_id
+
+  task_secrets = {
+    POSTGRESQL_URL              = aws_secretsmanager_secret_version.oonipg_url.arn
+    JWT_ENCRYPTION_KEY          = aws_secretsmanager_secret_version.jwt_secret.arn
+    PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
+  }
+
+  ooniapi_service_security_groups = [
+    module.ooniapi_cluster.web_security_group_id
+  ]
+
+  tags = merge(
+    local.tags,
+    { Name = "ooni-tier0-oonifindings" }
+  )
+}
+
+
 #### OONI Auth service
 
 module "ooniapi_ooniauth_deployer" {
@@ -494,10 +551,11 @@ module "ooniapi_frontend" {
   vpc_id     = module.network.vpc_id
   subnet_ids = module.network.vpc_subnet_public[*].id
 
-  oonibackend_proxy_target_group_arn = module.ooni_backendproxy.alb_target_group_id
-  ooniapi_oonirun_target_group_arn   = module.ooniapi_oonirun.alb_target_group_id
-  ooniapi_ooniauth_target_group_arn  = module.ooniapi_ooniauth.alb_target_group_id
-  ooniapi_ooniprobe_target_group_arn = module.ooniapi_ooniprobe.alb_target_group_id
+  oonibackend_proxy_target_group_arn    = module.ooni_backendproxy.alb_target_group_id
+  ooniapi_oonirun_target_group_arn      = module.ooniapi_oonirun.alb_target_group_id
+  ooniapi_ooniauth_target_group_arn     = module.ooniapi_ooniauth.alb_target_group_id
+  ooniapi_ooniprobe_target_group_arn    = module.ooniapi_ooniprobe.alb_target_group_id
+  ooniapi_oonifindings_target_group_arn = module.ooniapi_oonifindings.alb_target_group_id
 
   ooniapi_service_security_groups = [
     module.ooniapi_cluster.web_security_group_id
@@ -584,9 +642,9 @@ module "codesigning" {
 module "ansible_controller" {
   source = "../../modules/ansible_controller"
 
-  vpc_id   = module.network.vpc_id
+  vpc_id    = module.network.vpc_id
   subnet_id = module.network.vpc_subnet_public[0].id
-  key_name = module.adm_iam_roles.oonidevops_key_name
+  key_name  = module.adm_iam_roles.oonidevops_key_name
 
   dns_zone_ooni_io = local.dns_zone_ooni_io
 }
