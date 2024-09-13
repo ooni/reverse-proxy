@@ -126,7 +126,7 @@ module "ooniapi_acm_certificate" {
   alias_record_domain_name = aws_alb.ooniapi.dns_name
   alias_record_zone_id     = aws_alb.ooniapi.zone_id
 
-  alternate_domain_name_map = var.alternate_names
+  alternative_domains = var.alternative_domains
 
   tags = var.tags
 }

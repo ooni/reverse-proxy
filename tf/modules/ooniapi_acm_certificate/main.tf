@@ -11,7 +11,7 @@ resource "aws_route53_record" "main" {
 }
 
 resource "aws_route53_record" "alt" {
-  for_each = var.alternate_domain_name_map
+  for_each = var.alternative_domains
 
   name    = each.key
   zone_id = each.value
@@ -30,7 +30,7 @@ resource "aws_acm_certificate" "this" {
 
   tags = var.tags
 
-  subject_alternative_names = [for domain_name, zone_id in var.alternate_domain_name_map : domain_name]
+  subject_alternative_names = [for domain_name, zone_id in var.alternative_domains : domain_name]
 
   lifecycle {
     create_before_destroy = true

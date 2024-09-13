@@ -45,7 +45,7 @@ variable "ooniapi_service_security_groups" {
   type        = list(string)
 }
 
-variable "alternate_names" {
+variable "alternative_domains" {
   type        = map(string)
   description = "map of alternate names for the frontend as a map from domain to zone id"
   default     = {}

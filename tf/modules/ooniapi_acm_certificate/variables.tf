@@ -8,7 +8,7 @@ variable "main_domain_name_zone_id" {
   description = "main domain_name zone_id"
 }
 
-variable "alternate_domain_name_map" {
+variable "alternative_domains" {
   type        = map(string)
   description = "domain_name to zone_id map"
   default     = {}
