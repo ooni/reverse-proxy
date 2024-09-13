@@ -446,6 +446,7 @@ module "ooniapi_oonifindings_deployer" {
 module "ooniapi_oonifindings" {
   source = "../../modules/ooniapi_service"
 
+  first_run          = true
   vpc_id             = module.network.vpc_id
   public_subnet_ids  = module.network.vpc_subnet_public[*].id
   private_subnet_ids = module.network.vpc_subnet_private[*].id
