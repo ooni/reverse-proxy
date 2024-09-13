@@ -19,12 +19,15 @@ variable "oonibackend_proxy_target_group_arn" {
 variable "ooniapi_oonirun_target_group_arn" {
   description = "arn for the target group of the oonirun service"
 }
+
 variable "ooniapi_ooniauth_target_group_arn" {
   description = "arn for the target group of the ooniauth service"
 }
+
 variable "ooniapi_ooniprobe_target_group_arn" {
   description = "arn for the target group of the ooniprobe service"
 }
+
 variable "ooniapi_oonifindings_target_group_arn" {
   description = "arn for the target group of the oonifindings service"
 }
@@ -40,4 +43,10 @@ variable "stage" {
 variable "ooniapi_service_security_groups" {
   description = "the shared web security group from the ecs cluster"
   type        = list(string)
+}
+
+variable "alternate_names" {
+  type        = map(string)
+  description = "map of alternate names for the frontend as a map from domain to zone id"
+  default     = {}
 }

@@ -17,7 +17,7 @@ resource "aws_security_group" "nginx_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  ingress { 
+  ingress {
     protocol    = "tcp"
     from_port   = 9000
     to_port     = 9000
@@ -40,7 +40,7 @@ resource "aws_security_group" "nginx_sg" {
       "0.0.0.0/0",
     ]
   }
-  
+
   egress {
     from_port        = 0
     to_port          = 0
@@ -62,8 +62,8 @@ resource "aws_launch_template" "ooni_backendproxy" {
   key_name      = var.key_name
 
   user_data = base64encode(templatefile("${path.module}/templates/setup-backend-proxy.sh", {
-    backend_url = var.backend_url,
-    clickhouse_url = var.clickhouse_url,
+    backend_url     = var.backend_url,
+    clickhouse_url  = var.clickhouse_url,
     clickhouse_port = var.clickhouse_port
   }))
 
@@ -74,7 +74,7 @@ resource "aws_launch_template" "ooni_backendproxy" {
   network_interfaces {
     delete_on_termination       = true
     associate_public_ip_address = true
-    subnet_id = var.subnet_id
+    subnet_id                   = var.subnet_id
     security_groups = [
       aws_security_group.nginx_sg.id,
     ]
@@ -113,8 +113,8 @@ resource "aws_alb_target_group" "oonibackend_proxy" {
 }
 
 resource "aws_lb_target_group_attachment" "oonibackend_proxy" {
-  target_id = aws_instance.oonibackend_proxy.id
-  target_group_arn    = aws_alb_target_group.oonibackend_proxy.arn
+  target_id        = aws_instance.oonibackend_proxy.id
+  target_group_arn = aws_alb_target_group.oonibackend_proxy.arn
 }
 
 resource "aws_route53_record" "clickhouse_proxy_alias" {
