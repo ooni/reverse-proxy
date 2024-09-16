@@ -560,6 +560,10 @@ module "ooniapi_frontend" {
     module.ooniapi_cluster.web_security_group_id
   ]
 
+  alternative_domains = {
+    # "api-test-alt.dev.ooni.io" : local.dns_zone_ooni_io
+  }
+
   stage            = local.environment
   dns_zone_ooni_io = local.dns_zone_ooni_io
 

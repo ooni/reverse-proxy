@@ -30,14 +30,6 @@ resource "aws_route53_record" "ams-slack-1-ooni-org-_A_" {
   zone_id = local.dns_root_zone_ooni_org
 }
 
-resource "aws_route53_record" "api-ooni-org-_A_" {
-  name    = "api.ooni.org"
-  records = ["142.93.237.101"]
-  ttl     = "1799"
-  type    = "A"
-  zone_id = local.dns_root_zone_ooni_org
-}
-
 resource "aws_route53_record" "backend-fsn-ooni-org-_A_" {
   name    = "backend-fsn.ooni.org"
   records = ["162.55.247.208"]
