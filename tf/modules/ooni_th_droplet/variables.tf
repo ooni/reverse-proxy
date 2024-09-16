@@ -15,3 +15,7 @@ variable "instance_size" {
 variable "droplet_count" {
   default = 1
 }
+
+variable "ssh_keys" {
+  type = list(string)
+}

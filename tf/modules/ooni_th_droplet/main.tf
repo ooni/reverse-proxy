@@ -24,6 +24,8 @@ resource "digitalocean_droplet" "ooni_th" {
   name      = var.name
   region    = var.instance_location
   size      = var.instance_size
+  ipv6      = true
+  ssh_keys  = var.ssh_keys
   user_data = data.cloudinit_config.ooni_th.rendered
   count     = var.droplet_count
 }
