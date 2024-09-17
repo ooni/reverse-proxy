@@ -75,7 +75,15 @@ resource "aws_lb_listener_rule" "ooniapi_oonirun_rule" {
     path_pattern {
       values = ["/api/v2/oonirun/*"]
     }
+
   }
+
+  condition {
+    host_header {
+      values = ["oonirun.${var.direct_domain_suffix}"]
+    }
+  }
+
 }
 
 resource "aws_lb_listener_rule" "ooniapi_ooniauth_rule" {
@@ -98,6 +106,13 @@ resource "aws_lb_listener_rule" "ooniapi_ooniauth_rule" {
       ]
     }
   }
+
+  condition {
+    host_header {
+      values = ["ooniauth.${var.direct_domain_suffix}"]
+    }
+  }
+
 }
 
 resource "aws_lb_listener_rule" "ooniapi_ooniprobe_rule" {
@@ -116,6 +131,13 @@ resource "aws_lb_listener_rule" "ooniapi_ooniprobe_rule" {
       ]
     }
   }
+
+  condition {
+    host_header {
+      values = ["ooniprobe.${var.direct_domain_suffix}"]
+    }
+  }
+
 }
 
 resource "aws_lb_listener_rule" "ooniapi_oonifindings_rule" {
@@ -132,6 +154,13 @@ resource "aws_lb_listener_rule" "ooniapi_oonifindings_rule" {
       values = ["/api/v1/incidents/*"]
     }
   }
+
+  condition {
+    host_header {
+      values = ["oonifindings.${var.direct_domain_suffix}"]
+    }
+  }
+
 }
 
 ## DNS
