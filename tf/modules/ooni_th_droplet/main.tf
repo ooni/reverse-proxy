@@ -31,4 +31,8 @@ resource "digitalocean_droplet" "ooni_th" {
   ssh_keys  = var.ssh_keys
   user_data = data.cloudinit_config.ooni_th.rendered
   count     = var.droplet_count
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
