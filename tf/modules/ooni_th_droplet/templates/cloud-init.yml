@@ -21,22 +21,8 @@ package_update: true
 packages:
   - oohelperd
   - nginx
-  #- unattended-upgrades
 
 write_files:
-  # - path: /etc/apt/apt.conf.d/20auto-upgrades
-  #   content: |
-  #     APT::Periodic::Update-Package-Lists "1";
-  #     APT::Periodic::Unattended-Upgrade "1";
-
-  # - path: /etc/apt/apt.conf.d/50unattended-upgrades
-  #   content: |
-  #     Unattended-Upgrade::Allowed-Origins {
-  #       //"${distro_id} stable";
-  #       "${distro_id} ${distro_codename}-security";
-  #       "${distro_id} ${distro_codename}-updates";
-  #     };
-
   - path: /etc/nginx/sites-available/default
     content: |
       proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=thcache:100M
