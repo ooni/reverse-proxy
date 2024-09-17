@@ -14,8 +14,11 @@ data "cloudinit_config" "ooni_th" {
   part {
     filename     = "init.cfg"
     content_type = "text/cloud-config"
-    content      = file("${path.module}/templates/cloud-init.yml")
-  }
+    content      = templatefile("${path.module}/templates/cloud-init.yml", {
+                      distro_id          = "ubuntu",
+                      distro_codename    = "jammy"
+                   })
+    }
 
 }
 
