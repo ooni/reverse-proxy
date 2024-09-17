@@ -301,11 +301,11 @@ module "ooniapi_cluster" {
   vpc_id     = module.network.vpc_id
   subnet_ids = module.network.vpc_subnet_private[*].id
 
-  asg_min     = 3
+  asg_min     = 2
   asg_max     = 6
-  asg_desired = 3
+  asg_desired = 2
 
-  instance_type = "t3.small"
+  instance_type = "t3.micro"
 
   tags = merge(
     local.tags,
@@ -334,6 +334,9 @@ module "ooniapi_ooniprobe_deployer" {
 
 module "ooniapi_ooniprobe" {
   source = "../../modules/ooniapi_service"
+
+  task_cpu    = 256
+  task_memory = 512
 
   # First run should be set on first run to bootstrap the task definition
   # first_run = true
@@ -386,6 +389,9 @@ module "ooniapi_oonirun_deployer" {
 module "ooniapi_oonirun" {
   source = "../../modules/ooniapi_service"
 
+  task_cpu    = 256
+  task_memory = 512
+
   vpc_id             = module.network.vpc_id
   public_subnet_ids  = module.network.vpc_subnet_public[*].id
   private_subnet_ids = module.network.vpc_subnet_private[*].id
@@ -434,6 +440,9 @@ module "ooniapi_oonifindings_deployer" {
 module "ooniapi_oonifindings" {
   source = "../../modules/ooniapi_service"
 
+  task_cpu    = 256
+  task_memory = 512
+
   vpc_id             = module.network.vpc_id
   public_subnet_ids  = module.network.vpc_subnet_public[*].id
   private_subnet_ids = module.network.vpc_subnet_private[*].id
@@ -481,6 +490,9 @@ module "ooniapi_ooniauth_deployer" {
 
 module "ooniapi_ooniauth" {
   source = "../../modules/ooniapi_service"
+
+  task_cpu    = 256
+  task_memory = 512
 
   vpc_id             = module.network.vpc_id
   public_subnet_ids  = module.network.vpc_subnet_public[*].id
