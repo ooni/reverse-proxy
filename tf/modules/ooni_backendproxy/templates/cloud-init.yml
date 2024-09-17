@@ -43,7 +43,7 @@ write_files:
         upstream clickhouse_backend {
           server ${clickhouse_url}:${clickhouse_port};
         }
-      
+
         server {
           listen 9000;
 
