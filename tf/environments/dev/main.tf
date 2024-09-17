@@ -567,7 +567,7 @@ module "ooniapi_frontend" {
   ]
 
   alternative_domains = {
-    # "api-test-alt.dev.ooni.io" : local.dns_zone_ooni_io
+    "8.th.dev.ooni.io" : local.dns_zone_ooni_io
   }
 
   stage            = local.environment
