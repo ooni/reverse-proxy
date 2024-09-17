@@ -313,26 +313,6 @@ module "ooniapi_cluster" {
   )
 }
 
-module "oonith_cluster" {
-  source = "../../modules/ecs_cluster"
-
-  name       = "oonith-ecs-cluster"
-  key_name   = module.adm_iam_roles.oonidevops_key_name
-  vpc_id     = module.network.vpc_id
-  subnet_ids = module.network.vpc_subnet_private[*].id
-
-  asg_min     = 1
-  asg_max     = 4
-  asg_desired = 1
-
-  instance_type = "t3.small"
-
-  tags = merge(
-    local.tags,
-    { Name = "ooni-tier0-th-ecs-cluster" }
-  )
-}
-
 #### OONI Tier0
 
 #### OONI Probe service
@@ -578,56 +558,5 @@ module "ooniapi_frontend" {
   tags = merge(
     local.tags,
     { Name = "ooni-tier0-api-frontend" }
-  )
-}
-
-#### OONI oohelperd service
-
-module "oonith_oohelperd_deployer" {
-  source = "../../modules/oonith_service_deployer"
-
-  service_name            = "oohelperd"
-  repo                    = "ooni/probe-cli"
-  branch_name             = "master"
-  buildspec_path          = "oonith/buildspec.yml"
-  codestar_connection_arn = aws_codestarconnections_connection.oonidevops.arn
-
-  codepipeline_bucket = aws_s3_bucket.oonith_codepipeline_bucket.bucket
-
-  ecs_service_name = module.oonith_oohelperd.ecs_service_name
-  ecs_cluster_name = module.oonith_cluster.cluster_name
-}
-
-module "oonith_oohelperd" {
-  source = "../../modules/oonith_service"
-
-  vpc_id             = module.network.vpc_id
-  public_subnet_ids  = module.network.vpc_subnet_public[*].id
-  private_subnet_ids = module.network.vpc_subnet_private[*].id
-
-  service_name             = "oohelperd"
-  default_docker_image_url = "ooni/oonith-oohelperd:latest"
-  stage                    = local.environment
-  dns_zone_ooni_io         = local.dns_zone_ooni_io
-  key_name                 = module.adm_iam_roles.oonidevops_key_name
-  ecs_cluster_id           = module.oonith_cluster.cluster_id
-
-  task_secrets = {
-    PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
-  }
-
-  oonith_service_security_groups = [
-    module.oonith_cluster.web_security_group_id
-  ]
-
-  // Note: Since we do not have a dns zone for ooni org, we test on io domains here
-  alternative_names = {
-    "5.th.dev.ooni.io" = local.dns_zone_ooni_io,
-    "6.th.dev.ooni.io" = local.dns_zone_ooni_io,
-  }
-
-  tags = merge(
-    local.tags,
-    { Name = "ooni-tier0-oohelperd" }
   )
 }
