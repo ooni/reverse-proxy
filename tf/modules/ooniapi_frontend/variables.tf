@@ -55,8 +55,3 @@ variable "oonith_domains" {
   type    = list(string)
   default = ["*.th.dev.ooni.io"]
 }
-
-variable "direct_domain_suffix" {
-  type    = string
-  default = "dev.ooni.io"
-}
