@@ -50,3 +50,8 @@ variable "alternative_domains" {
   description = "map of alternate names for the frontend as a map from domain to zone id"
   default     = {}
 }
+
+variable "oonith_domains" {
+  type    = list(string)
+  default = ["*.th.dev.ooni.io"]
+}

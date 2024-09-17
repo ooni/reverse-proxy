@@ -43,6 +43,25 @@ resource "aws_alb_listener" "ooniapi_listener_https" {
   tags = var.tags
 }
 
+resource "aws_alb_listener_rule" "ooniapi_th" {
+  listener_arn = aws_alb_listener.ooniapi_listener_https.arn
+  priority     = 90
+
+  action {
+    type             = "forward"
+    target_group_arn = var.oonibackend_proxy_target_group_arn
+  }
+
+  condition {
+    host_header {
+      values = var.oonith_domains
+    }
+  }
+
+  tags = var.tags
+}
+
+
 resource "aws_lb_listener_rule" "ooniapi_oonirun_rule" {
   listener_arn = aws_alb_listener.ooniapi_listener_https.arn
   priority     = 100
