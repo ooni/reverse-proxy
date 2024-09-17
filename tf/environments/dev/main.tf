@@ -281,7 +281,7 @@ module "ooni_backendproxy" {
 
   backend_url        = "https://backend-hel.ooni.org/"
   wcth_addresses     = module.ooni_th_droplet.droplet_ipv4_address
-  wcth_domain_suffix = "th.ooni.dev.io"
+  wcth_domain_suffix = "th.dev.ooni.io"
   clickhouse_url     = "backend-fsn.ooni.org"
   clickhouse_port    = "9000"
 
