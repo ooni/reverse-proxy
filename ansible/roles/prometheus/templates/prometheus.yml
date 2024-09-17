@@ -113,7 +113,6 @@ scrape_configs:
         - ooniauth.api.prod.ooni.io
         - oonirun.api.prod.ooni.io
         - ooniprobe.api.prod.ooni.io
-        - oohelperd.th.prod.ooni.io
 
 
   - job_name: 'ooni-web'
