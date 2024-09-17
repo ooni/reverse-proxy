@@ -69,6 +69,8 @@ data "cloudinit_config" "ooni_backendproxy" {
     filename     = "init.cfg"
     content_type = "text/cloud-config"
     content = templatefile("${path.module}/templates/cloud-init.yml", {
+      distro_id          = "ubuntu",
+      distro_codename    = "noble",
       wcth_addresses     = var.wcth_addresses,
       wcth_domain_suffix = var.wcth_domain_suffix,
       backend_url        = var.backend_url,
