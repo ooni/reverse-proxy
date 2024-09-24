@@ -51,7 +51,6 @@ write_files:
             proxy_cache_valid 200 10m;
             proxy_cache_valid any 0;
             add_header X-Cache-Status $upstream_cache_status;
-
         }
       }
 
