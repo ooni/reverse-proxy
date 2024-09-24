@@ -34,3 +34,7 @@ variable "deployer_key" {
 variable "metrics_password" {
   type = string
 }
+
+variable "dns_zone_ooni_io" {
+  type = string
+}

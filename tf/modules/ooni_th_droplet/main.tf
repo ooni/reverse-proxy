@@ -66,3 +66,13 @@ resource "digitalocean_droplet" "ooni_th_docker" {
     create_before_destroy = true
   }
 }
+resource "aws_route53_record" "ooni_th" {
+  zone_id = var.dns_zone_ooni_io
+  name    = "${each.key}.do.th.${var.stage}.ooni.io"
+  type    = "A"
+  ttl     = 300
+  for_each = {
+    for d in digitalocean_droplet.ooni_th_docker : reverse(split("-", d.name))[0] => d.ipv4_address
+  }
+  records = [each.value]
+}
