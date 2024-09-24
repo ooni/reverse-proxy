@@ -72,6 +72,7 @@ packages:
   - containerd.io
   - docker-buildx-plugin
   - docker-compose-plugin
+  - prometheus-node-exporter
   - nginx
 
 users:
@@ -111,6 +112,15 @@ write_files:
         server_name _;
         gzip on;
         resolver 127.0.0.1;
+
+        # test helper metrics
+        location / {
+          allow ${monitoring_ip};
+          deny all;
+
+          proxy_pass http://127.0.0.1:8080;
+        }
+
         # local test helper
         location / {
             proxy_set_header X-Forwarded-Proto $scheme;
@@ -130,6 +140,7 @@ write_files:
             proxy_cache_valid any 0;
             add_header X-Cache-Status $upstream_cache_status;
         }
+      }
 
       server {
         listen 9001;
@@ -139,7 +150,7 @@ write_files:
         deny all;
 
         location = /metrics {
-          proxy_pass http://127.0.0.1:9091;
+          proxy_pass http://127.0.0.1:9100;
         }
       }
 
@@ -149,6 +160,7 @@ runcmd:
   - ufw allow 2222/tcp
   - ufw allow 80/tcp
   - ufw allow 443/tcp
-  - ufw allow from ${monitoring_ip} proto tcp to any port 443
+  - ufw allow from ${monitoring_ip} proto tcp to any port 9001
   - ufw enable
   - service nginx restart
+  - docker run -d -e PROMETHEUS_METRICS_PASSWORD='${metrics_password}' -p 80:80 --restart unless-stopped --name oonith ooni/oonith-oohelperd:latest

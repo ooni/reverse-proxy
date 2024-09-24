@@ -30,3 +30,7 @@ variable "ssh_keys" {
 variable "deployer_key" {
   type = string
 }
+
+variable "metrics_password" {
+  type = string
+}

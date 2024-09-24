@@ -261,6 +261,8 @@ module "ooni_th_droplet" {
   instance_location = "fra1"
   instance_size     = "s-1vcpu-1gb"
   droplet_count     = 2
+  deployer_key      = module.adm_iam_roles.oonidevops_ssh_public_key
+  metrics_password  = random_password.prometheus_metrics_password.result
   ssh_keys = [
     "3d:81:99:17:b5:d1:20:a5:fe:2b:14:96:67:93:d6:34",
     "f6:4b:8b:e2:0e:d2:97:c5:45:5c:07:a6:fe:54:60:0e"
