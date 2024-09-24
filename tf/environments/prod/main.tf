@@ -208,6 +208,9 @@ resource "aws_secretsmanager_secret_version" "prometheus_metrics_password" {
   secret_string = random_password.prometheus_metrics_password.result
 }
 
+data "aws_secretsmanager_secret_version" "prometheus_metrics_password" {
+  secret_id = aws_secretsmanager_secret.prometheus_metrics_password.id
+}
 
 resource "aws_secretsmanager_secret" "oonipg_url" {
   name = "oonidevops/ooni-tier0-postgres/postgresql_url"
@@ -236,6 +239,10 @@ resource "aws_s3_bucket" "oonith_codepipeline_bucket" {
   bucket = "codepipeline-oonith-${var.aws_region}-${random_id.artifact_id.hex}"
 }
 
+data "aws_secretsmanager_secret_version" "deploy_key" {
+  secret_id = module.adm_iam_roles.oonidevops_deploy_key_arn
+}
+
 # The aws_codestarconnections_connection resource is created in the state
 # PENDING. Authentication with the connection provider must be completed in the
 # AWS Console.
@@ -261,8 +268,8 @@ module "ooni_th_droplet" {
   instance_location = "fra1"
   instance_size     = "s-1vcpu-1gb"
   droplet_count     = 2
-  deployer_key      = module.adm_iam_roles.oonidevops_ssh_public_key
-  metrics_password  = random_password.prometheus_metrics_password.result
+  deployer_key      = jsondecode(data.aws_secretsmanager_secret_version.deploy_key.secret_string)["public_key"]
+  metrics_password  = data.aws_secretsmanager_secret_version.prometheus_metrics_password.secret_string
   ssh_keys = [
     "3d:81:99:17:b5:d1:20:a5:fe:2b:14:96:67:93:d6:34",
     "f6:4b:8b:e2:0e:d2:97:c5:45:5c:07:a6:fe:54:60:0e"
