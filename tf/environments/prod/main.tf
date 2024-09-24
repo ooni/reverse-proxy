@@ -278,8 +278,8 @@ module "ooni_backendproxy" {
   dns_zone_ooni_io    = local.dns_zone_ooni_io
 
   key_name      = module.adm_iam_roles.oonidevops_key_name
-  instance_type = "t2.micro"
-  
+  instance_type = "t3.micro"
+
   backend_url        = "https://backend-fsn.ooni.org/"
   wcth_addresses     = module.ooni_th_droplet.droplet_ipv4_address
   wcth_domain_suffix = "th.ooni.org"
@@ -577,12 +577,12 @@ module "ooniapi_frontend" {
   ]
 
   alternative_domains = {
-    "api.ooni.org"  : local.dns_root_zone_ooni_org
+    "api.ooni.org" : local.dns_root_zone_ooni_org
     "5.th.ooni.org" : local.dns_root_zone_ooni_org,
   }
 
   oonith_domains = ["5.th.ooni.org"]
-  
+
   stage            = local.environment
   dns_zone_ooni_io = local.dns_zone_ooni_io
 
