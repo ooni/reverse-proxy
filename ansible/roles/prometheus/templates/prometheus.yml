@@ -116,7 +116,6 @@ scrape_configs:
         - oonirun.prod.ooni.io
         - ooniprobe.prod.ooni.io
 
-
   - job_name: 'ooni-web'
     scrape_interval: 5m
     scheme: https
