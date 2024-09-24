@@ -162,4 +162,5 @@ runcmd:
   - ufw allow from ${monitoring_ip} proto tcp to any port 9001
   - ufw enable
   - service nginx restart
-  - docker run -d -e PROMETHEUS_METRICS_PASSWORD='${metrics_password}' -p 80:80 --restart unless-stopped --name oonith ooni/oonith-oohelperd:latest
+  - docker container rm -f oonith
+  - docker run -d -e PROMETHEUS_METRICS_PASSWORD='${metrics_password}' -p 8080:80 --restart unless-stopped --name oonith ooni/oonith-oohelperd:latest
