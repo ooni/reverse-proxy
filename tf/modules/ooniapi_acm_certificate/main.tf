@@ -30,7 +30,7 @@ resource "aws_acm_certificate" "this" {
 
   tags = var.tags
 
-  subject_alternative_names = [for domain_name, zone_id in var.alternative_domains : domain_name]
+  subject_alternative_names = keys(var.alternative_domains)
 
   lifecycle {
     create_before_destroy = true
@@ -40,9 +40,10 @@ resource "aws_acm_certificate" "this" {
 resource "aws_route53_record" "cert_validation" {
   for_each = {
     for dvo in aws_acm_certificate.this.domain_validation_options : dvo.domain_name => {
-      name   = dvo.resource_record_name
-      record = dvo.resource_record_value
-      type   = dvo.resource_record_type
+      name        = dvo.resource_record_name
+      record      = dvo.resource_record_value
+      type        = dvo.resource_record_type
+      domain_name = dvo.domain_name
     }
   }
 
@@ -51,7 +52,7 @@ resource "aws_route53_record" "cert_validation" {
   records         = [each.value.record]
   ttl             = 60
   type            = each.value.type
-  zone_id         = var.main_domain_name_zone_id
+  zone_id         = lookup(var.alternative_domains, each.value.domain_name, var.main_domain_name_zone_id)
 }
 
 resource "aws_acm_certificate_validation" "this" {
