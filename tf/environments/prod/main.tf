@@ -254,23 +254,37 @@ moved {
 
 ### OONI Tier0 Backend Proxy
 
+module "ooni_th_droplet" {
+  source = "../../modules/ooni_th_droplet"
+
+  stage             = local.environment
+  instance_location = "fra1"
+  instance_size     = "s-1vcpu-1gb"
+  droplet_count     = 2
+  ssh_keys = [
+    "3d:81:99:17:b5:d1:20:a5:fe:2b:14:96:67:93:d6:34",
+    "f6:4b:8b:e2:0e:d2:97:c5:45:5c:07:a6:fe:54:60:0e"
+  ]
+}
+
 module "ooni_backendproxy" {
   source = "../../modules/ooni_backendproxy"
 
   stage = local.environment
 
-  vpc_id    = module.network.vpc_id
-  subnet_id = module.network.vpc_subnet_public[0].id
-
+  vpc_id              = module.network.vpc_id
+  subnet_id           = module.network.vpc_subnet_public[0].id
   private_subnet_cidr = module.network.vpc_subnet_private[*].cidr_block
   dns_zone_ooni_io    = local.dns_zone_ooni_io
 
   key_name      = module.adm_iam_roles.oonidevops_key_name
   instance_type = "t2.micro"
-
-  backend_url     = "https://backend-fsn.ooni.org/"
-  clickhouse_url  = "backend-fsn.ooni.org"
-  clickhouse_port = "9000"
+  
+  backend_url        = "https://backend-fsn.ooni.org/"
+  wcth_addresses     = module.ooni_th_droplet.droplet_ipv4_address
+  wcth_domain_suffix = "th.ooni.org"
+  clickhouse_url     = "backend-fsn.ooni.org"
+  clickhouse_port    = "9000"
 
   tags = merge(
     local.tags,
@@ -563,9 +577,12 @@ module "ooniapi_frontend" {
   ]
 
   alternative_domains = {
-    "api.ooni.org" : local.dns_root_zone_ooni_org
+    "api.ooni.org"  : local.dns_root_zone_ooni_org
+    "5.th.ooni.org" : local.dns_root_zone_ooni_org,
   }
 
+  oonith_domains = ["5.th.ooni.org"]
+  
   stage            = local.environment
   dns_zone_ooni_io = local.dns_zone_ooni_io
 
