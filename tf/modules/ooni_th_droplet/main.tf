@@ -45,8 +45,9 @@ data "cloudinit_config" "ooni_th_docker" {
     filename     = "init.cfg"
     content_type = "text/cloud-config"
     content = templatefile("${path.module}/templates/cloud-init-docker.yml", {
-      monitoring_ip = "5.9.112.244",
-      deployer_key  = var.deployer_key
+      monitoring_ip    = "5.9.112.244",
+      deployer_key     = var.deployer_key,
+      metrics_password = var.metrics_password,
     })
   }
 }
@@ -59,7 +60,7 @@ resource "digitalocean_droplet" "ooni_th_docker" {
   ipv6      = true
   ssh_keys  = var.ssh_keys
   user_data = data.cloudinit_config.ooni_th_docker.rendered
-  count     = var.droplet_count
+  count     = 1
 
   lifecycle {
     create_before_destroy = true
