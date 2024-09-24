@@ -26,3 +26,7 @@ variable "droplet_count" {
 variable "ssh_keys" {
   type = list(string)
 }
+
+variable "deployer_key" {
+  type = string
+}
