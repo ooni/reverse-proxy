@@ -240,7 +240,8 @@ resource "aws_s3_bucket" "oonith_codepipeline_bucket" {
 }
 
 data "aws_secretsmanager_secret_version" "deploy_key" {
-  secret_id = module.adm_iam_roles.oonidevops_deploy_key_arn
+  secret_id  = module.adm_iam_roles.oonidevops_deploy_key_arn
+  depends_on = [module.adm_iam_roles]
 }
 
 # The aws_codestarconnections_connection resource is created in the state
