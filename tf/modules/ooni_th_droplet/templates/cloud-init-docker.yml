@@ -94,7 +94,6 @@ write_files:
       KbdInteractiveAuthentication no
       UsePAM yes
       PubkeyAuthentication yes
-      RSAAuthentication yes
       X11Forwarding no
       PrintMotd no
       AcceptEnv LANG LC_*
