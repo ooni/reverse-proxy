@@ -99,6 +99,13 @@ write_files:
       AcceptEnv LANG LC_*
       AllowUsers deployer
 
+  - path: /etc/docker/daemon.json
+    content: |
+    {
+      "ipv6": true,
+      "fixed-cidr-v6": "2001:db8:1::/64"
+    }
+
   - path: /etc/nginx/sites-available/default
     content: |
       proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=thcache:100M
@@ -155,6 +162,7 @@ write_files:
 runcmd:
   - sshd -t
   - systemctl restart sshd
+  - systemctl restart docker
   - ufw default deny incoming
   - ufw default allow outgoing
   - ufw allow 22/tcp
