@@ -116,6 +116,18 @@ scrape_configs:
         - oonirun.prod.ooni.io
         - ooniprobe.prod.ooni.io
 
+  - job_name: 'oonith-prod'
+    scrape_interval: 5s
+    scheme: https
+    metrics_path: "/metrics"
+    basic_auth:
+      username: 'prom'
+      password: '{{ prometheus_metrics_password_prod }}'
+    static_configs:
+      - targets:
+        - 0.do.th.prod.ooni.io:9001
+        - 0.do.th.prod.ooni.io
+
   - job_name: 'ooni-web'
     scrape_interval: 5m
     scheme: https

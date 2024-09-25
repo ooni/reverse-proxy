@@ -110,7 +110,7 @@ write_files:
         gzip on;
         resolver 127.0.0.1;
 
-        # test helper metrics
+        # test helper application metrics
         location /metrics {
           allow ${monitoring_ip};
           deny all;
@@ -146,6 +146,7 @@ write_files:
         allow ${monitoring_ip};
         deny all;
 
+        # Metrics from node_exporter
         location = /metrics {
           proxy_pass http://127.0.0.1:9100;
         }
