@@ -118,7 +118,7 @@ scrape_configs:
 
   - job_name: 'oonith-prod'
     scrape_interval: 5s
-    scheme: https
+    scheme: http
     metrics_path: "/metrics"
     basic_auth:
       username: 'prom'
