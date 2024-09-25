@@ -60,7 +60,7 @@ resource "digitalocean_droplet" "ooni_th_docker" {
   ipv6      = true
   ssh_keys  = var.ssh_keys
   user_data = data.cloudinit_config.ooni_th_docker.rendered
-  count     = 1
+  count     = var.droplet_count
 
   lifecycle {
     create_before_destroy = true

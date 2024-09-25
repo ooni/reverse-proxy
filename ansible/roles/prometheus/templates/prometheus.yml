@@ -127,6 +127,8 @@ scrape_configs:
       - targets:
         - 0.do.th.prod.ooni.io:9001
         - 0.do.th.prod.ooni.io
+        - 1.do.th.prod.ooni.io:9001
+        - 1.do.th.prod.ooni.io
 
   - job_name: 'ooni-web'
     scrape_interval: 5m
