@@ -1,8 +1,12 @@
 ---
-- include_tasks: jupyterhub.yml
+- ansible.builtin.import_tasks: jupyterhub.yml
+  tags:
+    - jupyterhub
 
-- include_role:
+- ansible.builtin.include_role:
     name: geerlingguy.certbot
+  tags:
+    - certbot
   vars:
     certbot_admin_email: admin@ooni.org
     certbot_create_if_missing: true

@@ -7,6 +7,14 @@
   ansible.builtin.shell:
     cmd: "{{ miniconda_install_dir }}/bin/conda install -y jupyterlab notebook"
 
+- name: Create jupyterhub directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - "{{ jupyterhub_config_dir }}"
+    - "{{ jupyterhub_runtime_dir }}"
+
 - name: Write jupyterhub config
   ansible.builtin.template:
     src: jupyterhub_config.py.j2
