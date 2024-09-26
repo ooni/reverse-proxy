@@ -268,7 +268,7 @@ module "ooni_th_droplet" {
   stage             = local.environment
   instance_location = "fra1"
   instance_size     = "s-1vcpu-1gb"
-  droplet_count     = 2
+  droplet_count     = 3
   deployer_key      = jsondecode(data.aws_secretsmanager_secret_version.deploy_key.secret_string)["public_key"]
   metrics_password  = data.aws_secretsmanager_secret_version.prometheus_metrics_password.secret_string
   ssh_keys = [
