@@ -82,8 +82,6 @@ resource "aws_lb_listener_rule" "ooniapi_ooniauth_rule" {
       ]
     }
   }
-
-
 }
 
 resource "aws_lb_listener_rule" "ooniapi_ooniauth_rule_host" {
@@ -201,7 +199,6 @@ resource "aws_lb_listener_rule" "ooniapi_oonifindings_rule_host" {
       values = ["oonifindings.${local.direct_domain_suffix}"]
     }
   }
-
 }
 
 ## DNS
