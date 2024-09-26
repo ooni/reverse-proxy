@@ -1,0 +1,12 @@
+---
+- include_tasks: jupyterhub.yml
+  become: yes
+
+- include_role: geerlingguy.nginx
+  vars:
+    certbot_admin_email: admin@ooni.org
+    certbot_create_if_missing: true
+    certbot_create_standalone_stop_services: []
+    certbot_certs:
+      - domains:
+          - {{ inventory_name }}

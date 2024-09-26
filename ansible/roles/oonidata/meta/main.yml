@@ -1,0 +1,5 @@
+dependencies:
+  - role: miniconda
+    vars:
+      miniconda_install_dir: "{{ miniconda_install_dir }}"
+  - role: nginx

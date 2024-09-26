@@ -1,0 +1,23 @@
+---
+- name: Check if Miniconda is installed
+  ansible.builtin.stat:
+    path: "{{ miniconda_install_dir }}/bin/conda"
+  register: miniconda_bin
+
+- name: Create miniconda user
+  become: yes
+  ansible.builtin.user:
+    name: miniconda
+    create_home: no
+
+- include_tasks: install.yml
+  become: yes
+  when: not miniconda_bin.stat.exists
+
+- name: "install conda packages"
+  ansible.builtin.shell:
+    cmd: "{{ miniconda_install_dir }}/bin/conda install {{ item }}"
+  loop:
+    - pandas
+    - numpy
+    - altair

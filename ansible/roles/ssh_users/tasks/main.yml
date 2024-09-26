@@ -81,7 +81,7 @@
     state: absent
 
 - name: configure sshd
-  include_role: 
+  include_role:
     name: willshersystems.sshd
   vars:
     sshd_skip_defaults: false
