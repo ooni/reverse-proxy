@@ -1,22 +1,17 @@
 ---
 - name: "install jupyterhub"
-  become: yes
-  become_user: miniconda
   ansible.builtin.shell:
-    cmd: "{{ miniconda_install_dir }}/bin/conda install -c conda-forge jupyterhub"
+    cmd: "{{ miniconda_install_dir }}/bin/conda install -c conda-forge -y jupyterhub"
 
 - name: "install jupyterlab and notebook"
-  become: yes
-  become_user: miniconda
   ansible.builtin.shell:
-    cmd: "{{ miniconda_install_dir }}/bin/conda install jupyterlab notebook"
+    cmd: "{{ miniconda_install_dir }}/bin/conda install -y jupyterlab notebook"
 
 - name: Write jupyterhub config
   ansible.builtin.template:
     src: jupyterhub_config.py.j2
     dest: "{{ jupyterhub_config_dir }}/config.py"
     owner: root
-    group: {{ admin_group }}
     mode: "0640"
   notify:
     - Restart jupyterhub

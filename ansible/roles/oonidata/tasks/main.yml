@@ -10,3 +10,60 @@
     certbot_certs:
       - domains:
           - "{{ inventory_name }}"
+
+- name: create oonipipeline user
+  ansible.builtin.user:
+    name: oonipipeline
+    state: present
+    shell: /bin/false
+    createhome: no
+
+- name: create pipeline configuration
+  ansible.builtin.file:
+    path: "/etc/ooni/pipeline/"
+    state: directory
+    owner: oonipipeline
+
+- name: create pipeline configuration
+  ansible.builtin.file:
+    path: "{{ oonipipeline_runtime_dir }}"
+    state: directory
+    owner: oonipipeline
+
+- name: copy configuration files
+  ansible.builtin.copy:
+    content: "{{ lookup('amazon.aws.aws_secret', 'oonidevops/{{ item }}', profile='oonidevops_user_prod') }}"
+    dest: /etc/ooni/pipeline/{{item}}
+    owner: oonipipeline
+    mode: "0600"
+  loop:
+    - ooni-pipeline.uuhzf.crt
+    - ooni-pipeline.uuhzf.key
+
+- name: write oonipipeline configuration
+  ansible.builtin.template:
+    src: oonipipeline-config.toml.j2
+    dest: /etc/ooni/pipeline/oonipipeline-config.toml
+    owner: oonipipeline
+    mode: "0600"
+
+- name: Install OONI pipeline from pip
+  ansible.builtin.shell:
+    cmd: "{{ miniconda_install_dir }}/bin/pip install -e 'git+https://github.com/ooni/data#egg=oonipipeline&subdirectory=oonipipeline'"
+
+- name: Write oonipipeline service
+  ansible.builtin.template:
+    src: oonipipeline-worker.service.j2
+    dest: "/etc/systemd/system/oonipipeline-worker.service"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Restart oonipipeline-worker
+
+- name: Ensure the OONI pipeline worker service is started with daemon-reload
+  ansible.builtin.systemd:
+    name: oonipipeline-worker
+    state: started
+    enabled: true
+    daemon_reload: true

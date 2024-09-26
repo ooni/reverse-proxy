@@ -4,7 +4,7 @@
     path: "{{ miniconda_install_dir }}"
     state: directory
     owner: miniconda
-    group: "{{ admin_group }}"
+    group: "{{ admin_group_name }}"
 
 - name: Download the miniconda installer
   ansible.builtin.get_url:

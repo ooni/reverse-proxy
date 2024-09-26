@@ -1,4 +1,5 @@
 miniconda_install_dir: /opt/miniconda
 jupyterhub_config_dir: /etc/jupyterhub
 jupyterhub_runtime_dir: /srv/jupyterhub
-admin_group: adm
+oonipipeline_runtime_dir: /srv/oonipipeline
+admin_group_name: admin

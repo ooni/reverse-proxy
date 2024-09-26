@@ -9,7 +9,7 @@
 
 - name: "install conda packages"
   ansible.builtin.shell:
-    cmd: "{{ miniconda_install_dir }}/bin/conda install {{ item }}"
+    cmd: "{{ miniconda_install_dir }}/bin/conda install -y {{ item }}"
   loop:
     - pandas
     - numpy

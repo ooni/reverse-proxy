@@ -3,3 +3,8 @@
     name: jupyterhub
     state: restarted
     daemon_reload: true
+- name: Restart oonipipeline-worker
+  ansible.builtin.systemd_service:
+    name: oonipipeline-worker
+    state: restarted
+    daemon_reload: true
