@@ -36,6 +36,12 @@
   roles:
     - ssh_users
 
+- name: Deploy oonidata hosts
+  hosts: oonidatatest.ooni.nu
+  become: true
+  roles:
+    - oonidata
+
 # commented out due to the fact it requires manual config of ~/.ssh/config
 #- name: Setup codesign box
 #  hosts: codesign-box

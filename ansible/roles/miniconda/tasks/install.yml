@@ -14,7 +14,6 @@
     mode: "0700"
 
 - name: Run the miniconda installer
-  become_user: miniconda
   ansible.builtin.shell: |
     bash {{ miniconda_install_dir }}/miniconda.sh -b -u -p {{ miniconda_install_dir }}
 
