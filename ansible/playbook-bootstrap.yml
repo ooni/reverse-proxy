@@ -1,8 +1,7 @@
 # This playbook is to be run on hosts that don't support bootstrapping the base
 # OS setup with something other than ansible (eg. cloud-init)
-- name: Ensure ssh_users are synched on all hosts
+- name: Bootstrap the ssh_users on target host
   hosts: all
-  #remote_user: root
-  become: yes
+  remote_user: root
   roles:
-    - bootstrap
+    - ssh_users

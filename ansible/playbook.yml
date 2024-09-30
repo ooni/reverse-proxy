@@ -1,4 +1,10 @@
 ---
+- name: Ensure all hosts are bootstrapped correctly
+  hosts: all
+  become: root
+  roles:
+    - bootstrap
+
 - name: ClickHouse servers
   hosts: clickhouse_servers
   user: admin
@@ -41,7 +47,6 @@
   become: true
   roles:
     - oonidata
-
 # commented out due to the fact it requires manual config of ~/.ssh/config
 #- name: Setup codesign box
 #  hosts: codesign-box
