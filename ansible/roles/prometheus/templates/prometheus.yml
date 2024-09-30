@@ -99,9 +99,6 @@ scrape_configs:
       password: '{{ prometheus_metrics_password_dev }}'
     static_configs:
       - targets:
-        - ooniauth.api.dev.ooni.io
-        - oonirun.api.dev.ooni.io
-        - ooniprobe.api.dev.ooni.io
         - oohelperd.th.dev.ooni.io
 
   - job_name: 'ooniapi-services-prod'
