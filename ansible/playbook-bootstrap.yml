@@ -2,6 +2,7 @@
 # OS setup with something other than ansible (eg. cloud-init)
 - name: Ensure ssh_users are synched on all hosts
   hosts: all
-  remote_user: root
+  #remote_user: root
+  become: yes
   roles:
-    - ssh_users
+    - bootstrap

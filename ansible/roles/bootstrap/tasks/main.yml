@@ -1,0 +1,40 @@
+- name: Set the hostname to inventory_hostname
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: Install common packages
+  ansible.builtin.apt:
+    name:
+      - bash-completion
+      - ca-certificates
+      - curl
+      - file
+      - git
+      - htop
+      - iotop
+      - lsof
+      - lvm2
+      - man-db
+      - mtr
+      - net-tools
+      - openssl
+      - python3-passlib
+      - rsync
+      - screen
+      - strace
+      - tcpdump
+      - tmux
+      - vim
+    state: latest
+    update_cache: yes
+    install_recommends: no
+
+- ansible.builtin.include_role:
+    name: nftables
+  tags:
+    - nftables
+
+- ansible.builtin.include_role:
+    name: prometheus_node_exporter
+  tags:
+    - node_exporter
