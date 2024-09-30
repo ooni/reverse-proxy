@@ -25,6 +25,13 @@
   tags:
     - nginx
 
+- name: Create nginx sites directory
+  ansible.builtin.file:
+    path: "/etc/nginx/sites-enabled/"
+    state: directory
+  tags:
+    - nginx
+
 - name: set nginx.conf
   template: src=nginx.conf dest=/etc/nginx/nginx.conf mode=0444
   notify: reload nginx

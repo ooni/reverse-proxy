@@ -2,19 +2,27 @@
 - name: Install jupyterhub
   ansible.builtin.shell:
     cmd: "{{ miniconda_install_dir }}/bin/conda install -c conda-forge -y jupyterhub"
+  tags:
+    - jupyterhub
 
 - name: Install jupyterlab and notebook
   ansible.builtin.shell:
     cmd: "{{ miniconda_install_dir }}/bin/conda install -y jupyterlab notebook"
+  tags:
+    - jupyterhub
 
 - name: Install jupyterhub packages
   ansible.builtin.apt:
     name:
       - npm
+  tags:
+    - jupyterhub
 
 - name: Install configurable-http-proxy
   ansible.builtin.shell:
     cmd: "npm install -g configurable-http-proxy"
+  tags:
+    - jupyterhub
 
 - name: Create jupyterhub directories
   ansible.builtin.file:
@@ -24,6 +32,8 @@
     - "{{ jupyterhub_config_dir }}"
     - "{{ jupyterhub_runtime_dir }}"
     - "{{ jupyterhub_runtime_dir }}/state"
+  tags:
+    - jupyterhub
 
 - name: Write jupyterhub config
   ansible.builtin.template:
@@ -33,6 +43,9 @@
     mode: "0640"
   notify:
     - Restart jupyterhub
+  tags:
+    - jupyterhub
+    - config
 
 - name: Write jupyterhub service
   ansible.builtin.template:
@@ -43,13 +56,27 @@
     mode: "0644"
   notify:
     - Restart jupyterhub
+  tags:
+    - jupyterhub
 
 - name: Ensure the JupyterHub service is started with daemon-reload
-  become: true
-  tags:
-    - config
   ansible.builtin.systemd:
     name: jupyterhub
     state: started
     enabled: true
     daemon_reload: true
+  tags:
+    - jupyterhub
+    - config
+
+- name: Setup oonidata nginx config
+  ansible.builtin.template:
+    src: nginx-jupyterhub.j2
+    dest: /etc/nginx/sites-enabled/01-jupyterhub
+    owner: oonipipeline
+    mode: "0655"
+  notify:
+    - Reload nginx
+  tags:
+    - jupyterhub
+    - config
