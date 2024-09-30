@@ -1,4 +1,0 @@
-dependencies:
-  - role: miniconda
-  - role: nginx
-  - role: clickhouse

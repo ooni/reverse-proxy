@@ -10,7 +10,7 @@ PrivateDevices=yes
 ProtectKernelTunables=yes
 ProtectKernelModules=yes
 Environment="CONFIG_FILE=/etc/ooni/pipeline/oonipipeline-config.toml"
-ExecStart={{ miniconda_install_dir }}/bin/python -m oonipipeline startworkers
+ExecStart={{ miniconda_install_dir }}/bin/python -m oonipipeline.main startworkers
 
 [Install]
 # Start service when system boots

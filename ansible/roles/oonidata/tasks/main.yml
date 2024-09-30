@@ -1,7 +1,17 @@
 ---
+- ansible.builtin.include_role:
+    name: miniconda
+  tags:
+    - conda
+
 - ansible.builtin.import_tasks: jupyterhub.yml
   tags:
     - jupyterhub
+
+- ansible.builtin.include_role:
+    name: nginx
+  tags:
+    - nginx
 
 - ansible.builtin.include_role:
     name: geerlingguy.certbot
@@ -9,11 +19,22 @@
     - certbot
   vars:
     certbot_admin_email: admin@ooni.org
+    certbot_create_extra_args: ""
     certbot_create_if_missing: true
-    certbot_create_standalone_stop_services: []
+    certbot_create_standalone_stop_services:
+      - nginx
     certbot_certs:
       - domains:
-          - "{{ inventory_name }}"
+          - "{{ inventory_hostname }}"
+
+- name: Install oonipipeline requirements
+  ansible.builtin.apt:
+    name:
+      - net-tools
+      - curl
+      - git
+  tags:
+    - oonipipeline
 
 - name: create oonipipeline user
   ansible.builtin.user:
@@ -21,18 +42,24 @@
     state: present
     shell: /bin/false
     createhome: no
+  tags:
+    - oonipipeline
 
 - name: create pipeline configuration
   ansible.builtin.file:
     path: "/etc/ooni/pipeline/"
     state: directory
     owner: oonipipeline
+  tags:
+    - oonipipeline
 
 - name: create pipeline configuration
   ansible.builtin.file:
     path: "{{ oonipipeline_runtime_dir }}"
     state: directory
     owner: oonipipeline
+  tags:
+    - oonipipeline
 
 - name: copy configuration files
   ansible.builtin.copy:
@@ -43,6 +70,8 @@
   loop:
     - ooni-pipeline.uuhzf.crt
     - ooni-pipeline.uuhzf.key
+  tags:
+    - oonipipeline
 
 - name: write oonipipeline configuration
   ansible.builtin.template:
@@ -50,10 +79,14 @@
     dest: /etc/ooni/pipeline/oonipipeline-config.toml
     owner: oonipipeline
     mode: "0600"
+  tags:
+    - oonipipeline
 
 - name: Install OONI pipeline from pip
   ansible.builtin.shell:
     cmd: "{{ miniconda_install_dir }}/bin/pip install -e 'git+https://github.com/ooni/data#egg=oonipipeline&subdirectory=oonipipeline'"
+  tags:
+    - oonipipeline
 
 - name: Write oonipipeline service
   ansible.builtin.template:
@@ -64,6 +97,8 @@
     mode: "0644"
   notify:
     - Restart oonipipeline-worker
+  tags:
+    - oonipipeline
 
 - name: Ensure the OONI pipeline worker service is started with daemon-reload
   ansible.builtin.systemd:
@@ -71,3 +106,23 @@
     state: started
     enabled: true
     daemon_reload: true
+  tags:
+    - oonipipeline
+
+- name: Create nginx sites directory
+  ansible.builtin.file:
+    path: "/etc/nginx/sites-enabled/"
+    state: directory
+  tags:
+    - oonipipeline
+
+- name: Setup oonidata nginx config
+  ansible.builtin.template:
+    src: nginx-oonidata.j2
+    dest: /etc/nginx/sites-enabled/01-oonidata
+    owner: oonipipeline
+    mode: "0655"
+  notify:
+    - Reload nginx
+  tags:
+    - oonipipeline

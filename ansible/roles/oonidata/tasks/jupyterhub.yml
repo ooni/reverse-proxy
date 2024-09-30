@@ -1,11 +1,20 @@
 ---
-- name: "install jupyterhub"
+- name: Install jupyterhub
   ansible.builtin.shell:
     cmd: "{{ miniconda_install_dir }}/bin/conda install -c conda-forge -y jupyterhub"
 
-- name: "install jupyterlab and notebook"
+- name: Install jupyterlab and notebook
   ansible.builtin.shell:
     cmd: "{{ miniconda_install_dir }}/bin/conda install -y jupyterlab notebook"
+
+- name: Install jupyterhub packages
+  ansible.builtin.apt:
+    name:
+      - npm
+
+- name: Install configurable-http-proxy
+  ansible.builtin.shell:
+    cmd: "npm install -g configurable-http-proxy"
 
 - name: Create jupyterhub directories
   ansible.builtin.file:
@@ -14,6 +23,7 @@
   loop:
     - "{{ jupyterhub_config_dir }}"
     - "{{ jupyterhub_runtime_dir }}"
+    - "{{ jupyterhub_runtime_dir }}/state"
 
 - name: Write jupyterhub config
   ansible.builtin.template:
