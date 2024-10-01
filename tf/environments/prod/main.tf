@@ -326,26 +326,6 @@ module "ooniapi_cluster" {
   )
 }
 
-module "oonith_cluster" {
-  source = "../../modules/ecs_cluster"
-
-  name       = "oonith-ecs-cluster"
-  key_name   = module.adm_iam_roles.oonidevops_key_name
-  vpc_id     = module.network.vpc_id
-  subnet_ids = module.network.vpc_subnet_public[*].id
-
-  asg_min     = 3
-  asg_max     = 7
-  asg_desired = 3
-
-  instance_type = "t3.small"
-
-  tags = merge(
-    local.tags,
-    { Name = "ooni-tier0-th-ecs-cluster" }
-  )
-}
-
 #### OONI Tier0
 
 #### OONI Probe service
