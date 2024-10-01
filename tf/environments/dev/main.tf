@@ -34,6 +34,11 @@ provider "aws" {
   # source_profile = oonidevops_user
 }
 
+# In order for this provider to work you have to set the following environment
+# variable to your DigitalOcean API token:
+# DIGITALOCEAN_ACCESS_TOKEN=
+provider "digitalocean" {}
+
 data "aws_availability_zones" "available" {}
 
 ### !!! IMPORTANT !!!
@@ -107,7 +112,7 @@ module "ansible_inventory" {
 }
 
 module "network" {
-  source = "../../modules/network_noipv6"
+  source = "../../modules/network"
 
   az_count            = var.az_count
   vpc_main_cidr_block = "10.0.0.0/16"
@@ -202,6 +207,9 @@ resource "aws_secretsmanager_secret_version" "prometheus_metrics_password" {
   secret_string = random_password.prometheus_metrics_password.result
 }
 
+data "aws_secretsmanager_secret_version" "prometheus_metrics_password" {
+  secret_id = aws_secretsmanager_secret.prometheus_metrics_password.id
+}
 
 resource "aws_secretsmanager_secret" "oonipg_url" {
   name = "oonidevops/ooni-tier0-postgres/postgresql_url"
@@ -230,6 +238,11 @@ resource "aws_s3_bucket" "oonith_codepipeline_bucket" {
   bucket = "codepipeline-oonith-${var.aws_region}-${random_id.artifact_id.hex}"
 }
 
+data "aws_secretsmanager_secret_version" "deploy_key" {
+  secret_id  = module.adm_iam_roles.oonidevops_deploy_key_arn
+  depends_on = [module.adm_iam_roles]
+}
+
 # The aws_codestarconnections_connection resource is created in the state
 # PENDING. Authentication with the connection provider must be completed in the
 # AWS Console.
@@ -248,22 +261,40 @@ moved {
 
 ### OONI Tier0 Backend Proxy
 
+module "ooni_th_droplet" {
+  source = "../../modules/ooni_th_droplet"
+
+  stage             = local.environment
+  instance_location = "fra1"
+  instance_size     = "s-1vcpu-1gb"
+  droplet_count     = 1
+  deployer_key      = jsondecode(data.aws_secretsmanager_secret_version.deploy_key.secret_string)["public_key"]
+  metrics_password  = data.aws_secretsmanager_secret_version.prometheus_metrics_password.secret_string
+  ssh_keys = [
+    "3d:81:99:17:b5:d1:20:a5:fe:2b:14:96:67:93:d6:34",
+    "f6:4b:8b:e2:0e:d2:97:c5:45:5c:07:a6:fe:54:60:0e"
+  ]
+  dns_zone_ooni_io = local.dns_zone_ooni_io
+}
+
 module "ooni_backendproxy" {
   source = "../../modules/ooni_backendproxy"
 
   stage = local.environment
 
-  vpc_id     = module.network.vpc_id
-  subnet_id = module.network.vpc_subnet_public[0].id
-  private_subnet_cidr = module.network.vpc_subnet_private[*].cidr_block 
-  dns_zone_ooni_io = local.dns_zone_ooni_io
+  vpc_id              = module.network.vpc_id
+  subnet_id           = module.network.vpc_subnet_public[0].id
+  private_subnet_cidr = module.network.vpc_subnet_private[*].cidr_block
+  dns_zone_ooni_io    = local.dns_zone_ooni_io
 
   key_name      = module.adm_iam_roles.oonidevops_key_name
   instance_type = "t2.micro"
 
-  backend_url = "https://backend-hel.ooni.org/"
-  clickhouse_url = "backend-fsn.ooni.org"
-  clickhouse_port = "9000"
+  backend_url        = "https://backend-hel.ooni.org/"
+  wcth_addresses     = module.ooni_th_droplet.droplet_ipv4_address
+  wcth_domain_suffix = "th.dev.ooni.io"
+  clickhouse_url     = "backend-fsn.ooni.org"
+  clickhouse_port    = "9000"
 
   tags = merge(
     local.tags,
@@ -281,35 +312,15 @@ module "ooniapi_cluster" {
   vpc_id     = module.network.vpc_id
   subnet_ids = module.network.vpc_subnet_private[*].id
 
-  asg_min     = 3
+  asg_min     = 2
   asg_max     = 6
   asg_desired = 3
 
-  instance_type = "t3.small"
+  instance_type = "t3.micro"
 
   tags = merge(
     local.tags,
     { Name = "ooni-tier0-api-ecs-cluster" }
-  )
-}
-
-module "oonith_cluster" {
-  source = "../../modules/ecs_cluster"
-
-  name       = "oonith-ecs-cluster"
-  key_name   = module.adm_iam_roles.oonidevops_key_name
-  vpc_id     = module.network.vpc_id
-  subnet_ids = module.network.vpc_subnet_private[*].id
-
-  asg_min     = 1
-  asg_max     = 4
-  asg_desired = 1
-
-  instance_type = "t3.small"
-
-  tags = merge(
-    local.tags,
-    { Name = "ooni-tier0-th-ecs-cluster" }
   )
 }
 
@@ -334,6 +345,9 @@ module "ooniapi_ooniprobe_deployer" {
 
 module "ooniapi_ooniprobe" {
   source = "../../modules/ooniapi_service"
+
+  task_cpu    = 256
+  task_memory = 512
 
   # First run should be set on first run to bootstrap the task definition
   # first_run = true
@@ -386,6 +400,9 @@ module "ooniapi_oonirun_deployer" {
 module "ooniapi_oonirun" {
   source = "../../modules/ooniapi_service"
 
+  task_cpu    = 256
+  task_memory = 512
+
   vpc_id             = module.network.vpc_id
   public_subnet_ids  = module.network.vpc_subnet_public[*].id
   private_subnet_ids = module.network.vpc_subnet_private[*].id
@@ -434,6 +451,9 @@ module "ooniapi_oonifindings_deployer" {
 module "ooniapi_oonifindings" {
   source = "../../modules/ooniapi_service"
 
+  task_cpu    = 256
+  task_memory = 512
+
   vpc_id             = module.network.vpc_id
   public_subnet_ids  = module.network.vpc_subnet_public[*].id
   private_subnet_ids = module.network.vpc_subnet_private[*].id
@@ -481,6 +501,9 @@ module "ooniapi_ooniauth_deployer" {
 
 module "ooniapi_ooniauth" {
   source = "../../modules/ooniapi_service"
+
+  task_cpu    = 256
+  task_memory = 512
 
   vpc_id             = module.network.vpc_id
   public_subnet_ids  = module.network.vpc_subnet_public[*].id
@@ -536,15 +559,19 @@ module "ooniapi_frontend" {
   vpc_id     = module.network.vpc_id
   subnet_ids = module.network.vpc_subnet_public[*].id
 
-  oonibackend_proxy_target_group_arn = module.ooni_backendproxy.alb_target_group_id
-  ooniapi_oonirun_target_group_arn   = module.ooniapi_oonirun.alb_target_group_id
-  ooniapi_ooniauth_target_group_arn  = module.ooniapi_ooniauth.alb_target_group_id
-  ooniapi_ooniprobe_target_group_arn = module.ooniapi_ooniprobe.alb_target_group_id
+  oonibackend_proxy_target_group_arn    = module.ooni_backendproxy.alb_target_group_id
+  ooniapi_oonirun_target_group_arn      = module.ooniapi_oonirun.alb_target_group_id
+  ooniapi_ooniauth_target_group_arn     = module.ooniapi_ooniauth.alb_target_group_id
+  ooniapi_ooniprobe_target_group_arn    = module.ooniapi_ooniprobe.alb_target_group_id
   ooniapi_oonifindings_target_group_arn = module.ooniapi_oonifindings.alb_target_group_id
 
   ooniapi_service_security_groups = [
     module.ooniapi_cluster.web_security_group_id
   ]
+
+  ooniapi_acm_certificate_arn = aws_acm_certificate.ooniapi_frontend.arn
+
+  oonith_domains = ["*.th.dev.ooni.io"]
 
   stage            = local.environment
   dns_zone_ooni_io = local.dns_zone_ooni_io
@@ -555,53 +582,73 @@ module "ooniapi_frontend" {
   )
 }
 
-#### OONI oohelperd service
+locals {
+  ooniapi_frontend_alternative_domains = {
+    "ooniauth.${local.environment}.ooni.io" : local.dns_zone_ooni_io,
+    "ooniprobe.${local.environment}.ooni.io" : local.dns_zone_ooni_io,
+    "oonirun.${local.environment}.ooni.io" : local.dns_zone_ooni_io,
+    "8.th.dev.ooni.io" : local.dns_zone_ooni_io,
+  }
+  ooniapi_frontend_main_domain_name         = "api.${local.environment}.ooni.io"
+  ooniapi_frontend_main_domain_name_zone_id = local.dns_zone_ooni_io
 
-module "oonith_oohelperd_deployer" {
-  source = "../../modules/oonith_service_deployer"
-
-  service_name            = "oohelperd"
-  repo                    = "ooni/probe-cli"
-  branch_name             = "master"
-  buildspec_path          = "oonith/buildspec.yml"
-  codestar_connection_arn = aws_codestarconnections_connection.oonidevops.arn
-
-  codepipeline_bucket = aws_s3_bucket.oonith_codepipeline_bucket.bucket
-
-  ecs_service_name = module.oonith_oohelperd.ecs_service_name
-  ecs_cluster_name = module.oonith_cluster.cluster_name
 }
 
-module "oonith_oohelperd" {
-  source = "../../modules/oonith_service"
+resource "aws_route53_record" "ooniapi_frontend_main" {
+  name    = local.ooniapi_frontend_main_domain_name
 
-  vpc_id             = module.network.vpc_id
-  public_subnet_ids  = module.network.vpc_subnet_public[*].id
-  private_subnet_ids = module.network.vpc_subnet_private[*].id
+  zone_id = local.ooniapi_frontend_main_domain_name_zone_id
+  type    = "A"
 
-  service_name             = "oohelperd"
-  default_docker_image_url = "ooni/oonith-oohelperd:latest"
-  stage                    = local.environment
-  dns_zone_ooni_io         = local.dns_zone_ooni_io
-  key_name                 = module.adm_iam_roles.oonidevops_key_name
-  ecs_cluster_id           = module.oonith_cluster.cluster_id
+  alias {
+    name                   = module.ooniapi_frontend.ooniapi_dns_name
+    zone_id                = module.ooniapi_frontend.ooniapi_dns_zone_id
+    evaluate_target_health = true
+  }
+}
 
-  task_secrets = {
-    PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
+resource "aws_route53_record" "ooniapi_frontend_alt" {
+  for_each = local.ooniapi_frontend_alternative_domains
+
+  name    = each.key
+  zone_id = each.value
+  type    = "A"
+
+  alias {
+    name                   = module.ooniapi_frontend.ooniapi_dns_name
+    zone_id                = module.ooniapi_frontend.ooniapi_dns_zone_id
+    evaluate_target_health = true
+  }
+}
+
+resource "aws_acm_certificate" "ooniapi_frontend" {
+  domain_name       = local.ooniapi_frontend_main_domain_name
+  validation_method = "DNS"
+
+  tags = local.tags
+
+  subject_alternative_names = keys(local.ooniapi_frontend_alternative_domains)
+}
+
+resource "aws_route53_record" "ooniapi_frontend_cert_validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.ooniapi_frontend.domain_validation_options : dvo.domain_name => {
+      name        = dvo.resource_record_name
+      record      = dvo.resource_record_value
+      type        = dvo.resource_record_type
+      domain_name = dvo.domain_name
+    }
   }
 
-  oonith_service_security_groups = [
-    module.oonith_cluster.web_security_group_id
-  ]
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = lookup(local.ooniapi_frontend_alternative_domains, each.value.domain_name, local.dns_zone_ooni_io)
+}
 
-  // Note: Since we do not have a dns zone for ooni org, we test on io domains here
-  alternative_names = {
-    "5.th.dev.ooni.io" = local.dns_zone_ooni_io,
-    "6.th.dev.ooni.io" = local.dns_zone_ooni_io,
-  }
-
-  tags = merge(
-    local.tags,
-    { Name = "ooni-tier0-oohelperd" }
-  )
+resource "aws_acm_certificate_validation" "ooniapi_frontend" {
+  certificate_arn         = aws_acm_certificate.ooniapi_frontend.arn
+  validation_record_fqdns = [for record in aws_route53_record.ooniapi_frontend_cert_validation : record.fqdn]
 }
