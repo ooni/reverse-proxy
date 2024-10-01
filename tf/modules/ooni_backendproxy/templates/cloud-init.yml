@@ -1,0 +1,58 @@
+package_update: true
+
+packages:
+  - nginx
+  - libnginx-mod-stream
+
+write_files:
+  - path: /etc/nginx/sites-available/default
+    content: |
+      server {
+        listen 80;
+
+        server_name _;
+
+        location / {
+          proxy_pass ${backend_url};
+          proxy_http_version 1.1;
+          proxy_set_header Host \$host;
+        }
+        error_log /var/log/nginx/error.log;
+      }
+
+      %{ if length(wcth_addresses) > 0 }
+      upstream wcths {
+        %{ for address in wcth_addresses }
+        server ${ address };
+        %{ endfor }
+      }
+      server {
+        server_name *.${ wcth_domain_suffix };
+        listen 80;
+
+        location / {
+          proxy_pass http://wcths;
+          proxy_http_version 1.1;
+          proxy_set_header Host \$host;
+        }
+      }
+      %{ endif }
+
+  - path: /etc/nginx/modules-enabled/99-stream.conf
+    content: |
+      stream {
+        upstream clickhouse_backend {
+          server ${clickhouse_url}:${clickhouse_port};
+        }
+
+        server {
+          listen 9000;
+
+          proxy_pass clickhouse_backend; 
+        }
+
+        error_log /var/log/nginx/error.log;
+      }
+
+runcmd:
+  - service nginx restart
