@@ -604,62 +604,6 @@ module "ooniapi_frontend" {
   )
 }
 
-#### OONI oohelperd service
-
-module "oonith_oohelperd_deployer" {
-  source = "../../modules/oonith_service_deployer"
-
-  service_name            = "oohelperd"
-  repo                    = "ooni/probe-cli"
-  branch_name             = "codedeploy/prod"
-  buildspec_path          = "oonith/buildspec.yml"
-  codestar_connection_arn = aws_codestarconnections_connection.oonidevops.arn
-
-  codepipeline_bucket = aws_s3_bucket.oonith_codepipeline_bucket.bucket
-
-  ecs_service_name = module.oonith_oohelperd.ecs_service_name
-  ecs_cluster_name = module.oonith_cluster.cluster_name
-}
-
-module "oonith_oohelperd" {
-  source = "../../modules/oonith_service"
-  #first_run = true
-
-  vpc_id             = module.network.vpc_id
-  private_subnet_ids = module.network.vpc_subnet_private[*].id
-  public_subnet_ids  = module.network.vpc_subnet_public[*].id
-
-  service_name             = "oohelperd"
-  default_docker_image_url = "ooni/oonith-oohelperd:latest"
-  stage                    = local.environment
-  dns_zone_ooni_io         = local.dns_zone_ooni_io
-  key_name                 = module.adm_iam_roles.oonidevops_key_name
-  ecs_cluster_id           = module.oonith_cluster.cluster_id
-
-  service_desired_count = 3
-
-  task_secrets = {
-    PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
-  }
-
-  alternative_names = {
-    "0.th.ooni.org" = local.dns_root_zone_ooni_org,
-    "1.th.ooni.org" = local.dns_root_zone_ooni_org,
-    "2.th.ooni.org" = local.dns_root_zone_ooni_org,
-    "3.th.ooni.org" = local.dns_root_zone_ooni_org,
-    "4.th.ooni.org" = local.dns_root_zone_ooni_org
-  }
-
-  oonith_service_security_groups = [
-    module.oonith_cluster.web_security_group_id
-  ]
-
-  tags = merge(
-    local.tags,
-    { Name = "ooni-tier0-oohelperd" }
-  )
-}
-
 ## Code signing setup
 
 module "codesigning" {
