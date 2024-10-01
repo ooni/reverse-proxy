@@ -589,6 +589,11 @@ module "ooniapi_frontend" {
 
   alternative_domains = {
     "api.ooni.org" : local.dns_root_zone_ooni_org
+    "0.th.ooni.org" : local.dns_root_zone_ooni_org,
+    "1.th.ooni.org" : local.dns_root_zone_ooni_org,
+    "2.th.ooni.org" : local.dns_root_zone_ooni_org,
+    "3.th.ooni.org" : local.dns_root_zone_ooni_org,
+    "4.th.ooni.org" : local.dns_root_zone_ooni_org,
     "5.th.ooni.org" : local.dns_root_zone_ooni_org,
     "6.th.ooni.org" : local.dns_root_zone_ooni_org,
   }
