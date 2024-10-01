@@ -569,11 +569,9 @@ module "ooniapi_frontend" {
     module.ooniapi_cluster.web_security_group_id
   ]
 
-  alternative_domains = {
-    "8.th.dev.ooni.io" : local.dns_zone_ooni_io
-  }
+  ooniapi_acm_certificate_arn = aws_acm_certificate.ooniapi_frontend.arn
 
-  oonith_domains = ["8.th.dev.ooni.io"]
+  oonith_domains = ["*.th.dev.ooni.io"]
 
   stage            = local.environment
   dns_zone_ooni_io = local.dns_zone_ooni_io
@@ -582,4 +580,76 @@ module "ooniapi_frontend" {
     local.tags,
     { Name = "ooni-tier0-api-frontend" }
   )
+}
+
+locals {
+  ooniapi_frontend_alternative_domains = {
+    "8.th.dev.ooni.io" : local.dns_zone_ooni_io,
+  }
+  ooniapi_frontend_main_domain_name         = "api.${local.environment}.ooni.io"
+  ooniapi_frontend_main_domain_name_zone_id = local.dns_zone_ooni_io
+
+}
+
+resource "aws_route53_record" "ooniapi_frontend_main" {
+  name    = local.ooniapi_frontend_main_domain_name
+
+  zone_id = local.ooniapi_frontend_main_domain_name_zone_id
+  type    = "A"
+
+  alias {
+    name                   = module.ooniapi_frontend.ooniapi_dns_name
+    zone_id                = module.ooniapi_frontend.ooniapi_dns_zone_id
+    evaluate_target_health = true
+  }
+}
+
+resource "aws_route53_record" "ooniapi_frontend_alt" {
+  for_each = local.ooniapi_frontend_alternative_domains
+
+  name    = each.key
+  zone_id = each.value
+  type    = "A"
+
+  alias {
+    name                   = module.ooniapi_frontend.ooniapi_dns_name
+    zone_id                = module.ooniapi_frontend.ooniapi_dns_zone_id
+    evaluate_target_health = true
+  }
+}
+
+resource "aws_acm_certificate" "ooniapi_frontend" {
+  domain_name       = local.ooniapi_frontend_main_domain_name
+  validation_method = "DNS"
+
+  tags = local.tags
+
+  subject_alternative_names = keys(local.ooniapi_frontend_alternative_domains)
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_route53_record" "ooniapi_frontend_cert_validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.ooniapi_frontend.domain_validation_options : dvo.domain_name => {
+      name        = dvo.resource_record_name
+      record      = dvo.resource_record_value
+      type        = dvo.resource_record_type
+      domain_name = dvo.domain_name
+    }
+  }
+
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = lookup(local.ooniapi_frontend_alternative_domains, each.value.domain_name, module.ooniapi_frontend.ooniapi_dns_zone_id)
+}
+
+resource "aws_acm_certificate_validation" "ooniapi_frontend" {
+  certificate_arn         = aws_acm_certificate.ooniapi_frontend.arn
+  validation_record_fqdns = [for record in aws_route53_record.ooniapi_frontend_cert_validation : record.fqdn]
 }

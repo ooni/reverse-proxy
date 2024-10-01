@@ -34,9 +34,8 @@ resource "aws_alb_listener" "ooniapi_listener_https" {
   port              = "443"
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = module.ooniapi_acm_certificate.certificate_arn
+  certificate_arn   = var.ooniapi_acm_certificate_arn
   # In prod this has been manually applied
-  #certificate_arn   = "arn:aws:acm:eu-central-1:471112720364:certificate/8aad2e93-ea3a-48eb-be88-7fd2b1fff0cb"
 
   default_action {
     target_group_arn = var.oonibackend_proxy_target_group_arn
@@ -201,25 +200,4 @@ resource "aws_lb_listener_rule" "ooniapi_oonifindings_rule_host" {
       values = ["oonifindings.${local.direct_domain_suffix}"]
     }
   }
-}
-
-## DNS
-
-module "ooniapi_acm_certificate" {
-  source = "../ooniapi_acm_certificate"
-
-  main_domain_name         = "api.${var.stage}.ooni.io"
-  main_domain_name_zone_id = var.dns_zone_ooni_io
-
-  alias_record_domain_name = aws_alb.ooniapi.dns_name
-  alias_record_zone_id     = aws_alb.ooniapi.zone_id
-
-  alternative_domains = merge(var.alternative_domains, {
-    "oonifindings.${local.direct_domain_suffix}" = var.dns_zone_ooni_io,
-    "oonirun.${local.direct_domain_suffix}"      = var.dns_zone_ooni_io,
-    "ooniprobe.${local.direct_domain_suffix}"    = var.dns_zone_ooni_io,
-    "ooniauth.${local.direct_domain_suffix}"     = var.dns_zone_ooni_io,
-  })
-
-  tags = var.tags
 }

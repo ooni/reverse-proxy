@@ -45,13 +45,11 @@ variable "ooniapi_service_security_groups" {
   type        = list(string)
 }
 
-variable "alternative_domains" {
-  type        = map(string)
-  description = "map of alternate names for the frontend as a map from domain to zone id"
-  default     = {}
-}
-
 variable "oonith_domains" {
   type    = list(string)
   default = ["*.th.dev.ooni.io"]
+}
+
+variable "ooniapi_acm_certificate_arn" {
+  type = string
 }
