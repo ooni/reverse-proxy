@@ -2,6 +2,7 @@ miniconda_install_dir: /opt/miniconda
 jupyterhub_config_dir: /etc/jupyterhub
 jupyterhub_runtime_dir: /srv/jupyterhub
 oonipipeline_runtime_dir: /srv/oonipipeline
+tls_cert_dir: /etc/letsencrypt/live
 admin_group_name: admin
 enable_oonipipeline_worker: true
 enable_jupyterhub: true
