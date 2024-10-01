@@ -4,6 +4,7 @@
 
 [prod]
 data.ooni.org
+oonidata.ooni.org
 monitoring.ooni.org
 openvpn-server1.ooni.io
 

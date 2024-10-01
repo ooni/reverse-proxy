@@ -1,4 +1,14 @@
 ---
+- name: create oonipipeline user
+  ansible.builtin.user:
+    name: oonipipeline
+    state: present
+    shell: /bin/false
+    createhome: no
+  tags:
+    - oonipipeline
+    - jupyterhub
+
 - ansible.builtin.include_role:
     name: miniconda
   tags:
@@ -34,15 +44,6 @@
       - net-tools
       - curl
       - git
-  tags:
-    - oonipipeline
-
-- name: create oonipipeline user
-  ansible.builtin.user:
-    name: oonipipeline
-    state: present
-    shell: /bin/false
-    createhome: no
   tags:
     - oonipipeline
 

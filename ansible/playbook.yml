@@ -1,7 +1,7 @@
 ---
 - name: Ensure all hosts are bootstrapped correctly
   hosts: all
-  become: root
+  become: yes
   roles:
     - bootstrap
 
@@ -43,7 +43,7 @@
     - ssh_users
 
 - name: Deploy oonidata hosts
-  hosts: oonidatatest.ooni.nu
+  hosts: oonidata.ooni.org
   become: true
   roles:
     - oonidata
