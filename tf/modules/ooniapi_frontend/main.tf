@@ -35,6 +35,8 @@ resource "aws_alb_listener" "ooniapi_listener_https" {
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
   certificate_arn   = module.ooniapi_acm_certificate.certificate_arn
+  # In prod this has been manually applied
+  #certificate_arn   = "arn:aws:acm:eu-central-1:471112720364:certificate/8aad2e93-ea3a-48eb-be88-7fd2b1fff0cb"
 
   default_action {
     target_group_arn = var.oonibackend_proxy_target_group_arn

@@ -598,7 +598,9 @@ module "ooniapi_frontend" {
     "6.th.ooni.org" : local.dns_root_zone_ooni_org,
   }
 
-  oonith_domains = ["5.th.ooni.org", "6.th.ooni.org"]
+  oonith_domains = [
+    "*.th.ooni.org",
+  ]
 
   stage            = local.environment
   dns_zone_ooni_io = local.dns_zone_ooni_io
