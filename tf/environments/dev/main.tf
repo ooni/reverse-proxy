@@ -584,6 +584,9 @@ module "ooniapi_frontend" {
 
 locals {
   ooniapi_frontend_alternative_domains = {
+    "ooniauth.${local.environment}.ooni.io" : local.dns_zone_ooni_io,
+    "ooniprobe.${local.environment}.ooni.io" : local.dns_zone_ooni_io,
+    "oonirun.${local.environment}.ooni.io" : local.dns_zone_ooni_io,
     "8.th.dev.ooni.io" : local.dns_zone_ooni_io,
   }
   ooniapi_frontend_main_domain_name         = "api.${local.environment}.ooni.io"
@@ -625,10 +628,6 @@ resource "aws_acm_certificate" "ooniapi_frontend" {
   tags = local.tags
 
   subject_alternative_names = keys(local.ooniapi_frontend_alternative_domains)
-
-  lifecycle {
-    create_before_destroy = true
-  }
 }
 
 resource "aws_route53_record" "ooniapi_frontend_cert_validation" {
@@ -646,7 +645,7 @@ resource "aws_route53_record" "ooniapi_frontend_cert_validation" {
   records         = [each.value.record]
   ttl             = 60
   type            = each.value.type
-  zone_id         = lookup(local.ooniapi_frontend_alternative_domains, each.value.domain_name, module.ooniapi_frontend.ooniapi_dns_zone_id)
+  zone_id         = lookup(local.ooniapi_frontend_alternative_domains, each.value.domain_name, local.dns_zone_ooni_io)
 }
 
 resource "aws_acm_certificate_validation" "ooniapi_frontend" {
