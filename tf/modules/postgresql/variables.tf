@@ -48,7 +48,7 @@ variable "db_max_allocated_storage" {
 }
 
 variable "db_engine_version" {
-  default = "16.1"
+  default = "16.3"
 }
 
 variable "db_parameter_group" {

@@ -4,7 +4,7 @@ locals {
   # vocals are stripped.
   stripped_name = replace(replace(var.service_name, "ooni", ""), "[aeiou]", "")
   # Short prefix should be less than 5 characters
-  short_prefix = "oo${substr(var.service_name, 0, 3)}"
+  short_prefix = "O${substr(local.stripped_name, 0, 3)}"
 }
 
 resource "aws_iam_role" "ooniapi_service_task" {
@@ -120,15 +120,13 @@ resource "aws_ecs_service" "ooniapi_service" {
   }
 
   load_balancer {
-    target_group_arn = aws_alb_target_group.ooniapi_service_direct.id
+    target_group_arn = aws_alb_target_group.ooniapi_service.id
     container_name   = local.name
     container_port   = "80"
   }
 
-  load_balancer {
-    target_group_arn = aws_alb_target_group.ooniapi_service_mapped.id
-    container_name   = local.name
-    container_port   = "80"
+  lifecycle {
+    create_before_destroy = true
   }
 
   force_new_deployment = true
@@ -136,24 +134,8 @@ resource "aws_ecs_service" "ooniapi_service" {
   tags = var.tags
 }
 
-# The direct target group is used for the direct domain name mapping
-resource "aws_alb_target_group" "ooniapi_service_direct" {
-  name_prefix = "${local.short_prefix}D"
-  port        = 80
-  protocol    = "HTTP"
-  vpc_id      = var.vpc_id
-  target_type = "instance"
-
-  lifecycle {
-    create_before_destroy = true
-  }
-
-  tags = var.tags
-}
-
-# The mapped target group is used for mapping it in the main API load balancer
-resource "aws_alb_target_group" "ooniapi_service_mapped" {
-  name_prefix = "${local.short_prefix}M"
+resource "aws_alb_target_group" "ooniapi_service" {
+  name_prefix = "${local.short_prefix}M-"
   port        = 80
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
