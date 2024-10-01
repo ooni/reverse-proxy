@@ -318,7 +318,7 @@ module "ooniapi_cluster" {
   asg_max     = 12
   asg_desired = 5
 
-  instance_type = "t3.small"
+  instance_type = "t3.micro"
 
   tags = merge(
     local.tags,
