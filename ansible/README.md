@@ -8,7 +8,12 @@ pyenv activate ooni-devops
 
 Install deps:
 ```
-pip install ansible dnspython boto3
+pip install ansible dnspython boto3 passlib
+```
+
+Install ansible galaxy modules:
+```
+ansible-galaxy install -r requirements.yml
 ```
 
 Setup AWS credentials, you should add 2 profiles called `oonidevops_user_dev` and `oonidevops_user_prod` which have access to the development and production environment respectively
