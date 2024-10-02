@@ -1,1 +1,4 @@
 - src: willshersystems.sshd
+- src: nginxinc.nginx
+- src: geerlingguy.certbot
+- src: geerlingguy.node_exporter

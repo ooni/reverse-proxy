@@ -55,6 +55,6 @@ ssh_users:
        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMJYsbeTjdma5cKyZISOFQfHbwwlZbWugPx9haeOx1UR"
      ]
 admin_usernames: [ art, majakomel, mehul, norbel ]
-non_admin_usernames: [ ain, siti, ingrid, joss ]
+non_admin_usernames: [ ain, siti, ingrid, joss, vasilis ]
 jupyterhub_allowed_users: "{{ ssh_users }}"
 admin_group_name: adm
