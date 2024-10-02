@@ -7,6 +7,7 @@ data.ooni.org
 oonidata.ooni.org
 monitoring.ooni.org
 openvpn-server1.ooni.io
+notebook.ooni.org
 
 [dev]
 oonidatatest.ooni.nu
