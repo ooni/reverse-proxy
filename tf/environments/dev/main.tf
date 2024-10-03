@@ -226,17 +226,6 @@ resource "aws_secretsmanager_secret_version" "oonipg_url" {
   )
 }
 
-resource "aws_secretsmanager_secret" "ooniclickhouse_url" {
-  name = "oonidevops/ooni-tier0-clickhouse/clickhouse_url"
-  tags = local.tags
-}
-
-// TODO(decfox): replace with working ooniclickhouse_url
-resource "aws_secretsmanager_secret_version" "ooniclickhouse_url" {
-  secret_id = aws_secretsmanager_secret.ooniclickhouse_url.id
-  secret_string = ""
-}
-
 resource "random_id" "artifact_id" {
   byte_length = 4
 }
@@ -304,7 +293,7 @@ module "ooni_backendproxy" {
   backend_url        = "https://backend-hel.ooni.org/"
   wcth_addresses     = module.ooni_th_droplet.droplet_ipv4_address
   wcth_domain_suffix = "th.dev.ooni.io"
-  clickhouse_url     = "backend-fsn.ooni.org"
+  clickhouse_url     = "backend-hel.ooni.org"
   clickhouse_port    = "9000"
 
   tags = merge(
@@ -422,9 +411,12 @@ module "ooniapi_oonimeasurements" {
   ecs_cluster_id           = module.ooniapi_cluster.cluster_id
 
   task_secrets = {
-    CLICKHOUSE_URL              = aws_secretsmanager_secret_version.ooniclickhouse_url.arn
     JWT_ENCRYPTION_KEY          = aws_secretsmanager_secret_version.jwt_secret.arn
     PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
+  }
+
+  task_environment = {
+    CLICKHOUSE_URL = "backend-hel.ooni.org"
   }
 
   ooniapi_service_security_groups = [
@@ -621,6 +613,7 @@ module "ooniapi_frontend" {
   ooniapi_ooniauth_target_group_arn     = module.ooniapi_ooniauth.alb_target_group_id
   ooniapi_ooniprobe_target_group_arn    = module.ooniapi_ooniprobe.alb_target_group_id
   ooniapi_oonifindings_target_group_arn = module.ooniapi_oonifindings.alb_target_group_id
+  ooniapi_oonimeasurements_target_group_arn = module.ooniapi_oonimeasurements.alb_target_group_id
 
   ooniapi_service_security_groups = [
     module.ooniapi_cluster.web_security_group_id
