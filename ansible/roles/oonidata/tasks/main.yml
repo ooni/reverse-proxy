@@ -1,0 +1,59 @@
+---
+- name: create oonipipeline user
+  ansible.builtin.user:
+    name: oonipipeline
+    state: present
+    shell: /bin/false
+    createhome: no
+  tags:
+    - oonipipeline
+    - jupyterhub
+
+- ansible.builtin.include_role:
+    name: miniconda
+  tags:
+    - conda
+
+- ansible.builtin.import_tasks: jupyterhub.yml
+  when: enable_jupyterhub
+  tags:
+    - jupyterhub
+
+- ansible.builtin.include_role:
+    name: nginx
+  tags:
+    - nginx
+
+- ansible.builtin.include_role:
+    name: geerlingguy.certbot
+  tags:
+    - certbot
+  vars:
+    certbot_admin_email: admin@ooni.org
+    certbot_create_extra_args: ""
+    certbot_create_if_missing: true
+    certbot_create_standalone_stop_services:
+      - nginx
+    certbot_certs:
+      - domains:
+          - "{{ inventory_hostname }}"
+
+- name: Install oonipipeline requirements
+  ansible.builtin.apt:
+    name:
+      - net-tools
+      - curl
+      - git
+  tags:
+    - oonipipeline
+
+- name: Install OONI pipeline from pip
+  ansible.builtin.shell:
+    cmd: "{{ miniconda_install_dir }}/bin/pip install -e 'git+https://github.com/ooni/data#egg=oonipipeline&subdirectory=oonipipeline'"
+  tags:
+    - oonipipeline
+
+- ansible.builtin.import_tasks: oonipipeline-worker.yml
+  when: enable_oonipipeline_worker
+  tags:
+    - oonipipeline

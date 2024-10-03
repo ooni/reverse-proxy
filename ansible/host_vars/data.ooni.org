@@ -47,7 +47,14 @@ ssh_users:
       [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKqG1VepfzDdSp3zG27jZq3S9/62CKPLh93F///ht9rf",
       ]
+  vasilis:
+    login: vasilis
+    comment: "Vasilis Ververis"
+    keys:
+     [
+       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMJYsbeTjdma5cKyZISOFQfHbwwlZbWugPx9haeOx1UR"
+     ]
 admin_usernames: [ art, majakomel, mehul, norbel ]
-non_admin_usernames: [ ain, siti, ingrid, joss ]
+non_admin_usernames: [ ain, siti, ingrid, joss, vasilis ]
 jupyterhub_allowed_users: "{{ ssh_users }}"
 admin_group_name: adm

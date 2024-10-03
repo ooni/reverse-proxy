@@ -1,0 +1,56 @@
+- ansible.builtin.include_role:
+    name: nginx
+  tags:
+    - nginx
+    - node_exporter
+
+- ansible.builtin.include_role:
+    name: geerlingguy.node_exporter
+  vars:
+    node_exporter_host: "localhost"
+    node_exporter_port: 8100
+  tags:
+    - node_exporter
+
+- name: create ooni configuration directory
+  ansible.builtin.file:
+    path: "/etc/ooni/"
+    state: directory
+    owner: root
+  tags:
+    - node_exporter
+
+- name: Add a user to a password file and ensure permissions are set
+  community.general.htpasswd:
+    path: /etc/ooni/prometheus_passwd
+    name: prom
+    password: "{{ prometheus_metrics_password }}"
+    owner: root
+    group: www-data
+    mode: 0640
+  tags:
+    - node_exporter
+
+- name: Setup oonidata nginx config
+  ansible.builtin.template:
+    src: nginx-prometheus.j2
+    dest: /etc/nginx/sites-enabled/01-prometheus
+    mode: "0655"
+  notify:
+    - Restart nginx
+  tags:
+    - node_exporter
+    - config
+
+- name: Allow prometheus monitoring
+  ansible.builtin.blockinfile:
+    path: /etc/ooni/nftables/tcp/9100.nft
+    create: yes
+    block: |
+      add rule inet filter input tcp dport 9100 counter accept comment "Incoming prometheus monitoring"
+  notify:
+    - Reload nftables
+  tags:
+    - nftables
+    - node_exporter
+    - config
