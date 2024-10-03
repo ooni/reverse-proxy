@@ -187,29 +187,9 @@ resource "aws_lb_listener_rule" "ooniapi_oonifindings_rule" {
   }
 }
 
-<<<<<<< HEAD
-resource "aws_lb_listener_rule" "ooniapi_oonifindings_rule" {
-  listener_arn = aws_alb_listener.ooniapi_listener_https.arn
-  priority     = 103
-
-  action {
-    type             = "forward"
-    target_group_arn = var.ooniapi_measurements_target_group_arn
-  }
-
-  condition {
-    path_pattern {
-      values = ["/api/v1/incidents/*"]
-    }
-  }
-}
-
-## DNS
-=======
 resource "aws_lb_listener_rule" "ooniapi_oonifindings_rule_host" {
   listener_arn = aws_alb_listener.ooniapi_listener_https.arn
   priority     = 131
->>>>>>> main
 
   action {
     type             = "forward"
