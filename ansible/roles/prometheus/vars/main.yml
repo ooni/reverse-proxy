@@ -95,6 +95,12 @@ blackbox_jobs:
       - "https://api.ooni.io/api/_/global_overview"
       - "https://api.ooni.org/api/_/global_overview"
 
+  - name: "ooni API findings listing"
+    module: "https_2xx_json"
+    targets:
+      - "https://api.ooni.io/api/v1/incidents/search"
+      - "https://api.ooni.org/api/v1/incidents/search"
+
   # Note: this always returns true by design
   - name: "OONI API check_report_id"
     module: "https_2xx_json"
