@@ -314,11 +314,11 @@ module "ooniapi_cluster" {
   subnet_ids = module.network.vpc_subnet_public[*].id
 
   # You need be careful how these are tweaked.
-  asg_min     = 4
+  asg_min     = 2
   asg_max     = 8
-  asg_desired = 4
+  asg_desired = 2
 
-  instance_type = "t3.micro"
+  instance_type = "t3a.medium"
 
   tags = merge(
     local.tags,
