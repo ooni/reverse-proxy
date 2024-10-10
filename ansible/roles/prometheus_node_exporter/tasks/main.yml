@@ -10,7 +10,9 @@
     node_exporter_host: "localhost"
     node_exporter_port: 8100
   tags:
+    - monitoring
     - node_exporter
+    - config
 
 - name: create ooni configuration directory
   ansible.builtin.file:
@@ -18,7 +20,9 @@
     state: directory
     owner: root
   tags:
+    - monitoring
     - node_exporter
+    - config
 
 - name: Add a user to a password file and ensure permissions are set
   community.general.htpasswd:
@@ -29,9 +33,11 @@
     group: www-data
     mode: 0640
   tags:
+    - monitoring
     - node_exporter
+    - config
 
-- name: Setup oonidata nginx config
+- name: Setup prometheus nginx config
   ansible.builtin.template:
     src: nginx-prometheus.j2
     dest: /etc/nginx/sites-enabled/01-prometheus
@@ -39,6 +45,7 @@
   notify:
     - Restart nginx
   tags:
+    - monitoring
     - node_exporter
     - config
 
@@ -51,6 +58,7 @@
   notify:
     - Reload nftables
   tags:
-    - nftables
+    - monitoring
     - node_exporter
     - config
+    - nftables
