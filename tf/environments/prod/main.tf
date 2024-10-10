@@ -318,7 +318,7 @@ module "ooniapi_cluster" {
   asg_max     = 8
   asg_desired = 2
 
-  instance_type = "t4g.medium"
+  instance_type = "t3a.medium"
 
   tags = merge(
     local.tags,
