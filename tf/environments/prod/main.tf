@@ -598,6 +598,7 @@ locals {
     "ooniauth.${local.environment}.ooni.io" : local.dns_zone_ooni_io,
     "ooniprobe.${local.environment}.ooni.io" : local.dns_zone_ooni_io,
     "oonirun.${local.environment}.ooni.io" : local.dns_zone_ooni_io,
+    "oonifindings.${local.environment}.ooni.io" : local.dns_zone_ooni_io,
   }
   ooniapi_frontend_main_domain_name         = "api.${local.environment}.ooni.io"
   ooniapi_frontend_main_domain_name_zone_id = local.dns_zone_ooni_io
