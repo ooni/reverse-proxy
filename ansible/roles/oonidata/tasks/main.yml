@@ -28,7 +28,6 @@
     - oonidata
     - nginx
 
-
 - ansible.builtin.include_role:
     name: geerlingguy.certbot
   tags:
@@ -50,6 +49,7 @@
       - net-tools
       - curl
       - git
+      - socat
   tags:
     - oonidata
     - oonipipeline
@@ -65,4 +65,16 @@
   when: enable_oonipipeline_worker
   tags:
     - oonidata
+    - oonipipeline
+
+- name: Write oonidataproxy service
+  ansible.builtin.template:
+    src: oonidata-proxy.service.j2
+    dest: "/etc/systemd/system/oonidata-proxy.service"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Restart oonidata-proxy
+  tags:
     - oonipipeline

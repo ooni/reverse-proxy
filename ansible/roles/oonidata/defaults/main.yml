@@ -5,4 +5,5 @@ oonipipeline_runtime_dir: /srv/oonipipeline
 tls_cert_dir: /etc/letsencrypt/live
 admin_group_name: admin
 enable_oonipipeline_worker: true
+enable_oonidata_proxy: false
 enable_jupyterhub: true

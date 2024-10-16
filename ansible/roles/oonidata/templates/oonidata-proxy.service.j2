@@ -1,0 +1,15 @@
+# JupyterHub systemd service
+[Unit]
+
+[Service]
+User=oonipipeline
+Restart=always
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ExecStart="socat tcp-listen:9000,reuseaddr,fork tcp:data.ooni.org:9000"
+
+[Install]
+# Start service when system boots
+WantedBy=multi-user.target

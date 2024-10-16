@@ -10,8 +10,13 @@
     state: restarted
     daemon_reload: true
 
+- name: Restart oonidata-proxy
+  ansible.builtin.systemd_service:
+    name: oonidata-proxy
+    state: restarted
+    daemon_reload: true
+
 - name: Reload nginx
   ansible.builtin.systemd_service:
     name: nginx
     state: reloaded
-
