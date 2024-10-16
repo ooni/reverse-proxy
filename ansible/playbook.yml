@@ -48,6 +48,14 @@
   roles:
     - oonidata
 
+- name: Deploy notebook hosts
+  hosts: notebook.ooni.org
+  become: true
+  vars:
+    enable_oonipipeline_worker: false
+  roles:
+    - oonidata
+
 # commented out due to the fact it requires manual config of ~/.ssh/config
 #- name: Setup codesign box
 #  hosts: codesign-box

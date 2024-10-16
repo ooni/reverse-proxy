@@ -59,7 +59,7 @@ ssh_users:
     comment: "Micheal Collyer"
     keys:
         - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPN4Ae+KfZEbhJuvHI3PXjgeu4V0ZFIpUy9bFuBKx76W michael.collyer@oii.ox.ac.uk"
-admin_usernames: [ art, majakomel, mehul, norbel ]
-non_admin_usernames: [ ain, siti, ingrid, joss, vasilis ]
+admin_usernames: [ art, agrabeli, majakomel, mehul, norbel ]
+non_admin_usernames: [ ain, siti, ingrid, joss, vasilis, michael ]
 jupyterhub_allowed_users: "{{ ssh_users }}"
-admin_group_name: adm
+admin_group_name: admin

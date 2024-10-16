@@ -6,27 +6,33 @@
     shell: /bin/false
     createhome: no
   tags:
+    - oonidata
     - oonipipeline
     - jupyterhub
 
 - ansible.builtin.include_role:
     name: miniconda
   tags:
+    - oonidata
     - conda
 
 - ansible.builtin.import_tasks: jupyterhub.yml
   when: enable_jupyterhub
   tags:
+    - oonidata
     - jupyterhub
 
 - ansible.builtin.include_role:
     name: nginx
   tags:
+    - oonidata
     - nginx
+
 
 - ansible.builtin.include_role:
     name: geerlingguy.certbot
   tags:
+    - oonidata
     - certbot
   vars:
     certbot_admin_email: admin@ooni.org
@@ -45,15 +51,18 @@
       - curl
       - git
   tags:
+    - oonidata
     - oonipipeline
 
 - name: Install OONI pipeline from pip
   ansible.builtin.shell:
     cmd: "{{ miniconda_install_dir }}/bin/pip install -e 'git+https://github.com/ooni/data#egg=oonipipeline&subdirectory=oonipipeline'"
   tags:
+    - oonidata
     - oonipipeline
 
 - ansible.builtin.import_tasks: oonipipeline-worker.yml
   when: enable_oonipipeline_worker
   tags:
+    - oonidata
     - oonipipeline

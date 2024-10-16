@@ -37,3 +37,35 @@
   notify: reload nginx
   tags:
     - nginx
+
+- name: create config dir
+  ansible.builtin.file:
+    path: /etc/ooni/nftables/tcp
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  tags:
+    - nftables
+
+- name: allow incoming TCP connections to Nginx port 80
+  blockinfile:
+    path: /etc/ooni/nftables/tcp/80.nft
+    create: yes
+    block: |
+      add rule inet filter input tcp dport 80 counter accept comment "incoming HTTP"
+  notify:
+    - reload nftables
+  tags:
+    - nginx
+
+- name: allow incoming TCP connections to Nginx port 443
+  blockinfile:
+    path: /etc/ooni/nftables/tcp/443.nft
+    create: yes
+    block: |
+      add rule inet filter input tcp dport 443 counter accept comment "incoming HTTP"
+  notify:
+    - reload nftables
+  tags:
+    - nginx

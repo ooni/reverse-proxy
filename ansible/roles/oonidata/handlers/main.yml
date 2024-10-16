@@ -14,3 +14,4 @@
   ansible.builtin.systemd_service:
     name: nginx
     state: reloaded
+
