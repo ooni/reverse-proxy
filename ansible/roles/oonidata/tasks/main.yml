@@ -61,6 +61,20 @@
     - oonidata
     - oonipipeline
 
+- name: "install conda packages"
+  ansible.builtin.shell:
+    cmd: "{{ miniconda_install_dir }}/bin/conda install -y {{ item }}"
+  loop:
+    - pandas
+    - numpy
+    - altair
+
+- name: "install pip packages"
+  ansible.builtin.shell:
+    cmd: "{{ miniconda_install_dir }}/bin/pip install {{ item }}"
+  loop:
+    - clickhouse-driver
+
 - ansible.builtin.import_tasks: oonipipeline-worker.yml
   when: enable_oonipipeline_worker
   tags:

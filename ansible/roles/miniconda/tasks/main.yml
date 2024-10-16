@@ -12,10 +12,4 @@
 - include_tasks: install.yml
   when: not miniconda_bin.stat.exists
 
-- name: "install conda packages"
-  ansible.builtin.shell:
-    cmd: "{{ miniconda_install_dir }}/bin/conda install -y {{ item }}"
-  loop:
-    - pandas
-    - numpy
-    - altair
+
