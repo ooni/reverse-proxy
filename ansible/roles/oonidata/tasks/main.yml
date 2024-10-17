@@ -53,27 +53,33 @@
   tags:
     - oonidata
     - oonipipeline
-
-- name: Install OONI pipeline from pip
-  ansible.builtin.shell:
-    cmd: "{{ miniconda_install_dir }}/bin/pip install -e 'git+https://github.com/ooni/data#egg=oonipipeline&subdirectory=oonipipeline'"
-  tags:
-    - oonidata
-    - oonipipeline
+    - packages
 
 - name: "install conda packages"
   ansible.builtin.shell:
     cmd: "{{ miniconda_install_dir }}/bin/conda install -y {{ item }}"
-  loop:
-    - pandas
-    - numpy
-    - altair
+  loop: "{{ conda_packages }}"
+  tags:
+    - oonidata
+    - oonipipeline
+    - packages
 
-- name: "install pip packages"
+- name: Install conda-forge packages
+  ansible.builtin.shell:
+    cmd: "{{ miniconda_install_dir }}/bin/conda install -c conda-forge -y {{ item }}"
+  loop: "{{ conda_forge_packages }}"
+  tags:
+    - oonidata
+    - packages
+
+- name: "Install pip packages"
   ansible.builtin.shell:
     cmd: "{{ miniconda_install_dir }}/bin/pip install {{ item }}"
-  loop:
-    - clickhouse-driver
+  loop: "{{ pip_packages }}"
+  tags:
+    - oonidata
+    - oonipipeline
+    - packages
 
 - ansible.builtin.import_tasks: oonipipeline-worker.yml
   when: enable_oonipipeline_worker

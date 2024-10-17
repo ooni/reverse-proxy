@@ -7,3 +7,14 @@ admin_group_name: admin
 enable_oonipipeline_worker: true
 enable_oonidata_proxy: false
 enable_jupyterhub: true
+conda_forge_packages:
+  - seaborn
+  - dask
+conda_packages:
+  - pandas
+  - numpy
+  - altair
+  - bokeh
+pip_packages:
+  - "-e 'git+https://github.com/ooni/data#egg=oonipipeline&subdirectory=oonipipeline'"
+  - "clickhouse-driver"
