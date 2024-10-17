@@ -18,3 +18,4 @@ conda_packages:
 pip_packages:
   - "-e 'git+https://github.com/ooni/data#egg=oonipipeline&subdirectory=oonipipeline'"
   - "clickhouse-driver"
+  - pomegranate
