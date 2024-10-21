@@ -10,6 +10,7 @@ enable_jupyterhub: true
 conda_forge_packages:
   - seaborn
   - dask
+  - statsmodels
 conda_packages:
   - pandas
   - numpy
