@@ -59,7 +59,13 @@ ssh_users:
     comment: "Micheal Collyer"
     keys:
         - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPN4Ae+KfZEbhJuvHI3PXjgeu4V0ZFIpUy9bFuBKx76W michael.collyer@oii.ox.ac.uk"
+  benginoe:
+    login: benginoe
+    comment: "Ben Ginoe"
+    keys:
+        - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOWdWCATiHUAzoS3mn3pFMIYDmi3n4Ekuzv5cEtvV0W1 root@parrot"
+
 admin_usernames: [ art, agrabeli, majakomel, mehul, norbel ]
-non_admin_usernames: [ ain, siti, ingrid, joss, vasilis, michael ]
+non_admin_usernames: [ ain, siti, ingrid, joss, vasilis, michael, benginoe ]
 jupyterhub_allowed_users: "{{ ssh_users }}"
 admin_group_name: admin
