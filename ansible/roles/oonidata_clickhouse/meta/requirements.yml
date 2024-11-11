@@ -1,0 +1,5 @@
+---
+dependencies:
+  - src: idealista.clickhouse_role
+    scm: git
+    version: 3.5.1

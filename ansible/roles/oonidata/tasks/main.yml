@@ -62,12 +62,6 @@
     - oonidata
     - oonipipeline
 
-- ansible.builtin.import_tasks: clickhouse.yml
-  when: enable_clickhouse
-  tags:
-    - oonidata
-    - clickhouse
-
 - name: Write oonidataproxy service
   when: enable_oonidata_proxy
   ansible.builtin.template:
