@@ -1,3 +1,11 @@
+- name: write bashrc template
+  ansible.builtin.template:
+    src: bashrc
+    dest: /etc/skel/.bashrc
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+
 - ansible.builtin.include_role:
     name: ssh_users
   tags:

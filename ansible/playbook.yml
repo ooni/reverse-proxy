@@ -4,20 +4,8 @@
   become: yes
   roles:
     - bootstrap
-
-- name: ClickHouse servers
-  hosts: clickhouse_servers
-  user: admin
-  become: true
-  vars:
-    clickhouse_reader_password: "{{ lookup('env', 'CLICKHOUSE_READER_PASSWORD') }}"
-  roles:
-    - clickhouse
-  handlers:
-    - name: Restart clickhouse-server
-      ansible.builtin.service:
-        name: clickhouse-server
-        state: restarted
+  tags:
+    - bootstrap
 
 - name: Update monitoring config
   hosts: monitoring.ooni.org
@@ -27,14 +15,6 @@
     - prometheus_blackbox_exporter
     - prometheus_alertmanager
 
-- name: Deploy data.ooni.org host
-  hosts: data.ooni.org
-  become: true
-  roles:
-    #- clickhouse
-    - ssh_users
-    #- jupyterhub
-
 - name: Setup OpenVPN server
   hosts: openvpn-server1.ooni.io
   become: true
@@ -42,13 +22,24 @@
   roles:
     - ssh_users
 
-- name: Deploy oonidata hosts
-  hosts: oonidata.ooni.org
+- name: Deploy oonidata clickhouse hosts (ssd backed)
+  hosts:
+    - data1.htz-fsn.prod.ooni.nu
+    - data2.htz-fsn.prod.ooni.nu
   become: true
   roles:
-    - oonidata
+    - oonidata_clickhouse
 
-- name: Deploy notebook hosts
+- name: Deploy oonidata clickhouse hosts (hdd backed)
+  hosts:
+    - data3.htz-fsn.prod.ooni.nu
+  become: true
+  roles:
+    - oonidata_clickhouse
+  vars:
+    clickhouse_data_directory: /data/clickhouse
+
+- name: Deploy notebook host
   hosts: notebook.ooni.org
   become: true
   vars:

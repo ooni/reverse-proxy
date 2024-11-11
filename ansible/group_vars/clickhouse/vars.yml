@@ -1,0 +1,85 @@
+clickhouse_version: "24.3.13.40"
+
+nftables_clickhouse_allow:
+  - fqdn: data1.htz-fsn.prod.ooni.nu
+    ip: 142.132.254.225
+  - fqdn: data2.htz-fsn.prod.ooni.nu
+    ip: 88.198.54.12
+  - fqdn: data3.htz-fsn.prod.ooni.nu
+    ip: 168.119.7.188
+
+nftables_zookeeper_allow:
+  - fqdn: data1.htz-fsn.prod.ooni.nu
+    ip: 142.132.254.225
+  - fqdn: data2.htz-fsn.prod.ooni.nu
+    ip: 88.198.54.12
+  - fqdn: data3.htz-fsn.prod.ooni.nu
+    ip: 168.119.7.188
+
+clickhouse_keeper:
+  tcp_port: 9181
+  log_storage_path: /var/lib/clickhouse/coordination/log
+  snapshot_storage_path: /var/lib/clickhouse/coordination/snapshots
+  coordination_settings:
+    operation_timeout_ms: 10000
+    session_timeout_ms: 30000
+    raft_logs_level: trace
+  keeper_servers:
+  - keeper_server:
+    server: data1.htz-fsn.prod.ooni.nu
+    id: 1
+    hostname: clickhouse1.prod.ooni.io
+    port: 9234
+
+  - keeper_server:
+    server: data2.htz-fsn.prod.ooni.nu
+    id: 2
+    hostname: clickhouse2.prod.ooni.io
+    port: 9234
+
+  - keeper_server:
+    server: data3.htz-fsn.prod.ooni.nu
+    id: 3
+    hostname: clickhouse3.prod.ooni.io
+    port: 9234
+
+clickhouse_remote_servers:
+  - server:
+    servername: oonidata_cluster
+    secret: "{{ lookup('amazon.aws.aws_secret', 'oonidevops/clickhouse_oonidata_cluster_secret', profile='oonidevops_user_prod') }}"
+    shards:
+      - shard:
+        replicas:
+          - replica:
+            host: clickhouse1.prod.ooni.io
+            port: 9000
+          - replica:
+            host: clickhouse2.prod.ooni.io
+            port: 9000
+          - replica:
+            host: clickhouse3.prod.ooni.io
+            port: 9000
+
+clickhouse_default_profiles:
+  default:
+    readonly: 1
+  write:
+    readonly: 0
+
+clickhouse_listen_host: "::"
+
+clickhouse_default_users:
+  - user:
+    name: default
+    password:
+    networks:
+      - 0.0.0.0
+    profile: default
+    quota: default
+  - user:
+    name: write
+    password: "{{ lookup('amazon.aws.aws_secret', 'oonidevops/clickhouse_write_password', profile='oonidevops_user_prod') }}"
+    networks:
+      - 127.0.0.1
+    profile: write
+    quota: default

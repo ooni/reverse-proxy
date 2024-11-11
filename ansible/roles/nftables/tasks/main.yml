@@ -16,7 +16,7 @@
   tags:
     - nftables
 
-- name: "write {{ item.name }}.nft"
+- name: "write nft config for item"
   ansible.builtin.template:
     src: "rule.nft.j2"
     dest: "/etc/ooni/nftables/tcp/{{ item.name }}.nft"
