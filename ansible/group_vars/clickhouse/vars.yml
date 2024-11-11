@@ -66,20 +66,21 @@ clickhouse_default_profiles:
   write:
     readonly: 0
 
-clickhouse_listen_host: "::"
+clickhouse_listen_hosts:
+  - "::"
 
 clickhouse_default_users:
   - user:
     name: default
     password:
     networks:
-      - 0.0.0.0
+      - "127.0.0.1"
     profile: default
     quota: default
   - user:
     name: write
     password: "{{ lookup('amazon.aws.aws_secret', 'oonidevops/clickhouse_write_password', profile='oonidevops_user_prod') }}"
     networks:
-      - 127.0.0.1
+      - "0.0.0.0/0"
     profile: write
     quota: default
