@@ -1005,3 +1005,11 @@ resource "aws_route53_record" "notebook-ooni-org-_A_" {
   type    = "A"
   zone_id = local.dns_root_zone_ooni_org
 }
+
+resource "aws_route53_record" "data1-htz-fsn-prod-ooni-nu-_A_" {
+  name    = "data1.htz-fsn.prod.ooni.nu"
+  records = ["142.132.254.225"]
+  ttl     = "60"
+  type    = "A"
+  zone_id = local.dns_root_zone_ooni_nu
+}
