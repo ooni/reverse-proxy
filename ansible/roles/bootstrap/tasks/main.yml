@@ -22,6 +22,7 @@
       - man-db
       - mtr
       - net-tools
+      - nvme-cli
       - openssl
       - python3-passlib
       - rsync

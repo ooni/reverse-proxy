@@ -89,3 +89,24 @@
     - oonidata
     - jupyterhub
     - config
+
+- ansible.builtin.include_role:
+    name: nginx
+  tags:
+    - oonidata
+    - nginx
+
+- ansible.builtin.include_role:
+    name: geerlingguy.certbot
+  tags:
+    - oonidata
+    - certbot
+  vars:
+    certbot_admin_email: admin@ooni.org
+    certbot_create_extra_args: ""
+    certbot_create_if_missing: true
+    certbot_create_standalone_stop_services:
+      - nginx
+    certbot_certs:
+      - domains:
+          - "{{ inventory_hostname }}"

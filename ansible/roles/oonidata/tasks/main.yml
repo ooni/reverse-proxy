@@ -22,34 +22,9 @@
     - oonidata
     - jupyterhub
 
-- ansible.builtin.include_role:
-    name: nginx
-  tags:
-    - oonidata
-    - nginx
-
-- ansible.builtin.include_role:
-    name: geerlingguy.certbot
-  tags:
-    - oonidata
-    - certbot
-  vars:
-    certbot_admin_email: admin@ooni.org
-    certbot_create_extra_args: ""
-    certbot_create_if_missing: true
-    certbot_create_standalone_stop_services:
-      - nginx
-    certbot_certs:
-      - domains:
-          - "{{ inventory_hostname }}"
-
-- name: Install oonipipeline requirements
+- name: Install apt packages
   ansible.builtin.apt:
-    name:
-      - net-tools
-      - curl
-      - git
-      - socat
+    name: "{{ apt_packages }}"
   tags:
     - oonidata
     - oonipipeline
@@ -87,7 +62,14 @@
     - oonidata
     - oonipipeline
 
+- ansible.builtin.import_tasks: clickhouse.yml
+  when: enable_clickhouse
+  tags:
+    - oonidata
+    - clickhouse
+
 - name: Write oonidataproxy service
+  when: enable_oonidata_proxy
   ansible.builtin.template:
     src: oonidata-proxy.service.j2
     dest: "/etc/systemd/system/oonidata-proxy.service"

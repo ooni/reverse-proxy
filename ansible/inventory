@@ -8,6 +8,9 @@ oonidata.ooni.org
 monitoring.ooni.org
 openvpn-server1.ooni.io
 notebook.ooni.org
+data1.htz-fsn.prod.ooni.nu
+data2.htz-fsn.prod.ooni.nu
+data3.htz-fsn.prod.ooni.nu
 
 [dev]
 oonidatatest.ooni.nu

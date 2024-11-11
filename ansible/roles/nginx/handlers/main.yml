@@ -13,9 +13,3 @@
   service:
     name: nginx
     state: reloaded
-
-- name: reload nftables
-  tags: nftables
-  ansible.builtin.systemd_service:
-    name: nftables
-    state: reloaded
