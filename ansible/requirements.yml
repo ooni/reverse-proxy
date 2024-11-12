@@ -2,3 +2,8 @@
 - src: nginxinc.nginx
 - src: geerlingguy.certbot
 - src: geerlingguy.node_exporter
+- src: artis3n.tailscale
+- src: https://github.com/idealista/clickhouse_role
+  scm: git
+  version: 3.5.1
+  name: idealista.clickhouse_role
