@@ -25,7 +25,7 @@
 - name: Deploy oonidata clickhouse hosts
   hosts:
     - data1.htz-fsn.prod.ooni.nu
-    - data2.htz-fsn.prod.ooni.nu
+    #- data2.htz-fsn.prod.ooni.nu
     - data3.htz-fsn.prod.ooni.nu
     - notebook.ooni.org
   become: true

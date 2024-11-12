@@ -72,6 +72,8 @@ admin_group_name: admin
 clickhouse_default_profiles:
   default:
     readonly: 1
+  write:
+    readonly: 1
 
 clickhouse_listen_hosts:
   - "127.0.0.1"
@@ -86,8 +88,7 @@ clickhouse_default_users:
     quota: default
   - user:
     name: write
-    password: "{{ lookup('amazon.aws.aws_secret', 'oonidevops/clickhouse_write_password', profile='oonidevops_user_prod') | hash('sha256') }}"
-    password_type: "SHA256_PASSWORD"
+    password_sha256_hex: "{{ lookup('amazon.aws.aws_secret', 'oonidevops/clickhouse_write_password', profile='oonidevops_user_prod') | hash('sha256') }}"
     networks:
       - "127.0.0.1"
     profile: write

@@ -59,13 +59,14 @@ clickhouse_remote_servers:
     secret: "{{ lookup('amazon.aws.aws_secret', 'oonidevops/clickhouse_oonidata_cluster_secret', profile='oonidevops_user_prod') }}"
     shards:
       - shard:
+        internal_replication: true
         replicas:
           - replica:
             host: clickhouse1.prod.ooni.io
             port: 9000
-          - replica:
-            host: clickhouse2.prod.ooni.io
-            port: 9000
+          #- replica:
+          #  host: clickhouse2.prod.ooni.io
+          #  port: 9000
           - replica:
             host: clickhouse3.prod.ooni.io
             port: 9000
@@ -89,8 +90,7 @@ clickhouse_default_users:
     quota: default
   - user:
     name: write
-    password: "{{ lookup('amazon.aws.aws_secret', 'oonidevops/clickhouse_write_password', profile='oonidevops_user_prod') | hash('sha256') }}"
-    password_type: "SHA256_PASSWORD"
+    password_sha256_hex: "{{ lookup('amazon.aws.aws_secret', 'oonidevops/clickhouse_write_password', profile='oonidevops_user_prod') | hash('sha256') }}"
     networks:
       - "0.0.0.0/0"
     profile: write
