@@ -7,6 +7,8 @@ nftables_clickhouse_allow:
     ip: 88.198.54.12
   - fqdn: data3.htz-fsn.prod.ooni.nu
     ip: 168.119.7.188
+  - fqdn: notebook.ooni.org
+    ip: 138.201.19.39
 
 nftables_zookeeper_allow:
   - fqdn: data1.htz-fsn.prod.ooni.nu
@@ -15,6 +17,8 @@ nftables_zookeeper_allow:
     ip: 88.198.54.12
   - fqdn: data3.htz-fsn.prod.ooni.nu
     ip: 168.119.7.188
+  - fqdn: notebook.ooni.org
+    ip: 138.201.19.39
 
 clickhouse_keeper:
   tcp_port: 9181
@@ -41,6 +45,12 @@ clickhouse_keeper:
     server: data3.htz-fsn.prod.ooni.nu
     id: 3
     hostname: clickhouse3.prod.ooni.io
+    port: 9234
+
+  - keeper_server:
+    server: notebook.ooni.org
+    id: 4
+    hostname: notebook.ooni.org
     port: 9234
 
 clickhouse_remote_servers:
@@ -79,7 +89,8 @@ clickhouse_default_users:
     quota: default
   - user:
     name: write
-    password: "{{ lookup('amazon.aws.aws_secret', 'oonidevops/clickhouse_write_password', profile='oonidevops_user_prod') }}"
+    password: "{{ lookup('amazon.aws.aws_secret', 'oonidevops/clickhouse_write_password', profile='oonidevops_user_prod') | hash('sha256') }}"
+    password_type: "SHA256_PASSWORD"
     networks:
       - "0.0.0.0/0"
     profile: write

@@ -22,24 +22,16 @@
   roles:
     - ssh_users
 
-- name: Deploy oonidata clickhouse hosts (ssd backed)
+- name: Deploy oonidata clickhouse hosts
   hosts:
     - data1.htz-fsn.prod.ooni.nu
     - data2.htz-fsn.prod.ooni.nu
-  become: true
-  roles:
-    - tailnet
-    - oonidata_clickhouse
-
-- name: Deploy oonidata clickhouse hosts (hdd backed)
-  hosts:
     - data3.htz-fsn.prod.ooni.nu
+    - notebook.ooni.org
   become: true
   roles:
     - tailnet
     - oonidata_clickhouse
-  vars:
-    clickhouse_data_directory: /data/clickhouse
 
 - name: Deploy notebook host
   hosts: notebook.ooni.org
