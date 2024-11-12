@@ -71,9 +71,9 @@ admin_group_name: admin
 
 clickhouse_default_profiles:
   default:
-    readonly: 1
+    readonly: 2
   write:
-    readonly: 1
+    readonly: 0
 
 clickhouse_listen_hosts:
   - "127.0.0.1"
