@@ -21,6 +21,7 @@
       - bash-completion
       - ca-certificates
       - curl
+      - chrony
       - file
       - git
       - htop
@@ -43,6 +44,12 @@
     update_cache: yes
     install_recommends: no
 
+- name: Set timezone
+  community.general.timezone:
+    name: Etc/UTC
+  notify:
+    - Restart chrony
+
 - ansible.builtin.include_role:
     name: nftables
   tags:
@@ -52,3 +59,34 @@
     name: prometheus_node_exporter
   tags:
     - node_exporter
+
+- name: Configure journald
+  tags:
+    - journald
+  template:
+    src: templates/journald.conf
+    dest: /etc/systemd/journald.conf
+    mode: 0644
+    owner: root
+  notify:
+    - Restart systemd-journald
+
+- name: install systemd-resolved
+  tags: resolved
+  ansible.builtin.apt:
+    install_recommends: no
+    cache_valid_time: 86400
+    name:
+      - systemd-resolved
+
+- name: configure systemd-resolved
+  tags: resolved
+  ansible.builtin.template:
+    src: resolved.conf
+    dest: /etc/systemd/resolved.conf
+  notify:
+    - Restart systemd-resolved
+
+- name: test systemd-resolved
+  tags: resolved
+  shell: resolvectl query go.dnscheck.tools --cache=no

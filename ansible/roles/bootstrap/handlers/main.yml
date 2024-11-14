@@ -1,0 +1,15 @@
+- name: Restart chrony
+  ansible.builtin.systemd_service:
+    name: chrony.service
+    state: restarted
+
+- name: Restart systemd-resolved
+  ansible.builtin.systemd_service:
+    name: systemd-resolved.service
+    state: restarted
+
+- name: Restart systemd-journald
+  ansible.builtin.systemd_service:
+    name: systemd-journald.service
+    state: restarted
+    enabled: yes
