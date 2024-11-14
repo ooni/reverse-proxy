@@ -10,6 +10,8 @@
 - name: Update monitoring config
   hosts: monitoring.ooni.org
   become: true
+  tags:
+    - monitoring
   roles:
     - prometheus
     - prometheus_blackbox_exporter
@@ -29,13 +31,30 @@
     - data3.htz-fsn.prod.ooni.nu
     - notebook.ooni.org
   become: true
+  tags:
+    - clickhouse
   roles:
     - tailnet
     - oonidata_clickhouse
 
+- name: Deploy oonidata worker nodes
+  hosts:
+    - data1.htz-fsn.prod.ooni.nu
+  become: true
+  tags:
+    - oonidata_worker
+  roles:
+    - oonidata
+  vars:
+    enable_jupyterhub: false
+    enable_oonipipeline_worker: true
+    clickhouse_url: "clickhouse://write:{{ lookup('amazon.aws.aws_secret', 'oonidevops/clickhouse_write_password', profile='oonidevops_user_prod') | hash('sha256') }}@clickhouse1.prod.ooni.io/ooni"
+
 - name: Deploy notebook host
   hosts: notebook.ooni.org
   become: true
+  tags:
+    - notebook
   vars:
     enable_oonipipeline_worker: false
   roles:

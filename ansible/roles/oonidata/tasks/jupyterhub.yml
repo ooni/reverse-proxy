@@ -108,5 +108,4 @@
     certbot_create_standalone_stop_services:
       - nginx
     certbot_certs:
-      - domains:
-          - "{{ inventory_hostname }}"
+      - domains: "{{ certbot_domains }}"

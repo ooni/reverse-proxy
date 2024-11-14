@@ -61,16 +61,3 @@
   tags:
     - oonidata
     - oonipipeline
-
-- name: Write oonidataproxy service
-  when: enable_oonidata_proxy
-  ansible.builtin.template:
-    src: oonidata-proxy.service.j2
-    dest: "/etc/systemd/system/oonidata-proxy.service"
-    owner: root
-    group: root
-    mode: "0644"
-  notify:
-    - Restart oonidata-proxy
-  tags:
-    - oonipipeline
