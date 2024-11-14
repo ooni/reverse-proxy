@@ -86,7 +86,4 @@
     dest: /etc/systemd/resolved.conf
   notify:
     - Restart systemd-resolved
-
-- name: test systemd-resolved
-  tags: resolved
-  shell: resolvectl query go.dnscheck.tools --cache=no
+    - Test systemd-resolved
