@@ -2,6 +2,7 @@
 - name: Install jupyterhub
   ansible.builtin.shell:
     cmd: "{{ miniconda_install_dir }}/bin/conda install -c conda-forge -y jupyterhub"
+  become_user: miniconda
   tags:
     - oonidata
     - jupyterhub
@@ -9,6 +10,7 @@
 - name: Install jupyterlab and notebook
   ansible.builtin.shell:
     cmd: "{{ miniconda_install_dir }}/bin/conda install -y jupyterlab notebook"
+  become_user: miniconda
   tags:
     - oonidata
     - jupyterhub

@@ -33,7 +33,9 @@
 - name: "install conda packages"
   ansible.builtin.shell:
     cmd: "{{ miniconda_install_dir }}/bin/conda install -y {{ item }}"
+    chdir: "{{ miniconda_install_dir }}"
   loop: "{{ conda_packages }}"
+  become_user: miniconda
   tags:
     - oonidata
     - oonipipeline
@@ -42,7 +44,9 @@
 - name: Install conda-forge packages
   ansible.builtin.shell:
     cmd: "{{ miniconda_install_dir }}/bin/conda install -c conda-forge -y {{ item }}"
+    chdir: "{{ miniconda_install_dir }}"
   loop: "{{ conda_forge_packages }}"
+  become_user: miniconda
   tags:
     - oonidata
     - packages
@@ -50,7 +54,9 @@
 - name: "Install pip packages"
   ansible.builtin.shell:
     cmd: "{{ miniconda_install_dir }}/bin/pip install {{ item }}"
+    chdir: "{{ miniconda_install_dir }}"
   loop: "{{ pip_packages }}"
+  become_user: miniconda
   tags:
     - oonidata
     - oonipipeline
