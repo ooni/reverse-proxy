@@ -41,7 +41,15 @@ We assume there are 2 tables: `obs_web_bak` (which is the source table) and
 `obs_web` which is the destination table. We also assume a single shard and
 multiple replicas.
 
-First create the destination replicated table:
+First create the destination replicated table. To retrieve the table create query you can run:
+
+```sql
+select create_table_query
+from system.tables
+where database = 'default' and table = 'obs_web'
+```
+
+You should then modify the table to make use of the `ReplicateReplacingMergeTree` engine:
 
 ```sql
 CREATE TABLE ooni.obs_web (`measurement_uid` String, `observation_idx` UInt16, `input` Nullable(String), `report_id` String, `measurement_start_time` DateTime64(3, 'UTC'), `software_name` String, `software_version` String, `test_name` String, `test_version` String, `bucket_date` String, `probe_asn` UInt32, `probe_cc` String, `probe_as_org_name` String, `probe_as_cc` String, `probe_as_name` String, `network_type` String, `platform` String, `origin` String, `engine_name` String, `engine_version` String, `architecture` String, `resolver_ip` String, `resolver_asn` UInt32, `resolver_cc` String, `resolver_as_org_name` String, `resolver_as_cc` String, `resolver_is_scrubbed` UInt8, `resolver_asn_probe` UInt32, `resolver_as_org_name_probe` String, `created_at` Nullable(DateTime('UTC')), `target_id` Nullable(String), `hostname` Nullable(String), `transaction_id` Nullable(UInt16), `ip` Nullable(String), `port` Nullable(UInt16), `ip_asn` Nullable(UInt32), `ip_as_org_name` Nullable(String), `ip_as_cc` Nullable(String), `ip_cc` Nullable(String), `ip_is_bogon` Nullable(UInt8), `dns_query_type` Nullable(String), `dns_failure` Nullable(String), `dns_engine` Nullable(String), `dns_engine_resolver_address` Nullable(String), `dns_answer_type` Nullable(String), `dns_answer` Nullable(String), `dns_answer_asn` Nullable(UInt32), `dns_answer_as_org_name` Nullable(String), `dns_t` Nullable(Float64), `tcp_failure` Nullable(String), `tcp_success` Nullable(UInt8), `tcp_t` Nullable(Float64), `tls_failure` Nullable(String), `tls_server_name` Nullable(String), `tls_version` Nullable(String), `tls_cipher_suite` Nullable(String), `tls_is_certificate_valid` Nullable(UInt8), `tls_end_entity_certificate_fingerprint` Nullable(String), `tls_end_entity_certificate_subject` Nullable(String), `tls_end_entity_certificate_subject_common_name` Nullable(String), `tls_end_entity_certificate_issuer` Nullable(String), `tls_end_entity_certificate_issuer_common_name` Nullable(String), `tls_end_entity_certificate_san_list` Array(String), `tls_end_entity_certificate_not_valid_after` Nullable(DateTime64(3, 'UTC')), `tls_end_entity_certificate_not_valid_before` Nullable(DateTime64(3, 'UTC')), `tls_certificate_chain_length` Nullable(UInt16), `tls_certificate_chain_fingerprints` Array(String), `tls_handshake_read_count` Nullable(UInt16), `tls_handshake_write_count` Nullable(UInt16), `tls_handshake_read_bytes` Nullable(UInt32), `tls_handshake_write_bytes` Nullable(UInt32), `tls_handshake_last_operation` Nullable(String), `tls_handshake_time` Nullable(Float64), `tls_t` Nullable(Float64), `http_request_url` Nullable(String), `http_network` Nullable(String), `http_alpn` Nullable(String), `http_failure` Nullable(String), `http_request_body_length` Nullable(UInt32), `http_request_method` Nullable(String), `http_runtime` Nullable(Float64), `http_response_body_length` Nullable(Int32), `http_response_body_is_truncated` Nullable(UInt8), `http_response_body_sha1` Nullable(String), `http_response_status_code` Nullable(UInt16), `http_response_header_location` Nullable(String), `http_response_header_server` Nullable(String), `http_request_redirect_from` Nullable(String), `http_request_body_is_truncated` Nullable(UInt8), `http_t` Nullable(Float64), `probe_analysis` Nullable(String))
@@ -103,4 +111,17 @@ Once the data has been copied over you should now have replicated the data and y
 
 ```sql
 SYSTEM START MERGES;
+```
+
+### Creating tables on clusters
+
+```sql
+CREATE TABLE ooni.obs_web_ctrl ON CLUSTER oonidata_cluster
+(`measurement_uid` String, `observation_idx` UInt16, `input` Nullable(String), `report_id` String, `measurement_start_time` DateTime64(3, 'UTC'), `software_name` String, `software_version` String, `test_name` String, `test_version` String, `bucket_date` String, `hostname` String, `created_at` Nullable(DateTime64(3, 'UTC')), `ip` String, `port` Nullable(UInt16), `ip_asn` Nullable(UInt32), `ip_as_org_name` Nullable(String), `ip_as_cc` Nullable(String), `ip_cc` Nullable(String), `ip_is_bogon` Nullable(UInt8), `dns_failure` Nullable(String), `dns_success` Nullable(UInt8), `tcp_failure` Nullable(String), `tcp_success` Nullable(UInt8), `tls_failure` Nullable(String), `tls_success` Nullable(UInt8), `tls_server_name` Nullable(String), `http_request_url` Nullable(String), `http_failure` Nullable(String), `http_success` Nullable(UInt8), `http_response_body_length` Nullable(Int32))
+ENGINE = ReplicatedReplacingMergeTree(
+'/clickhouse/{cluster}/tables/{database}/{table}/{shard}',
+'{replica}'
+)
+PARTITION BY concat(substring(bucket_date, 1, 4), substring(bucket_date, 6, 2))
+PRIMARY KEY (measurement_uid, observation_idx) ORDER BY (measurement_uid, observation_idx, measurement_start_time, hostname) SETTINGS index_granularity = 8192
 ```
