@@ -4,36 +4,18 @@
   become: yes
   roles:
     - bootstrap
-
-- name: ClickHouse servers
-  hosts: clickhouse_servers
-  user: admin
-  become: true
-  vars:
-    clickhouse_reader_password: "{{ lookup('env', 'CLICKHOUSE_READER_PASSWORD') }}"
-  roles:
-    - clickhouse
-  handlers:
-    - name: Restart clickhouse-server
-      ansible.builtin.service:
-        name: clickhouse-server
-        state: restarted
+  tags:
+    - bootstrap
 
 - name: Update monitoring config
   hosts: monitoring.ooni.org
   become: true
+  tags:
+    - monitoring
   roles:
     - prometheus
     - prometheus_blackbox_exporter
     - prometheus_alertmanager
-
-- name: Deploy data.ooni.org host
-  hosts: data.ooni.org
-  become: true
-  roles:
-    #- clickhouse
-    - ssh_users
-    #- jupyterhub
 
 - name: Setup OpenVPN server
   hosts: openvpn-server1.ooni.io
@@ -42,15 +24,37 @@
   roles:
     - ssh_users
 
-- name: Deploy oonidata hosts
-  hosts: oonidata.ooni.org
+- name: Deploy oonidata clickhouse hosts
+  hosts:
+    - data1.htz-fsn.prod.ooni.nu
+    #- data2.htz-fsn.prod.ooni.nu
+    - data3.htz-fsn.prod.ooni.nu
+    - notebook.ooni.org
   become: true
+  tags:
+    - clickhouse
+  roles:
+    - tailnet
+    - oonidata_clickhouse
+
+- name: Deploy oonidata worker nodes
+  hosts:
+    - data1.htz-fsn.prod.ooni.nu
+  become: true
+  tags:
+    - oonidata_worker
   roles:
     - oonidata
+  vars:
+    enable_jupyterhub: false
+    enable_oonipipeline_worker: true
+    clickhouse_url: "clickhouse://write:{{ lookup('amazon.aws.aws_secret', 'oonidevops/clickhouse_write_password', profile='oonidevops_user_prod') | hash('sha256') }}@clickhouse1.prod.ooni.io/ooni"
 
-- name: Deploy notebook hosts
+- name: Deploy notebook host
   hosts: notebook.ooni.org
   become: true
+  tags:
+    - notebook
   vars:
     enable_oonipipeline_worker: false
   roles:

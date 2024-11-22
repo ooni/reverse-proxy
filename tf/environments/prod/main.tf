@@ -42,6 +42,18 @@ provider "aws" {
 
 data "aws_availability_zones" "available" {}
 
+data "aws_secretsmanager_secret" "do_token" {
+  name = "oonidevops/digitalocean_access_token"
+}
+
+data "aws_secretsmanager_secret_version" "do_token_version" {
+  secret_id = data.aws_secretsmanager_secret.do_token.id
+}
+
+provider "digitalocean" {
+  token = data.aws_secretsmanager_secret_version.do_token_version.secret_string
+}
+
 ### !!! IMPORTANT !!!
 # The first time you run terraform for a new environment you have to setup the
 # required roles in AWS.
