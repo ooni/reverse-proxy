@@ -75,6 +75,8 @@ clickhouse_default_profiles:
   write:
     readonly: 0
 
+clickhouse_version: "24.10.2.80"
+clickhouse_release_type: stable
 clickhouse_listen_hosts:
   - "127.0.0.1"
 
@@ -88,7 +90,7 @@ clickhouse_default_users:
     quota: default
   - user:
     name: write
-    password_sha256_hex: "{{ lookup('amazon.aws.aws_secret', 'oonidevops/clickhouse_write_password', profile='oonidevops_user_prod') | hash('sha256') }}"
+    password_sha256_hex: "{{ lookup('amazon.aws.aws_ssm', '/oonidevops/secrets/clickhouse_notebook_write_password', profile='oonidevops_user_prod') | hash('sha256') }}"
     networks:
       - "127.0.0.1"
     profile: write

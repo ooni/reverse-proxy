@@ -34,7 +34,7 @@
   tags:
     - clickhouse
   roles:
-    - tailnet
+    #- tailnet
     - oonidata_clickhouse
 
 - name: Deploy oonidata worker nodes
@@ -48,7 +48,7 @@
   vars:
     enable_jupyterhub: false
     enable_oonipipeline_worker: true
-    clickhouse_url: "clickhouse://write:{{ lookup('amazon.aws.aws_secret', 'oonidevops/clickhouse_write_password', profile='oonidevops_user_prod') | hash('sha256') }}@clickhouse1.prod.ooni.io/ooni"
+    clickhouse_url: "clickhouse://write:{{ lookup('amazon.aws.aws_ssm', '/oonidevops/secrets/clickhouse_write_password', profile='oonidevops_user_prod') | hash('sha256') }}@clickhouse1.prod.ooni.io/ooni"
 
 - name: Deploy notebook host
   hosts: notebook.ooni.org

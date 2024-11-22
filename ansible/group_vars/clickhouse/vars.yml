@@ -154,6 +154,8 @@ clickhouse_distributed_ddl:
 clickhouse_default_profiles:
   default:
     readonly: 2
+  readonly:
+    readonly: 1
   write:
     readonly: 0
 
@@ -169,9 +171,26 @@ clickhouse_default_users:
     profile: default
     quota: default
   - user:
+    name: readonly
+    password_sha256_hex: "{{ lookup('amazon.aws.aws_ssm', '/oonidevops/secrets/clickhouse_readonly_password', profile='oonidevops_user_prod') | hash('sha256') }}"
+    networks:
+      - "0.0.0.0/0"
+    profile: readonly
+    quota: default
+  - user:
     name: write
-    password_sha256_hex: "{{ lookup('amazon.aws.aws_secret', 'oonidevops/clickhouse_write_password', profile='oonidevops_user_prod') | hash('sha256') }}"
+    password_sha256_hex: "{{ lookup('amazon.aws.aws_ssm', '/oonidevops/secrets/clickhouse_write_password', profile='oonidevops_user_prod') | hash('sha256') }}"
     networks:
       - "0.0.0.0/0"
     profile: write
     quota: default
+
+clickhouse_default_quotas:
+  - quota:
+    name: default
+    duration: 3600
+    queries: 0
+    errors: 0
+    result_rows: 0
+    read_rows: 0
+    execution_time: 0
