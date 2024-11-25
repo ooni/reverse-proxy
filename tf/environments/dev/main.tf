@@ -381,6 +381,59 @@ module "ooniapi_ooniprobe" {
   )
 }
 
+#### OONI Backend proxy service
+
+module "ooniapi_backendproxy_deployer" {
+  source = "../../modules/ooniapi_service_deployer"
+
+  service_name            = "ooniprobe"
+  repo                    = "ooni/backend"
+  branch_name             = "master"
+  buildspec_path          = "ooniapi/services/reverseproxy/buildspec.yml"
+  codestar_connection_arn = aws_codestarconnections_connection.oonidevops.arn
+
+  codepipeline_bucket = aws_s3_bucket.ooniapi_codepipeline_bucket.bucket
+
+  ecs_service_name = module.ooniapi_ooniprobe.ecs_service_name
+  ecs_cluster_name = module.ooniapi_cluster.cluster_name
+}
+
+module "ooniapi_backendproxy" {
+  source = "../../modules/ooniapi_service"
+
+  # First run should be set on first run to bootstrap the task definition
+  first_run = true
+
+  vpc_id             = module.network.vpc_id
+  public_subnet_ids  = module.network.vpc_subnet_public[*].id
+  private_subnet_ids = module.network.vpc_subnet_private[*].id
+
+  service_name             = "oonibackendproxy"
+  default_docker_image_url = "ooni/api-reverseproxy:latest"
+  stage                    = local.environment
+  dns_zone_ooni_io         = local.dns_zone_ooni_io
+  key_name                 = module.adm_iam_roles.oonidevops_key_name
+  ecs_cluster_id           = module.ooniapi_cluster.cluster_id
+
+  task_secrets = {
+    PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
+  }
+
+  task_environment = {
+    TARGET_URL               = "https://backend-hel.ooni.org/"
+    CLICKHOUSE_STREAM_TARGET = "clickhouse1.prod.ooni.io:9000"
+  }
+
+  ooniapi_service_security_groups = [
+    module.ooniapi_cluster.web_security_group_id
+  ]
+
+  tags = merge(
+    local.tags,
+    { Name = "ooni-tier0-oonibackendproxy" }
+  )
+}
+
 
 #### OONI Run service
 
@@ -594,7 +647,7 @@ locals {
 }
 
 resource "aws_route53_record" "ooniapi_frontend_main" {
-  name    = local.ooniapi_frontend_main_domain_name
+  name = local.ooniapi_frontend_main_domain_name
 
   zone_id = local.ooniapi_frontend_main_domain_name_zone_id
   type    = "A"
