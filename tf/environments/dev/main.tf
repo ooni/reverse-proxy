@@ -34,10 +34,13 @@ provider "aws" {
   # source_profile = oonidevops_user
 }
 
-# In order for this provider to work you have to set the following environment
-# variable to your DigitalOcean API token:
-# DIGITALOCEAN_ACCESS_TOKEN=
-provider "digitalocean" {}
+data "aws_ssm_parameter" "do_token" {
+  name = "/oonidevops/secrets/digitalocean_access_token"
+}
+
+provider "digitalocean" {
+  token = data.aws_ssm_parameter.do_token.value
+}
 
 data "aws_availability_zones" "available" {}
 
