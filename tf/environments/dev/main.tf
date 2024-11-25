@@ -319,7 +319,7 @@ module "ooniapi_cluster" {
   asg_max     = 6
   asg_desired = 2
 
-  instance_type = "t3a.medium"
+  instance_type = "t3a.nano"
 
   tags = merge(
     local.tags,
@@ -349,8 +349,7 @@ module "ooniapi_ooniprobe_deployer" {
 module "ooniapi_ooniprobe" {
   source = "../../modules/ooniapi_service"
 
-  task_cpu    = 256
-  task_memory = 512
+  task_memory = 64
 
   # First run should be set on first run to bootstrap the task definition
   # first_run = true
@@ -403,8 +402,7 @@ module "ooniapi_oonirun_deployer" {
 module "ooniapi_oonirun" {
   source = "../../modules/ooniapi_service"
 
-  task_cpu    = 256
-  task_memory = 512
+  task_memory = 64
 
   vpc_id             = module.network.vpc_id
   public_subnet_ids  = module.network.vpc_subnet_public[*].id
@@ -454,8 +452,7 @@ module "ooniapi_oonifindings_deployer" {
 module "ooniapi_oonifindings" {
   source = "../../modules/ooniapi_service"
 
-  task_cpu    = 256
-  task_memory = 512
+  task_memory = 64
 
   vpc_id             = module.network.vpc_id
   public_subnet_ids  = module.network.vpc_subnet_public[*].id
@@ -505,8 +502,7 @@ module "ooniapi_ooniauth_deployer" {
 module "ooniapi_ooniauth" {
   source = "../../modules/ooniapi_service"
 
-  task_cpu    = 256
-  task_memory = 512
+  task_memory = 64
 
   vpc_id             = module.network.vpc_id
   public_subnet_ids  = module.network.vpc_subnet_public[*].id
