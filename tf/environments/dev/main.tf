@@ -469,7 +469,7 @@ module "ooniapi_oonifindings_deployer" {
 
   service_name            = "oonifindings"
   repo                    = "ooni/backend"
-  branch_name             = "master"
+  branch_name             = "oonidata"
   buildspec_path          = "ooniapi/services/oonifindings/buildspec.yml"
   codestar_connection_arn = aws_codestarconnections_connection.oonidevops.arn
 
