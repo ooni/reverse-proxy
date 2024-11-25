@@ -280,31 +280,6 @@ module "ooni_th_droplet" {
   dns_zone_ooni_io = local.dns_zone_ooni_io
 }
 
-module "ooni_backendproxy" {
-  source = "../../modules/ooni_backendproxy"
-
-  stage = local.environment
-
-  vpc_id              = module.network.vpc_id
-  subnet_id           = module.network.vpc_subnet_public[0].id
-  private_subnet_cidr = module.network.vpc_subnet_private[*].cidr_block
-  dns_zone_ooni_io    = local.dns_zone_ooni_io
-
-  key_name      = module.adm_iam_roles.oonidevops_key_name
-  instance_type = "t2.micro"
-
-  backend_url        = "https://backend-hel.ooni.org/"
-  wcth_addresses     = module.ooni_th_droplet.droplet_ipv4_address
-  wcth_domain_suffix = "th.dev.ooni.io"
-  clickhouse_url     = "backend-fsn.ooni.org"
-  clickhouse_port    = "9000"
-
-  tags = merge(
-    local.tags,
-    { Name = "ooni-tier0-backendproxy" }
-  )
-}
-
 ### OONI Services Clusters
 
 module "ooniapi_cluster" {
@@ -394,7 +369,7 @@ module "ooniapi_backendproxy_deployer" {
 
   codepipeline_bucket = aws_s3_bucket.ooniapi_codepipeline_bucket.bucket
 
-  ecs_service_name = module.ooniapi_ooniprobe.ecs_service_name
+  ecs_service_name = module.ooniapi_backendproxy.ecs_service_name
   ecs_cluster_name = module.ooniapi_cluster.cluster_name
 }
 
@@ -613,7 +588,7 @@ module "ooniapi_frontend" {
   vpc_id     = module.network.vpc_id
   subnet_ids = module.network.vpc_subnet_public[*].id
 
-  oonibackend_proxy_target_group_arn    = module.ooni_backendproxy.alb_target_group_id
+  oonibackend_proxy_target_group_arn    = module.ooniapi_backendproxy.alb_target_group_id
   ooniapi_oonirun_target_group_arn      = module.ooniapi_oonirun.alb_target_group_id
   ooniapi_ooniauth_target_group_arn     = module.ooniapi_ooniauth.alb_target_group_id
   ooniapi_ooniprobe_target_group_arn    = module.ooniapi_ooniprobe.alb_target_group_id
