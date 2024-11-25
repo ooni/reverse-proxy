@@ -401,6 +401,8 @@ module "ooniapi_backendproxy_deployer" {
 module "ooniapi_backendproxy" {
   source = "../../modules/ooniapi_service"
 
+  task_memory = 64
+
   # First run should be set on first run to bootstrap the task definition
   first_run = true
 
