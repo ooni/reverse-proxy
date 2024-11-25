@@ -40,11 +40,6 @@ resource "aws_cloudwatch_log_group" "ooniapi_service" {
   name = "ooni-ecs-group/${local.name}"
 }
 
-
-locals {
-  container_port = 80
-}
-
 // This is done to retrieve the image name of the current task definition
 // It's important to keep aligned the container_name and task_definitions
 data "aws_ecs_container_definition" "ooniapi_service_current" {
@@ -69,7 +64,7 @@ resource "aws_ecs_task_definition" "ooniapi_service" {
 
       portMappings = [
         {
-          containerPort = local.container_port,
+          containerPort = 80
         }
       ],
 
