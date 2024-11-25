@@ -386,7 +386,7 @@ module "ooniapi_ooniprobe" {
 module "ooniapi_backendproxy_deployer" {
   source = "../../modules/ooniapi_service_deployer"
 
-  service_name            = "ooniprobe"
+  service_name            = "oonibackendproxy"
   repo                    = "ooni/backend"
   branch_name             = "master"
   buildspec_path          = "ooniapi/services/reverseproxy/buildspec.yml"
