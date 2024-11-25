@@ -7,6 +7,8 @@ nftables_clickhouse_allow:
     ip: 168.119.7.188
   - fqdn: notebook.ooni.org
     ip: 138.201.19.39
+  - fqdn: clickhouseproxy.dev.ooni.io
+    ip: "{{ lookup('dig', 'clickhouseproxy.dev.ooni.io/A') }}"
 
 nftables_zookeeper_allow:
   - fqdn: data1.htz-fsn.prod.ooni.nu

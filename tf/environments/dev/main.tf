@@ -398,7 +398,6 @@ module "ooniapi_backendproxy" {
 
   task_environment = {
     TARGET_URL               = "https://backend-hel.ooni.org/"
-    CLICKHOUSE_STREAM_TARGET = "clickhouse1.prod.ooni.io:9000"
   }
 
   ooniapi_service_security_groups = [
@@ -525,6 +524,10 @@ module "ooniapi_oonifindings" {
     POSTGRESQL_URL              = aws_secretsmanager_secret_version.oonipg_url.arn
     JWT_ENCRYPTION_KEY          = aws_secretsmanager_secret_version.jwt_secret.arn
     PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
+  }
+
+  task_environment = {
+    CLICKHOUSE_URL = "clickhouse://clickhouseproxy.dev.ooni.io"
   }
 
   ooniapi_service_security_groups = [
