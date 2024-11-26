@@ -229,6 +229,10 @@ resource "aws_secretsmanager_secret_version" "oonipg_url" {
   )
 }
 
+data "aws_ssm_parameter" "clickhouse_readonly_url" {
+  name = "/oonidevops/secrets/clickhouse_readonly_url"
+}
+
 resource "random_id" "artifact_id" {
   byte_length = 4
 }
@@ -379,7 +383,7 @@ module "ooniapi_reverseproxy" {
   task_memory = 64
 
   # First run should be set on first run to bootstrap the task definition
-  first_run = true
+  # first_run = true
 
   vpc_id             = module.network.vpc_id
   public_subnet_ids  = module.network.vpc_subnet_public[*].id
@@ -524,10 +528,7 @@ module "ooniapi_oonifindings" {
     POSTGRESQL_URL              = aws_secretsmanager_secret_version.oonipg_url.arn
     JWT_ENCRYPTION_KEY          = aws_secretsmanager_secret_version.jwt_secret.arn
     PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
-  }
-
-  task_environment = {
-    CLICKHOUSE_URL = "clickhouse://clickhouseproxy.dev.ooni.io"
+    CLICKHOUSE_URL              = data.aws_ssm_parameter.clickhouse_readonly_url.arn
   }
 
   ooniapi_service_security_groups = [
