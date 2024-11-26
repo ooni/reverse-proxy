@@ -182,7 +182,12 @@ resource "aws_lb_listener_rule" "ooniapi_oonifindings_rule" {
 
   condition {
     path_pattern {
-      values = ["/api/v1/incidents/*"]
+      values = [
+        "/api/v1/incidents/*",
+        "/api/v1/aggregation/*",
+        "/api/v1/observations",
+        "/api/v1/analysis",
+      ]
     }
   }
 }
