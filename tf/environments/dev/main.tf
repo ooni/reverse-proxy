@@ -617,7 +617,7 @@ module "ooniapi_frontend" {
   vpc_id     = module.network.vpc_id
   subnet_ids = module.network.vpc_subnet_public[*].id
 
-  oonibackend_proxy_target_group_arn    = module.ooniapi_backendproxy.alb_target_group_id
+  oonibackend_proxy_target_group_arn    = module.ooniapi_reverseproxy.alb_target_group_id
   ooniapi_oonirun_target_group_arn      = module.ooniapi_oonirun.alb_target_group_id
   ooniapi_ooniauth_target_group_arn     = module.ooniapi_ooniauth.alb_target_group_id
   ooniapi_ooniprobe_target_group_arn    = module.ooniapi_ooniprobe.alb_target_group_id
