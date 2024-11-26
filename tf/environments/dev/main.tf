@@ -358,10 +358,10 @@ module "ooniapi_ooniprobe" {
 
 #### OONI Backend proxy service
 
-module "ooniapi_backendproxy_deployer" {
+module "ooniapi_reverseproxy_deployer" {
   source = "../../modules/ooniapi_service_deployer"
 
-  service_name            = "oonibackendproxy"
+  service_name            = "reverseproxy"
   repo                    = "ooni/backend"
   branch_name             = "master"
   buildspec_path          = "ooniapi/services/reverseproxy/buildspec.yml"
@@ -369,11 +369,11 @@ module "ooniapi_backendproxy_deployer" {
 
   codepipeline_bucket = aws_s3_bucket.ooniapi_codepipeline_bucket.bucket
 
-  ecs_service_name = module.ooniapi_backendproxy.ecs_service_name
+  ecs_service_name = module.ooniapi_reverseproxy.ecs_service_name
   ecs_cluster_name = module.ooniapi_cluster.cluster_name
 }
 
-module "ooniapi_backendproxy" {
+module "ooniapi_reverseproxy" {
   source = "../../modules/ooniapi_service"
 
   task_memory = 64
@@ -385,7 +385,7 @@ module "ooniapi_backendproxy" {
   public_subnet_ids  = module.network.vpc_subnet_public[*].id
   private_subnet_ids = module.network.vpc_subnet_private[*].id
 
-  service_name             = "oonibackendproxy"
+  service_name             = "reverseproxy"
   default_docker_image_url = "ooni/api-reverseproxy:latest"
   stage                    = local.environment
   dns_zone_ooni_io         = local.dns_zone_ooni_io
@@ -406,7 +406,7 @@ module "ooniapi_backendproxy" {
 
   tags = merge(
     local.tags,
-    { Name = "ooni-tier0-oonibackendproxy" }
+    { Name = "ooni-tier0-reverseproxy" }
   )
 }
 
