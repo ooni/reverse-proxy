@@ -1,5 +1,5 @@
 CREATE TABLE
-    ooni.jsonl (
+    ooni.jsonl ON CLUSTER oonidata_cluster (
         `report_id` String,
         `input` String,
         `s3path` String,
@@ -17,7 +17,7 @@ ORDER BY
     (report_id, input, measurement_uid) SETTINGS index_granularity = 8192;
 
 CREATE TABLE
-    ooni.fastpath (
+    ooni.fastpath ON CLUSTER oonidata_cluster (
         `measurement_uid` String,
         `report_id` String,
         `input` String,
@@ -69,7 +69,7 @@ ORDER BY
     ) SETTINGS index_granularity = 8192;
 
 CREATE TABLE
-    ooni.citizenlab (
+    ooni.citizenlab ON CLUSTER oonidata_cluster (
         `domain` String,
         `url` String,
         `cc` FixedString (32),
@@ -82,7 +82,7 @@ ORDER BY
     (domain, url, cc, category_code) SETTINGS index_granularity = 4;
 
 CREATE TABLE
-    ooni.citizenlab_flip (
+    ooni.citizenlab_flip ON CLUSTER oonidata_cluster (
         `domain` String,
         `url` String,
         `cc` FixedString (32),
@@ -93,3 +93,45 @@ CREATE TABLE
     )
 ORDER BY
     (domain, url, cc, category_code) SETTINGS index_granularity = 4;
+
+CREATE TABLE
+    analysis_web_measurement ON CLUSTER oonidata_cluster (
+        `domain` String,
+        `input` String,
+        `test_name` String,
+        `probe_asn` UInt32,
+        `probe_as_org_name` String,
+        `probe_cc` String,
+        `resolver_asn` UInt32,
+        `resolver_as_cc` String,
+        `network_type` String,
+        `measurement_start_time` DateTime64 (3, 'UTC'),
+        `measurement_uid` String,
+        `ooni_run_link_id` String,
+        `top_probe_analysis` Nullable (String),
+        `top_dns_failure` Nullable (String),
+        `top_tcp_failure` Nullable (String),
+        `top_tls_failure` Nullable (String),
+        `dns_blocked` Float32,
+        `dns_down` Float32,
+        `dns_ok` Float32,
+        `tcp_blocked` Float32,
+        `tcp_down` Float32,
+        `tcp_ok` Float32,
+        `tls_blocked` Float32,
+        `tls_down` Float32,
+        `tls_ok` Float32
+    ) ENGINE = ReplicatedReplacingMergeTree (
+        '/clickhouse/{cluster}/tables/ooni/analysis_web_measurement/{shard}',
+        '{replica}'
+    )
+PARTITION BY
+    substring(measurement_uid, 1, 6) PRIMARY KEY measurement_uid
+ORDER BY
+    (
+        measurement_uid,
+        measurement_start_time,
+        probe_cc,
+        probe_asn,
+        domain
+    ) SETTINGS index_granularity = 8192;
