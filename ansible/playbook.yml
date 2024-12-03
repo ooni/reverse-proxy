@@ -7,6 +7,14 @@
   tags:
     - bootstrap
 
+- name: Setup node_exporter on have_node_exporter hosts
+  hosts: all
+  become: yes
+  roles:
+    - prometheus_node_exporter
+  tags:
+    - prometheus_node_exporter
+
 - name: Update monitoring config
   hosts: monitoring.ooni.org
   become: true

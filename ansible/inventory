@@ -20,3 +20,13 @@ notebook.ooni.org
 data1.htz-fsn.prod.ooni.nu
 data2.htz-fsn.prod.ooni.nu
 data3.htz-fsn.prod.ooni.nu
+
+[have_node_exporter]
+data.ooni.org
+oonidata.ooni.org
+openvpn-server1.ooni.io
+notebook.ooni.org
+data1.htz-fsn.prod.ooni.nu
+data2.htz-fsn.prod.ooni.nu
+data3.htz-fsn.prod.ooni.nu
+oonidatatest.ooni.nu
