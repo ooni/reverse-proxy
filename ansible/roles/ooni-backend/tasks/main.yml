@@ -17,7 +17,7 @@
     state: directory
 
 - name: configure test api
-  when: inventory_hostname == 'ams-pg-test.ooni.org'
+  when: inventory_hostname == 'backend-hel.ooni.org'
   tags: api
   template:
     src: api.conf
@@ -38,29 +38,6 @@
     # mail_smtp_password: "DISABLED"
     # jwt_encryption_key and account_id_hashing_key are taken from the vault
 
-- name: configure backend-hel api
-  when: inventory_hostname == 'backend-hel.ooni.org'
-  tags: api
-  template:
-    src: api.conf
-    dest: /etc/ooni/api.conf
-    owner: ooniapi
-    group: ooniapi
-    mode: 0640
-  vars:
-    collectors: ['backend-hel.ooni.org',]
-    # bucket_name and collector_id must match the uploader
-    collector_id: 3
-    # test bucket
-    bucket_name: ooni-data-eu-fra-test
-    # test GH repo
-    github_push_repo: "ooni-bot/test-lists"
-    github_origin_repo: "citizenlab/test-lists"
-    login_base_url: "https://test-lists.ooni.org/login"
-    pg_uri: ""
-    clickhouse_url: clickhouse://api:api@localhost/default
-    base_url: "https://backend-hel.ooni.org"
-
 - name: configure backend-fsn api
   when: inventory_hostname == 'backend-fsn.ooni.org'
   tags: api
@@ -71,7 +48,7 @@
     group: ooniapi
     mode: 0640
   vars:
-    collectors: ['backend-fsn.ooni.org', 'ams-pg.ooni.org']
+    collectors: ['backend-fsn.ooni.org']
     # bucket_name and collector_id must match the uploader
     collector_id: 1
     bucket_name: ooni-data-eu-fra
@@ -81,26 +58,6 @@
     pg_uri: ""
     clickhouse_url: clickhouse://api:api@localhost/default
     base_url: "https://api.ooni.io"
-
-- name: configure prod api
-  when: inventory_hostname == 'ams-pg.ooni.org'
-  tags: api
-  template:
-    src: api.conf
-    dest: /etc/ooni/api.conf
-    owner: ooniapi
-    group: ooniapi
-    mode: 0640
-  vars:
-    collectors: ['backend-fsn.ooni.org', 'ams-pg.ooni.org']
-    # collector_id must match the uploader
-    collector_id: 0
-    bucket_name: ooni-data-eu-fra
-    github_push_repo: "ooni/test-lists"
-    github_origin_repo: "citizenlab/test-lists"
-    login_base_url: "https://test-lists.ooni.org/login"
-    pg_uri: "postgresql://shovel:yEqgNr2eXvgG255iEBxVeP@localhost/metadb"
-    clickhouse_url: ""
 
 - name: create Psiphon conffile
   tags: api
@@ -115,7 +72,7 @@
     dest: /etc/ooni/tor_targets.json
 
 - name: configure api uploader using test bucket
-  when: inventory_hostname == 'ams-pg-test.ooni.org'
+  when: inventory_hostname == 'backend-hel.ooni.org'
   tags: api
   template:
     src: templates/api-uploader.conf
@@ -136,44 +93,9 @@
     bucket_name: ooni-data-eu-fra
     collector_id: 1
 
-# - name: configure HEL api uploader using test bucket
-#   when: inventory_hostname == 'backend-hel.ooni.org'
-#   tags: api
-#   template:
-#     src: templates/api-uploader.conf
-#     dest: /etc/ooni/api-uploader.conf
-#   vars:
-#     # bucket_name and collector_id must match the API
-#     bucket_name: ooni-data-eu-fra-test
-#     collector_id: 3
-
-
 ## Haproxy and nginx ##
 
-- name: configure api uploader using PROD bucket
-  when: inventory_hostname == 'ams-pg.ooni.org'
-  tags: api
-  template:
-    src: templates/api-uploader.conf
-    dest: /etc/ooni/api-uploader.conf
-  vars:
-    # bucket_name and collector_id must match the API
-    bucket_name: ooni-data-eu-fra
-    collector_id: 0
-
 - name: Overwrite API nginx test conf
-  when: inventory_hostname == 'ams-pg-test.ooni.org'
-  tags: api, webserv
-  template:
-    src: templates/nginx-api-test.conf
-    dest: /etc/nginx/sites-available/ooni-api.conf
-    mode: 0755
-    owner: root
-  vars:
-    # Uses dehydrated
-    certpath: /var/lib/dehydrated/certs/
-
-- name: Overwrite API nginx HEL conf
   when: inventory_hostname == 'backend-hel.ooni.org'
   tags: api, webserv
   template:
@@ -186,7 +108,7 @@
     certpath: /var/lib/dehydrated/certs/
 
 - name: install haproxy if not present
-  when: inventory_hostname in ('backend-hel.ooni.org', 'ams-pg-test.ooni.org')
+  when: inventory_hostname in ('backend-hel.ooni.org')
   tags: webserv
   apt:
     cache_valid_time: 86400
@@ -194,7 +116,7 @@
     state: present
 
 - name: Deploy haproxy conf
-  when: inventory_hostname in ('backend-hel.ooni.org', 'ams-pg-test.ooni.org')
+  when: inventory_hostname in ('backend-hel.ooni.org')
   tags: api, webserv
   template:
     src: templates/haproxy.cfg
@@ -206,7 +128,7 @@
     certpath: /var/lib/dehydrated/certs/
 
 - name: Delete old files
-  when: inventory_hostname in ('backend-hel.ooni.org', 'ams-pg-test.ooni.org')
+  when: inventory_hostname in ('backend-hel.ooni.org')
   tags: api, webserv
   ansible.builtin.file:
     path: "{{ item }}"
@@ -217,7 +139,7 @@
     - /etc/nginx/sites-enabled/deb_ooni_org_http
 
 - name: Deploy dehydrated conf
-  when: inventory_hostname in ('backend-hel.ooni.org', 'ams-pg-test.ooni.org')
+  when: inventory_hostname in ('backend-hel.ooni.org')
   tags: api, webserv
   template:
     src: templates/dehydrated.config
@@ -226,7 +148,7 @@
     owner: root
 
 - name: Deploy dehydrated conf
-  when: inventory_hostname in ('backend-hel.ooni.org', 'ams-pg-test.ooni.org')
+  when: inventory_hostname in ('backend-hel.ooni.org')
   tags: api, webserv
   template:
     src: templates/dehydrated.config
@@ -235,7 +157,7 @@
     owner: root
 
 - name: Deploy dehydrated haproxy hook
-  when: inventory_hostname in ('backend-hel.ooni.org', 'ams-pg-test.ooni.org')
+  when: inventory_hostname in ('backend-hel.ooni.org')
   tags: api, webserv
   template:
     src: templates/dehydrated_haproxy_hook.sh
@@ -254,17 +176,6 @@
   vars:
     # Uses dehydrated
     certpath: /var/lib/dehydrated/certs/
-
-- name: Overwrite API nginx prod conf
-  when: inventory_hostname == 'ams-pg.ooni.org'
-  tags: api, webserv
-  template:
-    src: templates/nginx-api-ams-pg.conf
-    dest: /etc/nginx/sites-available/ooni-api.conf
-    mode: 0755
-    owner: root
-  vars:
-    certpath: /etc/letsencrypt/live/
 
 - name: Deploy API gunicorn conf
   tags: api
@@ -291,7 +202,7 @@
     dest: /etc/nginx/sites-enabled/deb_ooni_org
 
 - name: Configure deb-ci.ooni.org forwarder on test host
-  when: inventory_hostname == 'ams-pg-test.ooni.org'
+  when: inventory_hostname == 'backend-hel.ooni.org'
   tags: deb_ooni_org
   blockinfile:
     path: /etc/nginx/sites-enabled/deb_ooni_org_http
@@ -323,7 +234,7 @@
 
 - name: Restart haproxy
   # reload is not enough
-  when: inventory_hostname in ('backend-hel.ooni.org', 'ams-pg-test.ooni.org')
+  when: inventory_hostname in ('backend-hel.ooni.org')
   tags: api, deb_ooni_org, webserv
   shell: systemctl restart haproxy
 
@@ -364,7 +275,7 @@
     state: present
 
 - name: configure fastpath on test
-  when: inventory_hostname == 'ams-pg-test.ooni.org'
+  when: inventory_hostname == 'backend-hel.ooni.org'
   tags: fastpath
   template:
     src: fastpath.conf
@@ -387,30 +298,6 @@
   vars:
     clickhouse_url: clickhouse://fastpath:fastpath@localhost/default
 
-
-- name: configure fastpath on HEL
-  when: inventory_hostname == 'backend-hel.ooni.org'
-  tags: fastpath
-  template:
-    src: fastpath.conf
-    dest: /etc/ooni/fastpath.conf
-    owner: fastpath
-    group: fastpath
-    mode: 0640
-  vars:
-    clickhouse_url: clickhouse://fastpath:fastpath@localhost/default
-- name: configure fastpath on ams-pg
-  when: inventory_hostname == 'ams-pg.ooni.org'
-  tags: fastpath
-  template:
-    src: fastpath.conf
-    dest: /etc/ooni/fastpath.conf
-    owner: fastpath
-    group: fastpath
-    mode: 0640
-  vars:
-    clickhouse_url:
-    psql_uri: postgresql://shovel:yEqgNr2eXvgG255iEBxVeP@localhost/metadb
 
 
 ## Event detector ##
@@ -523,7 +410,7 @@
 
 ## Tor daemon and onion service ##
 
-
+## TODO(decfox): get rid of this?
 - name: configure tor onion service hostname
   when: inventory_hostname == 'ams-pg.ooni.org'
   tags: tor
@@ -558,7 +445,7 @@
 
 - name: install APT HTTPS support
   # do not update package if present
-  when: inventory_hostname in ('backend-fsn.ooni.org', 'backend-hel.ooni.org', 'ams-pg-test.ooni.org')
+  when: inventory_hostname in ('backend-fsn.ooni.org', 'backend-hel.ooni.org')
   tags: clickhouse
   apt:
     cache_valid_time: 86400
@@ -569,12 +456,12 @@
       - dirmngr
 
 - name: install clickhouse keys
-  when: inventory_hostname in ('backend-fsn.ooni.org', 'backend-hel.ooni.org', 'ams-pg-test.ooni.org')
+  when: inventory_hostname in ('backend-fsn.ooni.org', 'backend-hel.ooni.org')
   tags: clickhouse
   command: apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 8919F6BD2B48D754
 
 - name: set clickhouse repos
-  when: inventory_hostname in ('backend-fsn.ooni.org', 'backend-hel.ooni.org', 'ams-pg-test.ooni.org')
+  when: inventory_hostname in ('backend-fsn.ooni.org', 'backend-hel.ooni.org')
   tags: clickhouse
   blockinfile:
     path: /etc/apt/sources.list.d/clickhouse.list
@@ -594,7 +481,7 @@
       Pin-Priority: 999
 
 - name: pin clickhouse release train
-  when: inventory_hostname in ('backend-hel.ooni.org', 'ams-pg-test.ooni.org')
+  when: inventory_hostname in ('backend-hel.ooni.org')
   tags: clickhouse
   blockinfile:
     path: /etc/apt/preferences.d/clickhouse-server
@@ -617,20 +504,8 @@
   vars:
     clickhouse_pkg_ver: 21.8.12.*
 
-- name: install clickhouse on backend-hel
+- name: install clickhouse on backend-hel.ooni.org
   when: inventory_hostname == 'backend-hel.ooni.org'
-  tags: clickhouse
-  apt:
-    # refresh cache
-    cache_valid_time: 0
-    name:
-      - clickhouse-server={{ clickhouse_pkg_ver }}
-      - clickhouse-client={{ clickhouse_pkg_ver }}
-  vars:
-    clickhouse_pkg_ver: 23.8.2.*
-
-- name: install clickhouse on ams-pg-test.ooni.org
-  when: inventory_hostname == 'ams-pg-test.ooni.org'
   tags: clickhouse
   apt:
     # refresh cache
@@ -643,7 +518,7 @@
     clickhouse_pkg_ver: 23.8.2.*
 
 - name: install clickhouse conf override
-  when: inventory_hostname in ('backend-fsn.ooni.org', 'ams-pg-test.ooni.org')
+  when: inventory_hostname in ('backend-fsn.ooni.org', 'backend-hel.ooni.org')
   tags: clickhouse
   template:
     src: clickhouse_config.xml
@@ -654,7 +529,7 @@
   notify: restart clickhouse
 
 - name: allow incoming TCP connections from monitoring to Clickhouse prometheus interface
-  when: inventory_hostname in ('backend-fsn.ooni.org', 'ams-pg-test.ooni.org')
+  when: inventory_hostname in ('backend-fsn.ooni.org', 'backend-hel.ooni.org')
   tags: clickhouse
   blockinfile:
     path: /etc/ooni/nftables/tcp/9363.nft
@@ -664,7 +539,7 @@
   notify: reload nftables
 
 - name: allow incoming TCP connections from jupiter on monitoring.ooni.org to Clickhouse
-  when: inventory_hostname in ('backend-fsn.ooni.org', 'ams-pg-test.ooni.org')
+  when: inventory_hostname in ('backend-fsn.ooni.org', 'backend-hel.ooni.org')
   tags: clickhouse
   blockinfile:
     path: /etc/ooni/nftables/tcp/9000.nft
@@ -674,7 +549,7 @@
   notify: reload nftables
 
 - name: Run clickhouse
-  when: inventory_hostname in ('backend-fsn.ooni.org', 'ams-pg-test.ooni.org')
+  when: inventory_hostname in ('backend-fsn.ooni.org', 'backend-hel.ooni.org')
   tags: clickhouse
   systemd:
     name: clickhouse-server.service
@@ -685,7 +560,7 @@
 # https://clickhouse.com/docs/en/operations/access-rights/#enabling-access-control
 
 - name: Clickhouse - test admin user - failure is ok to ignore
-  when: inventory_hostname in ('backend-fsn.ooni.org', 'backend-hel.ooni.org', 'ams-pg-test.ooni.org')
+  when: inventory_hostname in ('backend-fsn.ooni.org', 'backend-hel.ooni.org')
   tags: clickhouse-users
   command: clickhouse-client -u admin --password admin -q 'select 1'
   ignore_errors: true
@@ -771,8 +646,8 @@
 
 
 
-- name: Run feeder on ams-pg-test
-  when: inventory_hostname == 'ams-pg-test.ooni.org'
+- name: Run feeder on backend-hel
+  when: inventory_hostname == 'backend-hel.ooni.org'
   tags: clickhouse
   blockinfile:
     path: /etc/ooni/clickhouse_feeder.conf
@@ -791,18 +666,18 @@
     block: |
       [DEFAULT]
       pg_dbuser = readonly
-      pg_dbhost = ams-pg.ooni.org
+      pg_dbhost = backend-hel.ooni.org
 
 - name: Run feeder
-  when: inventory_hostname in ('backend-fsn.ooni.org', 'ams-pg-test.ooni.org')
+  when: inventory_hostname in ('backend-fsn.ooni.org', 'backend-hel.ooni.org')
   tags: clickhouse
   systemd:
     name: ooni-clickhouse-feeder.service
     state: started
     enabled: yes
 
-- name: Run DB backup on ams-pg-test
-  when: inventory_hostname == 'ams-pg-test.ooni.org'
+- name: Run DB backup on backend-hel
+  when: inventory_hostname == 'backend-hel.ooni.org'
   tags: dbbackup
   template:
     src: db-backup.conf
