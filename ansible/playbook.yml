@@ -7,71 +7,8 @@
   tags:
     - bootstrap
 
-- name: Setup node_exporter on have_node_exporter hosts
-  hosts: all
-  become: yes
-  roles:
-    - prometheus_node_exporter
-  tags:
-    - prometheus_node_exporter
+- name: Include tier0 playbook
+  ansible.builtin.import_playbook: deploy-tier0.yml
 
-- name: Update monitoring config
-  hosts: monitoring.ooni.org
-  become: true
-  tags:
-    - monitoring
-  roles:
-    - prometheus
-    - prometheus_blackbox_exporter
-    - prometheus_alertmanager
-
-- name: Setup OpenVPN server
-  hosts: openvpn-server1.ooni.io
-  become: true
-  remote_user: root
-  roles:
-    - ssh_users
-
-- name: Deploy oonidata clickhouse hosts
-  hosts:
-    - data1.htz-fsn.prod.ooni.nu
-    #- data2.htz-fsn.prod.ooni.nu
-    - data3.htz-fsn.prod.ooni.nu
-    - notebook.ooni.org
-  become: true
-  tags:
-    - clickhouse
-  roles:
-    #- tailnet
-    - oonidata_clickhouse
-
-- name: Deploy oonidata worker nodes
-  hosts:
-    - data1.htz-fsn.prod.ooni.nu
-  become: true
-  tags:
-    - oonidata_worker
-  roles:
-    - oonidata
-  vars:
-    enable_jupyterhub: false
-    enable_oonipipeline_worker: true
-    clickhouse_url: "clickhouse://write:{{ lookup('amazon.aws.aws_ssm', '/oonidevops/secrets/clickhouse_write_password', profile='oonidevops_user_prod') | hash('sha256') }}@clickhouse1.prod.ooni.io/ooni"
-
-- name: Deploy notebook host
-  hosts: notebook.ooni.org
-  become: true
-  tags:
-    - notebook
-  vars:
-    enable_oonipipeline_worker: false
-  roles:
-    - oonidata
-
-# commented out due to the fact it requires manual config of ~/.ssh/config
-#- name: Setup codesign box
-#  hosts: codesign-box
-#  become: true
-#  remote_user: ubuntu
-#  roles:
-#    - codesign_box
+- name: Include tier2 playbook
+  ansible.builtin.import_playbook: deploy-tier2.yml

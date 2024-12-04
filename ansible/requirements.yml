@@ -1,7 +1,6 @@
 - src: willshersystems.sshd
 - src: nginxinc.nginx
 - src: geerlingguy.certbot
-- src: geerlingguy.node_exporter
 - src: artis3n.tailscale
 - src: https://github.com/idealista/clickhouse_role
   scm: git

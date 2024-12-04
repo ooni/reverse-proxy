@@ -26,7 +26,7 @@ clickhouse_config:
   max_connections: 4096
   keep_alive_timeout: 3
   max_concurrent_queries: 100
-  max_server_memory_usage: 0
+  max_server_memory_usage: 21001001000
   max_thread_pool_size: 10000
   max_server_memory_usage_to_ram_ratio: 0.9
   total_memory_profiler_step: 4194304
@@ -156,6 +156,10 @@ clickhouse_distributed_ddl:
 clickhouse_default_profiles:
   default:
     readonly: 2
+    max_memory_usage: 11001001000
+    use_uncompressed_cache: 0
+    load_balancing: random
+    max_partitions_per_insert_block: 100
   readonly:
     readonly: 1
   write:
@@ -196,3 +200,17 @@ clickhouse_default_quotas:
     result_rows: 0
     read_rows: 0
     execution_time: 0
+
+clickhouse_prometheus:
+  endpoint: "/metrics"
+  port: 9363
+  metrics: true
+  events: true
+  asynchronous_metrics: true
+  status_info: true
+
+prometheus_nginx_proxy_config:
+  - location: /metrics/node_exporter
+    proxy_pass: http://127.0.0.1:8100/metrics
+  - location: /metrics/clickhouse
+    proxy_pass: http://127.0.0.1:9363/metrics

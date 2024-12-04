@@ -1,19 +1,8 @@
-[all]
-# This requires manual setup of ~/.ssh/config
-#codesign-box
+[all:children]
+htz-fsn
+ghs-ams
 
-[prod]
-data.ooni.org
-oonidata.ooni.org
-monitoring.ooni.org
-openvpn-server1.ooni.io
-notebook.ooni.org
-data1.htz-fsn.prod.ooni.nu
-data2.htz-fsn.prod.ooni.nu
-data3.htz-fsn.prod.ooni.nu
-
-[dev]
-oonidatatest.ooni.nu
+## Role tags
 
 [clickhouse]
 notebook.ooni.org
@@ -21,12 +10,15 @@ data1.htz-fsn.prod.ooni.nu
 data2.htz-fsn.prod.ooni.nu
 data3.htz-fsn.prod.ooni.nu
 
-[have_node_exporter]
+## Location tags
+
+[htz-fsn]
 data.ooni.org
-oonidata.ooni.org
-openvpn-server1.ooni.io
+monitoring.ooni.org
 notebook.ooni.org
 data1.htz-fsn.prod.ooni.nu
 data2.htz-fsn.prod.ooni.nu
 data3.htz-fsn.prod.ooni.nu
-oonidatatest.ooni.nu
+
+[ghs-ams]
+openvpn-server1.ooni.io
