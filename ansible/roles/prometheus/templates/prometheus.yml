@@ -163,7 +163,7 @@ scrape_configs:
         - data1.htz-fsn.prod.ooni.nu:9100
         - data3.htz-fsn.prod.ooni.nu:9100
 
-  - job_name: 'node'
+  - job_name: 'node new'
     scrape_interval: 5s
     scheme: http
     metrics_path: "/metrics/node_exporter"
