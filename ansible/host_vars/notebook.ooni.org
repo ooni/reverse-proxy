@@ -64,8 +64,34 @@ ssh_users:
     comment: "Ben Ginoe"
     keys:
         - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOWdWCATiHUAzoS3mn3pFMIYDmi3n4Ekuzv5cEtvV0W1 root@parrot"
-
 admin_usernames: [ art, agrabeli, majakomel, mehul, norbel ]
 non_admin_usernames: [ ain, siti, ingrid, joss, vasilis, michael, benginoe ]
 jupyterhub_allowed_users: "{{ ssh_users }}"
 admin_group_name: admin
+
+clickhouse_default_profiles:
+  default:
+    readonly: 2
+  write:
+    readonly: 0
+
+clickhouse_version: "24.10.2.80"
+clickhouse_release_type: stable
+clickhouse_listen_hosts:
+  - "127.0.0.1"
+
+clickhouse_default_users:
+  - user:
+    name: default
+    password:
+    networks:
+      - "127.0.0.1"
+    profile: default
+    quota: default
+  - user:
+    name: write
+    password_sha256_hex: "{{ lookup('amazon.aws.aws_ssm', '/oonidevops/secrets/clickhouse_notebook_write_password', profile='oonidevops_user_prod') | hash('sha256') }}"
+    networks:
+      - "127.0.0.1"
+    profile: write
+    quota: default

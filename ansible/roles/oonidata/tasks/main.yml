@@ -22,34 +22,9 @@
     - oonidata
     - jupyterhub
 
-- ansible.builtin.include_role:
-    name: nginx
-  tags:
-    - oonidata
-    - nginx
-
-- ansible.builtin.include_role:
-    name: geerlingguy.certbot
-  tags:
-    - oonidata
-    - certbot
-  vars:
-    certbot_admin_email: admin@ooni.org
-    certbot_create_extra_args: ""
-    certbot_create_if_missing: true
-    certbot_create_standalone_stop_services:
-      - nginx
-    certbot_certs:
-      - domains:
-          - "{{ inventory_hostname }}"
-
-- name: Install oonipipeline requirements
+- name: Install apt packages
   ansible.builtin.apt:
-    name:
-      - net-tools
-      - curl
-      - git
-      - socat
+    name: "{{ apt_packages }}"
   tags:
     - oonidata
     - oonipipeline
@@ -58,7 +33,9 @@
 - name: "install conda packages"
   ansible.builtin.shell:
     cmd: "{{ miniconda_install_dir }}/bin/conda install -y {{ item }}"
+    chdir: "{{ miniconda_install_dir }}"
   loop: "{{ conda_packages }}"
+  become_user: miniconda
   tags:
     - oonidata
     - oonipipeline
@@ -67,7 +44,9 @@
 - name: Install conda-forge packages
   ansible.builtin.shell:
     cmd: "{{ miniconda_install_dir }}/bin/conda install -c conda-forge -y {{ item }}"
+    chdir: "{{ miniconda_install_dir }}"
   loop: "{{ conda_forge_packages }}"
+  become_user: miniconda
   tags:
     - oonidata
     - packages
@@ -75,7 +54,9 @@
 - name: "Install pip packages"
   ansible.builtin.shell:
     cmd: "{{ miniconda_install_dir }}/bin/pip install {{ item }}"
+    chdir: "{{ miniconda_install_dir }}"
   loop: "{{ pip_packages }}"
+  become_user: miniconda
   tags:
     - oonidata
     - oonipipeline
@@ -85,16 +66,4 @@
   when: enable_oonipipeline_worker
   tags:
     - oonidata
-    - oonipipeline
-
-- name: Write oonidataproxy service
-  ansible.builtin.template:
-    src: oonidata-proxy.service.j2
-    dest: "/etc/systemd/system/oonidata-proxy.service"
-    owner: root
-    group: root
-    mode: "0644"
-  notify:
-    - Restart oonidata-proxy
-  tags:
     - oonipipeline

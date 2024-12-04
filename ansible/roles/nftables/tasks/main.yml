@@ -16,12 +16,15 @@
   tags:
     - nftables
 
-- name: allow SSH
-  ansible.builtin.blockinfile:
-    path: /etc/ooni/nftables/tcp/22.nft
-    create: yes
-    block: |
-      add rule inet filter input tcp dport 22 counter accept comment "Incoming SSH"
+- name: "write nft config for item"
+  ansible.builtin.template:
+    src: "rule.nft.j2"
+    dest: "/etc/ooni/nftables/tcp/{{ item.name }}.nft"
+  vars:
+    rules: "{{ item.rules }}"
+  loop: "{{ nft_rules_tcp }}"
+  notify:
+    - Reload nftables
   tags:
     - nftables
 
