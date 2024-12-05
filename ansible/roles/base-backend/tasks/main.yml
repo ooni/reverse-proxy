@@ -2,10 +2,6 @@
 - name: motd
   shell: echo "" > /etc/motd
 
-- name: Set hostname
-  ansible.builtin.hostname:
-    name: "{{ inventory_hostname }}"
-
 - name: Remove apt repo
   tags: apt
   file:
@@ -81,22 +77,6 @@
       - tmux
       - vim
 
-- name: Configure journald
-  tags: journald
-  template:
-    src: templates/journald.conf
-    dest: /etc/systemd/journald.conf
-    mode: 0644
-    owner: root
-
-- name: enable and restart journald
-  tags: journald
-  systemd:
-    name: systemd-journald.service
-    state: restarted
-    enabled: yes
-    daemon_reload: yes
-
 - name: Autoremove
   tags: autoremove
   apt:
@@ -114,16 +94,8 @@
     create: yes
     block: |
       add rule inet filter input ip saddr {{ lookup('dig', 'prometheus.ooni.org/A') }} tcp dport 19999 counter accept comment "netdata.service"
-
-#- name: reload nftables service
-#  systemd:
-#    name: nftables.service
-#    state: reloaded
-#    enabled: yes
-#    daemon_reload: yes
-
-- name: reload nftables service
-  service: name=nftables state=restarted
+    notify:
+      - reload nftables
 
 - name: configure netdata.service
   tags: netdata
@@ -144,12 +116,8 @@
   tags: timezone
   timezone:
     name: Etc/UTC
-
-- name: restart chrony service
-  tags: timezone
-  systemd:
-    name: chrony.service
-    state: restarted
+  notify: 
+    - restart chrony
 
 - name: configure netdata chrony
   tags: netdata, timezone
@@ -168,54 +136,5 @@
     path: /usr/lib/netdata/conf.d/python.d.conf
     regexp: '^chrony:'
     line: 'chrony: yes'
-
-#- name: configure netdata nginx
-#  blockinfile:
-#    path: /etc/netdata/python.d/nginx.conf
-#    create: yes
-#    block: |
-#      # Managed by ansible, see roles/base-bookworm/tasks/main.yml
-#      update_every: 5
-#      nginx_log:
-#        name  : 'nginx_log'
-#        path  : '/var/log/nginx/access.log'
-
-#- name: configure netdata haproxy
-#  blockinfile:
-#    path: /etc/netdata/python.d/haproxy.conf
-#    block: |
-#      # Managed by ansible, see roles/base-bookworm/tasks/main.yml
-#      update_every: 5
-#      via_url:
-#        url: 'http://127.0.0.1:7000/haproxy_stats;csv;norefresh'
-
-- name: restart netdata service
-  tags: netdata, timezone
-  systemd:
-    name: netdata.service
-    state: restarted
-
-
-- name: install systemd-resolved
-  tags: resolved
-  apt:
-    install_recommends: no
-    cache_valid_time: 86400
-    name:
-      - systemd-resolved
-
-- name: configure systemd-resolved
-  tags: resolved
-  template:
-    src: resolved.conf
-    dest: /etc/systemd/resolved.conf
-
-- name: restart systemd-resolved
-  tags: resolved
-  systemd:
-    name: systemd-resolved.service
-    state: restarted
-
-- name: test systemd-resolved
-  tags: resolved
-  shell: resolvectl query go.dnscheck.tools --cache=no
+  notify: 
+    - restart netdata
