@@ -1,8 +1,6 @@
 dom0_hosts:
   - ams-ps.ooni.nu
   - ams-slack-1.ooni.org
-  - ams-wcth2.ooni.nu
-  - ams-wcth3.ooni.nu
   - amsmatomo.ooni.nu
   - db-1.proteus.ooni.io
   - doams1-countly.ooni.nu
@@ -15,8 +13,9 @@ blackbox_jobs:
     targets:
       # - "https://a.web-connectivity.th.ooni.io/status"
       - "https://wcth.ooni.io/status"
-      - "https://ams-wcth2.ooni.nu/status"
-      - "https://a.web-connectivity.th.ooni.io/status" # "https://ams-wcth3.ooni.nu/status"
+      # TODO add these records to the ALB config
+      #- "https://ams-wcth2.ooni.nu/status"
+      #- "https://a.web-connectivity.th.ooni.io/status" # "https://ams-wcth3.ooni.nu/status"
       # cloudfront
       - "https://d33d1gs9kpq1c5.cloudfront.net/status"
 
