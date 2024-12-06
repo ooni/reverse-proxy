@@ -2,6 +2,7 @@
 - hosts: backend-hel.ooni.org
   roles:
     - role: bootstrap
+    - role: base-backend
     - role: nftables
     - role: nginx
       tags: nginx
