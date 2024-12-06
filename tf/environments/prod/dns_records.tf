@@ -862,14 +862,6 @@ resource "aws_route53_record" "test-qemu-infra-ooni-io-_A_" {
   zone_id = local.dns_root_zone_ooni_io
 }
 
-resource "aws_route53_record" "wcth-ooni-io-_A_" {
-  name    = "wcth.ooni.io"
-  records = ["37.218.245.117"]
-  ttl     = "60"
-  type    = "A"
-  zone_id = local.dns_root_zone_ooni_io
-}
-
 resource "aws_route53_record" "www-ooni-io-_CNAME_" {
   name    = "www.ooni.io"
   records = ["ooni.netlify.com"]
@@ -882,30 +874,6 @@ resource "aws_route53_record" "ams-ps-ooni-nu-_A_" {
   name    = "ams-ps.ooni.nu"
   records = ["37.218.245.90"]
   ttl     = "60"
-  type    = "A"
-  zone_id = local.dns_root_zone_ooni_nu
-}
-
-resource "aws_route53_record" "ams-wcth-ooni-nu-_A_" {
-  name    = "ams-wcth.ooni.nu"
-  records = ["37.218.245.114"]
-  ttl     = "300"
-  type    = "A"
-  zone_id = local.dns_root_zone_ooni_nu
-}
-
-resource "aws_route53_record" "ams-wcth2-ooni-nu-_A_" {
-  name    = "ams-wcth2.ooni.nu"
-  records = ["37.218.247.47"]
-  ttl     = "300"
-  type    = "A"
-  zone_id = local.dns_root_zone_ooni_nu
-}
-
-resource "aws_route53_record" "ams-wcth3-ooni-nu-_A_" {
-  name    = "ams-wcth3.ooni.nu"
-  records = ["37.218.245.117"]
-  ttl     = "300"
   type    = "A"
   zone_id = local.dns_root_zone_ooni_nu
 }
