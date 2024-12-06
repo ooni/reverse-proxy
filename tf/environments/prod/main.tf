@@ -355,7 +355,7 @@ module "ooniapi_reverseproxy" {
   }
 
   task_environment = {
-    TARGET_URL               = "https://backend-hel.ooni.org/"
+    TARGET_URL               = "https://backend-fsn.ooni.org/"
   }
 
   ooniapi_service_security_groups = [
