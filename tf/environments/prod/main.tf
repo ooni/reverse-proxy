@@ -315,6 +315,58 @@ module "ooni_backendproxy" {
   )
 }
 
+module "ooniapi_reverseproxy_deployer" {
+  source = "../../modules/ooniapi_service_deployer"
+
+  service_name            = "reverseproxy"
+  repo                    = "ooni/backend"
+  branch_name             = "master"
+  buildspec_path          = "ooniapi/services/reverseproxy/buildspec.yml"
+  codestar_connection_arn = aws_codestarconnections_connection.oonidevops.arn
+
+  codepipeline_bucket = aws_s3_bucket.ooniapi_codepipeline_bucket.bucket
+
+  ecs_service_name = module.ooniapi_reverseproxy.ecs_service_name
+  ecs_cluster_name = module.ooniapi_cluster.cluster_name
+}
+
+module "ooniapi_reverseproxy" {
+  source = "../../modules/ooniapi_service"
+
+  task_memory = 64
+
+  # First run should be set on first run to bootstrap the task definition
+  # first_run = true
+
+  vpc_id             = module.network.vpc_id
+  public_subnet_ids  = module.network.vpc_subnet_public[*].id
+  private_subnet_ids = module.network.vpc_subnet_private[*].id
+
+  service_name             = "reverseproxy"
+  default_docker_image_url = "ooni/api-reverseproxy:latest"
+  stage                    = local.environment
+  dns_zone_ooni_io         = local.dns_zone_ooni_io
+  key_name                 = module.adm_iam_roles.oonidevops_key_name
+  ecs_cluster_id           = module.ooniapi_cluster.cluster_id
+
+  task_secrets = {
+    PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
+  }
+
+  task_environment = {
+    TARGET_URL               = "https://backend-hel.ooni.org/"
+  }
+
+  ooniapi_service_security_groups = [
+    module.ooniapi_cluster.web_security_group_id
+  ]
+
+  tags = merge(
+    local.tags,
+    { Name = "ooni-tier0-reverseproxy" }
+  )
+}
+
 ### OONI Services Clusters
 
 module "ooniapi_cluster" {
@@ -569,7 +621,7 @@ module "ooniapi_frontend" {
   vpc_id     = module.network.vpc_id
   subnet_ids = module.network.vpc_subnet_public[*].id
 
-  oonibackend_proxy_target_group_arn    = module.ooni_backendproxy.alb_target_group_id
+  oonibackend_proxy_target_group_arn    = module.ooniapi_reverseproxy.alb_target_group_id
   ooniapi_oonirun_target_group_arn      = module.ooniapi_oonirun.alb_target_group_id
   ooniapi_ooniauth_target_group_arn     = module.ooniapi_ooniauth.alb_target_group_id
   ooniapi_ooniprobe_target_group_arn    = module.ooniapi_ooniprobe.alb_target_group_id
