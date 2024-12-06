@@ -287,6 +287,7 @@ module "ooni_th_droplet" {
     "3d:81:99:17:b5:d1:20:a5:fe:2b:14:96:67:93:d6:34",
     "f6:4b:8b:e2:0e:d2:97:c5:45:5c:07:a6:fe:54:60:0e"
   ]
+
   dns_zone_ooni_io = local.dns_zone_ooni_io
 }
 
@@ -515,7 +516,7 @@ module "ooniapi_oonifindings_deployer" {
 module "ooniapi_oonifindings" {
   source = "../../modules/ooniapi_service"
 
-  first_run          = true
+  # first_run          = true
   vpc_id             = module.network.vpc_id
   public_subnet_ids  = module.network.vpc_subnet_public[*].id
   private_subnet_ids = module.network.vpc_subnet_private[*].id
@@ -563,7 +564,7 @@ module "ooniapi_ooniauth_deployer" {
 
 module "ooniapi_ooniauth" {
   source = "../../modules/ooniapi_service"
-  #first_run = true
+  # first_run = true
 
   vpc_id             = module.network.vpc_id
   private_subnet_ids = module.network.vpc_subnet_private[*].id
