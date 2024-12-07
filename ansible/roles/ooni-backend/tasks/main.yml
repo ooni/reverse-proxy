@@ -59,7 +59,7 @@
     bucket_name: {{ bucket_name }}
     collector_id: {{ collector_id }}
 
-## nginx ##
+## Nginx ##
 
 - name: Overwrite API nginx conf
   tags: api, webserv
@@ -72,28 +72,24 @@
     # Uses dehydrated
     certpath: /var/lib/dehydrated/certs/
 
-- name: Delete old files
-  when: inventory_hostname in ('backend-hel.ooni.org')
-  tags: api, webserv
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: absent
-  loop:
-    - /etc/nginx/sites-enabled/00-letsencrypt-http
-    - /etc/nginx/sites-enabled/deb_ooni_org
-    - /etc/nginx/sites-enabled/deb_ooni_org_http
+- name: Create symlink for API nginx conf
+  tags: api
+  file:
+    src=/etc/nginx/sites-available/ooni-api.conf
+    dest=/etc/nginx/sites-enabled/ooni-api.conf
+    state=link
 
-- name: Deploy dehydrated conf
-  when: inventory_hostname in ('backend-hel.ooni.org')
-  tags: api, webserv
+- name: Configure deb forwarder
+  tags: deb_ooni
+  # Uses dehydrated
   template:
-    src: templates/dehydrated.config
-    dest: /etc/dehydrated/config
-    mode: 0755
-    owner: root
+    src: deb_ooni.nginx.conf
+    dest: /etc/nginx/sites-enabled/deb_ooni
+  notify:
+    - reload nginx
+    - restart nginx
 
 - name: Deploy dehydrated conf
-  when: inventory_hostname in ('backend-hel.ooni.org')
   tags: api, webserv
   template:
     src: templates/dehydrated.config
@@ -110,33 +106,11 @@
     group: ooniapi
     mode: 0640
 
-- name: Create symlink for API nginx conf
-  tags: api
-  file:
-    src=/etc/nginx/sites-available/ooni-api.conf
-    dest=/etc/nginx/sites-enabled/ooni-api.conf
-    state=link
-
-- name: Configure deb forwarder
-  tags: deb_ooni_org
-  # Uses dehydrated
-  template:
-    src: deb_ooni_org.nginx.conf
-    dest: /etc/nginx/sites-enabled/deb_ooni_org
-
 - name: create badges dir
   tags: api
   file:
     path: /var/www/package_badges/
     state: directory
-
-- name: Safely reload Nginx
-  tags: api, deb_ooni_org, webserv
-  shell: nginx -t && systemctl reload nginx
-
-- name: Restart Nginx
-  tags: webserv
-  shell: nginx -t && systemctl restart nginx
 
 - name: allow incoming TCP connections to API
   tags: api
@@ -145,10 +119,8 @@
     create: yes
     block: |
       add rule inet filter input tcp dport 443 counter accept comment "incoming HTTPS"
-
-- name: reload nftables service
-  tags: api, webserv
-  shell: systemctl reload nftables.service
+  notify:
+    - reload nftables
 
 ## Fastpath ##
 
@@ -190,7 +162,6 @@
 ## DB backup ##
 
 - name: Run DB backup
-  when: inventory_hostname == 'backend-hel.ooni.org'
   tags: dbbackup
   template:
     src: db-backup.conf
