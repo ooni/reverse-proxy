@@ -10,48 +10,35 @@ resource "aws_security_group" "ec2_sg" {
 
   vpc_id = var.vpc_id
 
-  ingress {
-    protocol    = "tcp"
-    from_port   = 9000
-    to_port     = 9000
-  }
-
-  ingress {
-    protocol    = "tcp"
-    from_port   = 80
-    to_port     = 80
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    protocol    = "tcp"
-    from_port   = 22
-    to_port     = 22
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-
-    cidr_blocks = [
-      "0.0.0.0/0",
-    ]
-  }
-
-  egress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
   lifecycle {
     create_before_destroy = true
   }
 
   tags = var.tags
+}
+
+resource "aws_security_group_rule" "ec2_sg_ingress" {
+  count = length(var.ingress_rules)
+
+  type = "ingress"
+  from_port         = var.ingress_rules[count.index].from_port
+  to_port           = var.ingress_rules[count.index].to_port
+  protocol          = var.ingress_rules[count.index].protocol
+  cidr_blocks       = [var.ingress_rules[count.index].cidr_blocks]
+  ipv6_cidr_blocks  = [var.ingress_rules[count.index].ipv6_cidr_blocks]
+  security_group_id =  aws_security_group.ec2_sg.id
+}
+
+resource "aws_security_group_rule" "ec2_sg_egress" {
+  count = length(var.egress_rules)
+
+  type = "egress"
+  from_port         = var.egress_rules[count.index].from_port
+  to_port           = var.egress_rules[count.index].to_port
+  protocol          = var.egress_rules[count.index].protocol
+  cidr_blocks       = var.egress_rules[count.index].cidr_blocks
+  ipv6_cidr_blocks  = var.egress_rules[count.index].ipv6_cidr_blocks
+  security_group_id =  aws_security_group.ec2_sg.id
 }
 
 data "cloudinit_config" "ooni_ec2" {

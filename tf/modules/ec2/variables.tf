@@ -40,6 +40,26 @@ variable "sg_prefix" {
     description = "security group prefix"
 }
 
+variable "ingress_rules" {
+  type = list(object({
+      from_port   = number
+      to_port     = number
+      protocol    = string
+      cidr_blocks = list(string)
+      ipv6_cidr_blocks = optional(list(string))
+    }))
+}
+
+variable "egress_rules" {
+  type = list(object({
+      from_port   = number
+      to_port     = number
+      protocol    = string
+      cidr_blocks = optional(list(string))
+      ipv6_cidr_blocks = optional(list(string))
+    }))
+}
+
 variable "tg_prefix" {
     description = "target group prefix. Will be prefixed with `oo`, example: bkprx -> oobkprx"
 }
