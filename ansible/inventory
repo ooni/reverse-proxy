@@ -5,9 +5,9 @@ ghs-ams
 ## Role tags
 
 [clickhouse]
-# notebook.ooni.org
-# data1.htz-fsn.prod.ooni.nu
-# data2.htz-fsn.prod.ooni.nu
+notebook.ooni.org
+data1.htz-fsn.prod.ooni.nu
+data2.htz-fsn.prod.ooni.nu
 data3.htz-fsn.prod.ooni.nu
 
 ## Location tags
