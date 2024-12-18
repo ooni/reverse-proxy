@@ -1,8 +1,6 @@
 dom0_hosts:
   - ams-ps.ooni.nu
   - ams-slack-1.ooni.org
-  - amsmatomo.ooni.nu
-  - db-1.proteus.ooni.io
   - doams1-countly.ooni.nu
   - mia-echoth.ooni.nu
   - mia-httpth.ooni.nu
