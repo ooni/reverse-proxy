@@ -8,5 +8,3 @@
     - prometheus
     - prometheus_blackbox_exporter
     - prometheus_alertmanager
-
-
