@@ -106,6 +106,6 @@ resource "aws_alb_target_group" "ooni_ec2" {
 }
 
 resource "aws_lb_target_group_attachment" "oonibackend_proxy" {
-  target_id        = aws_instance.ooni_ec2
+  target_id        = aws_instance.ooni_ec2.id
   target_group_arn = aws_alb_target_group.ooni_ec2.arn
 }
