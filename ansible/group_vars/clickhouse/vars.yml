@@ -79,11 +79,11 @@ clickhouse_keeper:
     hostname: clickhouse1.prod.ooni.io
     port: 9234
 
-  #- keeper_server:
-  #  server: data2.htz-fsn.prod.ooni.nu
-  #  id: 2
-  #  hostname: clickhouse2.prod.ooni.io
-  #  port: 9234
+  - keeper_server:
+    server: data2.htz-fsn.prod.ooni.nu
+    id: 2
+    hostname: clickhouse2.prod.ooni.io
+    port: 9234
 
   - keeper_server:
     server: data3.htz-fsn.prod.ooni.nu
@@ -100,6 +100,9 @@ clickhouse_keeper:
 clickhouse_zookeeper:
   - node:
     host: clickhouse1.prod.ooni.io
+    port: 9181
+  - node:
+    host: clickhouse2.prod.ooni.io
     port: 9181
   - node:
     host: clickhouse3.prod.ooni.io
@@ -119,9 +122,9 @@ clickhouse_remote_servers:
           - replica:
             host: clickhouse1.prod.ooni.io
             port: 9000
-          #- replica:
-          #  host: clickhouse2.prod.ooni.io
-          #  port: 9000
+          - replica:
+            host: clickhouse2.prod.ooni.io
+            port: 9000
           - replica:
             host: clickhouse3.prod.ooni.io
             port: 9000
