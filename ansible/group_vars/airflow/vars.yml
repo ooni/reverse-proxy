@@ -9,3 +9,5 @@ airflow_admin_users:
 airflow_fernet_key: "{{ lookup('amazon.aws.aws_ssm', '/oonidevops/secrets/airflow_fernet_key', profile='oonidevops_user_prod') }}"
 airflow_webserver_secret_key: "{{ lookup('amazon.aws.aws_ssm', '/oonidevops/secrets/airflow_webserver_secret_key', profile='oonidevops_user_prod') }}"
 #airflow_executor: "LocalExecutor"
+airflow_extra_packages:
+  - virtualenv
