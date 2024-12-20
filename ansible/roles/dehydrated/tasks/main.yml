@@ -47,14 +47,6 @@
   tags: dehydrated
   shell: systemctl reload nginx.service
 
-- name: allow incoming TCP connections to Nginx on port 80
-  tags: dehydrated
-  blockinfile:
-    path: /etc/ooni/nftables/tcp/80.nft
-    create: yes
-    block: |
-      add rule inet filter input tcp dport 80 counter accept comment "incoming HTTP"
-
 - name: reload nftables service
   tags: dehydrated
   shell: systemctl reload nftables.service

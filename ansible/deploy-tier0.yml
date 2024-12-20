@@ -8,15 +8,5 @@
 - name: Include clickhouse playbook
   ansible.builtin.import_playbook: deploy-clickhouse.yml
 
-- name: Deploy oonidata worker nodes
-  hosts:
-    - data1.htz-fsn.prod.ooni.nu
-  become: true
-  tags:
-    - oonidata_worker
-  roles:
-    - oonidata
-  vars:
-    enable_jupyterhub: false
-    enable_oonipipeline_worker: true
-    clickhouse_url: "clickhouse://write:{{ lookup('amazon.aws.aws_ssm', '/oonidevops/secrets/clickhouse_write_password', profile='oonidevops_user_prod') | hash('sha256') }}@clickhouse1.prod.ooni.io/ooni"
+- name: Include airflow playbook
+  ansible.builtin.import_playbook: deploy-airflow.yml
