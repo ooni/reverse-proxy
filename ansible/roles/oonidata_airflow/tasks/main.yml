@@ -1,7 +1,23 @@
+- name: Ensure Airflow group
+  group:
+    name: "airflow"
+  become: true
+
+- name: Ensure Airflow user
+  user:
+    name: "airflow"
+    group: "airflow"
+    system: true
+    shell: "/usr/sbin/nologin"
+    createhome: "yes"
+    home: "/opt/airflow"
+  become: true
+
 - name: Checkout oonidata repo
+  become_user: airflow
   ansible.builtin.git:
     repo: 'https://github.com/ooni/data.git'
-    dest: /opt/oonidata
+    dest: /opt/airflow/oonidata
     version: airflow
 
 - ansible.builtin.include_role:
@@ -11,7 +27,7 @@
     - airflow
   vars:
     airflow_app_home: /opt/airflow
-    airflow_dags_folder: /opt/oonidata/dags/
+    airflow_dags_folder: /opt/airflow/oonidata/dags/
     airflow_webserver_host: "127.0.0.1"
     airflow_webserver_port: 8080
     airflow_webserver_base_url: "https://{{ airflow_public_fqdn }}/airflow"
