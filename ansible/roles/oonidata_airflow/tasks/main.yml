@@ -21,7 +21,7 @@
   ansible.builtin.git:
     repo: 'https://github.com/ooni/data.git'
     dest: /opt/airflow/oonidata
-    version: airflow
+    version: main
 
 - ansible.builtin.include_role:
     name: ooni.airflow_role
