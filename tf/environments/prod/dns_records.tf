@@ -1021,3 +1021,11 @@ resource "aws_route53_record" "clickhouse3-prod-ooni-io-_A_" {
   type    = "A"
   zone_id = local.dns_root_zone_ooni_io
 }
+
+resource "aws_route53_record" "airflow-prod-ooni-io-_a_" {
+  name    = "airflow.prod.ooni.io"
+  records = ["142.132.254.225"]
+  ttl     = "60"
+  type    = "A"
+  zone_id = local.dns_root_zone_ooni_io
+}

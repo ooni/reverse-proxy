@@ -3,15 +3,18 @@
     name: "airflow"
   become: true
 
-- name: Ensure Airflow user
-  user:
-    name: "airflow"
-    group: "airflow"
-    system: true
-    shell: "/usr/sbin/nologin"
-    createhome: "yes"
-    home: "/opt/airflow"
-  become: true
+# TODO: uncomment this section if you want to redeploy it
+# this was added after the user had already been created by the airflow_role
+# and so it's failing because it's trying to modify the user.
+#- name: Ensure Airflow user
+#  user:
+#    name: "airflow"
+#    group: "airflow"
+#    system: true
+#    shell: "/usr/sbin/nologin"
+#    createhome: "yes"
+#    home: "/opt/airflow"
+#  become: true
 
 - name: Checkout oonidata repo
   become_user: airflow
@@ -71,7 +74,7 @@
     - oonidata
     - dehydrated
   vars:
-    ssl_domains: "{{ [ airflow_public_fqdn ] + certbot_domains_extra }}"
+    ssl_domains: "{{ [ inventory_hostname ] + [ airflow_public_fqdn ] }}"
 
 - name: Setup airflow nginx config
   ansible.builtin.template:
