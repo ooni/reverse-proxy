@@ -4,5 +4,4 @@
     - data2.htz-fsn.prod.ooni.nu
   become: true
   roles:
-    # Comes from https://github.com/idealista/airflow-role
-    - {"role": "airflow"}
+    - oonidata_airflow

@@ -1,0 +1,3 @@
+tls_cert_dir: /var/lib/dehydrated/certs
+airflow_public_fqdn: "{{ inventory_hostname }}"
+certbot_domains_extra: []

@@ -1,0 +1,35 @@
+- ansible.builtin.include_role:
+    name: ooni.airflow_role
+  tags:
+    - oonidata
+    - airflow
+  vars:
+    airflow_webserver_host: "127.0.0.1"
+    airflow_webserver_port: 8080
+    airflow_webserver_base_url: "https://{{ airflow_public_fqdn }}/airflow"
+
+- ansible.builtin.include_role:
+    name: nginx
+  tags:
+    - oonidata
+    - nginx
+
+- ansible.builtin.include_role:
+    name: dehydrated
+  tags:
+    - oonidata
+    - dehydrated
+  vars:
+    ssl_domains: "{{ [ airflow_public_fqdn ] + certbot_domains_extra }}"
+
+- name: Setup airflow nginx config
+  ansible.builtin.template:
+    src: nginx-airflow.j2
+    dest: /etc/nginx/sites-enabled/02-airflow
+    owner: root
+    mode: "0655"
+  notify:
+    - Reload nginx
+  tags:
+    - oonidata
+    - config
