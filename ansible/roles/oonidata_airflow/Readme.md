@@ -17,7 +17,9 @@ GRANT ALL ON SCHEMA public TO airflow;
   in the upstream role. During the last deploy this was addressed by logging
 into the host and running the create task manually:
 ```
-AIRFLOW_CONFIG=/etc/airflow/airflow.cfg AIRFLOW_HOME=/opt/airflow/ /opt/airflow/bin/airflow users create --username admin --password --firstname Open --lastname Observatory --role Admin --email admin@ooni.org
+AIRFLOW_CONFIG=/etc/airflow/airflow.cfg AIRFLOW_HOME=/opt/airflow/ /opt/airflow/bin/airflow users create --username admin --password XXX --firstname Open --lastname Observatory --role Admin --email admin@ooni.org
 ```
 
-* The nginx role 
+* Once the setup is complete, you will then have to login to the host using the
+  admin user and go into Admin->Configuration and add the `clickhouse_url`
+variable
