@@ -33,7 +33,7 @@
     airflow_dags_folder: /opt/airflow/oonidata/dags/
     airflow_webserver_host: "127.0.0.1"
     airflow_webserver_port: 8080
-    airflow_webserver_base_url: "https://{{ airflow_public_fqdn }}/airflow"
+    airflow_webserver_base_url: "https://{{ airflow_public_fqdn }}"
     airflow_environment_extra_vars:
       - name: AIRFLOW_VAR_DATA_DIR
         value: "{{ airflow_app_home }}/data_dir"
