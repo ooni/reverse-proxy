@@ -25,3 +25,6 @@ openvpn-server1.ooni.io
 
 [aws-proxy]
 clickhouseproxy.dev.ooni.io
+
+[backend]
+backend-hel.ooni.org

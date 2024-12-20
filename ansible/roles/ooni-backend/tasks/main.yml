@@ -25,15 +25,10 @@
     group: ooniapi
     mode: 0640
   vars:
-    collectors: {{ collectors }}
-    # bucket_name and collector_id must match the uploader
-    collector_id: {{ collector_id }}
-    bucket_name: {{ bucket_name }}
     github_push_repo: "ooni-bot/test-lists"
     github_origin_repo: "ooni/test-lists"
     login_base_url: "https://test-lists.test.ooni.org/login"
     pg_uri: ""
-    clickhouse_url: clickhouse://api:api@localhost/default
     # mail_smtp_password: "DISABLED"
     # jwt_encryption_key and account_id_hashing_key are taken from the vault
 
@@ -54,10 +49,6 @@
   template:
     src: templates/api-uploader.conf
     dest: /etc/ooni/api-uploader.conf
-  vars:
-    # bucket_name and collector_id must match the API
-    bucket_name: {{ bucket_name }}
-    collector_id: {{ collector_id }}
 
 ## Nginx ##
 
@@ -83,7 +74,7 @@
   tags: deb_ooni
   # Uses dehydrated
   template:
-    src: deb_ooni.nginx.conf
+    src: deb_ooni_org.nginx.conf
     dest: /etc/nginx/sites-enabled/deb_ooni
   notify:
     - reload nginx
@@ -139,8 +130,6 @@
     owner: fastpath
     group: fastpath
     mode: 0640
-  vars:
-    clickhouse_url: {{ clickhouse_url }}
 
 ## Analysis daemon ##
 
@@ -167,5 +156,3 @@
     src: db-backup.conf
     dest: /etc/ooni/db-backup.conf
     mode: 0600
-  vars:
-    public_bucket_name: {{ bucket_name }}
