@@ -159,8 +159,8 @@ module "oonipg" {
   vpc_id                   = module.network.vpc_id
   subnet_ids               = module.network.vpc_subnet_public[*].id
   db_instance_class        = "db.t3.micro"
-  db_storage_type          = "standard"
-  db_allocated_storage     = "5"
+  db_storage_type          = "gp3"
+  db_allocated_storage     = "50"
   db_max_allocated_storage = null
   tags = merge(
     local.tags,
