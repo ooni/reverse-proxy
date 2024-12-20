@@ -1,12 +1,47 @@
+- name: Checkout oonidata repo
+  ansible.builtin.git:
+    repo: 'https://github.com/ooni/data.git'
+    dest: /opt/oonidata
+    version: airflow
+
 - ansible.builtin.include_role:
     name: ooni.airflow_role
   tags:
     - oonidata
     - airflow
   vars:
+    airflow_app_home: /opt/airflow
+    airflow_dags_folder: /opt/oonidata/dags/
     airflow_webserver_host: "127.0.0.1"
     airflow_webserver_port: 8080
     airflow_webserver_base_url: "https://{{ airflow_public_fqdn }}/airflow"
+    airflow_environment_extra_vars:
+      - name: AIRFLOW_VAR_DATA_DIR
+        value: "{{ airflow_app_home }}/data_dir"
+    airflow_extra_packages:
+      - postgres
+      - virtualenv
+    airflow_services:
+      airflow_webserver:
+        service_name: airflow-webserver
+        enabled: true
+        running: true
+        state: started
+        path: airflow-webserver.service.j2
+      airflow_scheduler:
+        service_name: airflow-scheduler
+        enabled: true
+        running: true
+        state: started
+        path: airflow-scheduler.service.j2
+
+- name: Set correct permissions on oonidata repo dir
+  ansible.builtin.file:
+    path: /opt/oonidata
+    state: directory
+    mode: '0755'
+    owner: airflow
+    recurse: yes
 
 - ansible.builtin.include_role:
     name: nginx

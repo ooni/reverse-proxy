@@ -11,7 +11,7 @@ data2.htz-fsn.prod.ooni.nu
 data3.htz-fsn.prod.ooni.nu
 
 [airflow]
-data2.htz-fsn.prod.ooni.nu
+data1.htz-fsn.prod.ooni.nu
 
 ## Location tags
 
