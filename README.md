@@ -1,7 +1,5 @@
 # OONI Devops
 
-This document outlines some of the best practices we follow when developing and
-deploying OONI services.
 
 ## Infrastructure Tiers
 
