@@ -24,6 +24,14 @@ pip install -r requirements/python.yml
 ansible-galaxy install -r requirements/ansible-galaxy.yml
 ```
 
+In order to gain access to machines you will have to add your public key to the
+`ssh_users` variable inside of `ansible/group_vars/all/vars.yml`.
+
+It's recommended you generate an `ed25519` key using the following command:
+```
+ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_ooni
+```
+
 ### AWS configuration
 
 You should then setup AWS credentials, by adding 2 profiles called `oonidevops_user_dev` and `oonidevops_user_prod` which have access to the development and production environment respectively.
