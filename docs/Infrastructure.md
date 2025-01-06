@@ -8,7 +8,46 @@ Our infrastructure is primarily spread across the following providers:
 
 We manage the deployment and configuration of hosts through a combination of ansible and terraform.
 
-### Hosts
+## Infrastructure Tiers
+
+We divide our infrastructure components into 3 tiers:
+
+- **Tier 0: Critical**: These are mission critical infrastructure components. If these become unavailable or have significant disruption, it will have a major impact.
+
+- **Tier 1: Essential**: These components are important, but not as critical as
+  tier 0. They are part of our core operations, but if they become unavailable
+  the impact is important, but not major.
+
+- **Tier 2: Non-Essential**: These are auxiliary components. Their
+  unavailability does not have a major impact.
+
+### Tier 0 (Critical) components
+
+- [ ] Probe Services (collector specifically)
+- [ ] Fastpath (part responsible for storing post-cans)
+- [x] DNS configuration
+- [ ] OONI bridges
+- [x] Web Connectivity test helpers
+
+### Tier 1 (Essential) components
+
+- [ ] OONI API measurement listing
+- [x] OONI Explorer
+- [x] OONI Run
+- [ ] Monitoring
+- [ ] OONI.org website
+- [x] Code signing
+- [ ] OONI Data analysis pipeline
+- [x] OONI Findings API
+- [x] Website analytics
+
+### Tier 2 (Non-Essential) components
+
+- [ ] Test list editor
+- [ ] Jupyter notebooks
+- [ ] Countly
+
+## Hosts
 
 This section provides a summary of the backend hosts described in the
 rest of the document.
@@ -17,7 +56,7 @@ A full list is available at
 <https://github.com/ooni/devops/blob/master/ansible/inventory> -
 also see [Ansible](#ansible)&thinsp;🔧
 
-#### backend-fsn.ooni.org
+### backend-fsn.ooni.org
 
 Public-facing production backend host, receiving the deployment of the
 packages:
@@ -30,213 +69,20 @@ packages:
 
 - [detector](legacybackend/operations/#detector-package)&thinsp;📦
 
-#### backend-hel.ooni.org
+### backend-hel.ooni.org
 
 Standby / pre-production backend host. Runs the same software stack as
 [backend-fsn.ooni.org](#backend-fsn.ooni.org)&thinsp;🖥, plus the
 [OONI bridges](#ooni-bridges)&thinsp;⚙
 
-#### ams-pg-test.ooni.org
-
-Testbed backend host. Runs the same software stack as
-[backend-fsn.ooni.org](#backend-fsn.ooni.org)&thinsp;🖥. Database tables are not backed up and
-incoming measurements are not uploaded to S3. All data is considered
-ephemeral.
-
-#### monitoring.ooni.org
+### monitoring.ooni.org
 
 Runs the internal monitoring stack, including
 [Jupyter Notebook](#tool:jupyter), [Prometheus](#prometheus)&thinsp;🔧,
 [Vector](#vector)&thinsp;🔧 and
 [ClickHouse instance for logs](#clickhouse-instance-for-logs)&thinsp;⚙
 
-### The Sysadmin repository
-
-This is a git repository living at <https://github.com/ooni/sysadmin/>
-for internal use. It primarily contains:
-
-- Playbooks for [Ansible](#ansible)&thinsp;🔧
-
-- The [debops-ci tool](#debops-ci-tool)&thinsp;🔧
-
-- Scripts and tools including diagrams for
-  [DNS and Domains](#dns-and-domains)&thinsp;💡
-
-### Ansible
-
-Ansible is used to configure the OSes on the backend hosts and manage
-the configuration of backend components. The playbooks are kept at
-<https://github.com/ooni/sysadmin/tree/master/ansible>
-
-This manual supersedes
-<https://github.com/ooni/sysadmin/blob/master/README.md>
-
-#### Installation and setup
-
-Install Ansible using a OS packages or a Python virtualenv. Ensure the
-same major+minor version is used across the team.
-
-Secrets are stored in vaults using the `ansible/vault` script as a
-wrapper for `ansible-vault`. Store encrypted variables with a `vault_`
-prefix to allow using grep: <http://docs.ansible.com/ansible/playbooks_best_practices.html#best-practices-for-variables-and-vaults>
-and link location of the variable using same name without prefix in
-corresponding `vars.yml`.
-
-In order to access secrets stored inside of the vault, you will need a
-copy of the vault password encrypted with your PGP key. This file should
-be stored inside of `~/.ssh/ooni-sysadmin.vaultpw.gpg`.
-
-The file should be provided by other teammates and GPG-encrypted for your own GPG key.
-
-#### SSH Configuration
-
-You should configure your `~/.ssh/config` with the following:
-
-```
-    IdentitiesOnly yes
-    ServerAliveInterval 120
-    UserKnownHostsFile ~/.ssh/known_hosts ~/REPLACE_ME/sysadmin/ext/known_hosts
-
-    host *.ooni.io
-      user YOUR_USERNAME
-
-    host *.ooni.nu
-      user YOUR_USERNAME
-
-    host *.ooni.org
-      user YOUR_USERNAME
-```
-
-Replace `~/REPLACE_ME/sysadmin/ext/known_hosts` to where you have cloned
-the `ooni/sysadmin` repo. This will ensure you use the host key
-fingeprints from this repo instead of just relying on TOFU.
-
-You should replace `YOUR_USERNAME` with your username from `adm_login`.
-
-On MacOS you may want to also add:
-
-    host *
-        UseKeychain yes
-
-To use the Keychain to store passwords.
-
-### Ansible playbooks summary
-
-Usage:
-
-    ./play deploy-<component>.yml -l <hostname> --diff -C
-    ./play deploy-<component>.yml -l <hostname> --diff
-
-> **warning**
-> any minor error in configuration files or ansible's playbooks can be
-> destructive for the backend infrastructure. Always test-run playbooks
-> with `--diff` and `-C` at first and carefully verify configuration
-> changes. After verification run the playbook without `-C` and verify
-> again the applied changes.
-
-> **note** > [Etckeeper](#etckeeper)&thinsp;🔧 can be useful to verify configuration
-> changes from a different point of view.
-
-Some notable parts of the repository:
-
-A list of the backend hosts lives at
-<https://github.com/ooni/devops/blob/main/ansible/inventory>
-
-The backend deployment playbook lives at
-<https://github.com/ooni/devops/blob/main/ansible/deploy-backend.yml>
-
-Many playbooks depend on roles that configure the OS, named
-`base-<os_version>`, for example:
-<https://github.com/ooni/sysadmin/blob/master/ansible/roles/base-bookworm>
-for Debian Bookworm and
-<https://github.com/ooni/sysadmin/tree/master/ansible/roles/base-bullseye>
-for Debian Bullseye
-
-The nftables firewall is configured to read every `.nft` file under
-`/etc/ooni/nftables/` and `/etc/ooni/nftables/`. This allows roles to
-create small files to open a port each and keep the configuration as
-close as possible to the ansible step that deploys a service. For
-example:
-<https://github.com/ooni/sysadmin/blob/master/ansible/roles/base-bookworm/tasks/main.yml#L110>
-
-> **note**
-> Ansible announces its runs on [ooni-bots](##ooni-bots)&thinsp;💡 unless running with `-C`.
-
-#### The root account
-
-Runbooks use ssh to log on the hosts using your own account and leveraging `sudo` to act as root.
-
-The only exception is when a new host is being deployed - in that case ansible will log in as root to create
-individual accounts and lock out the root user.
-
-When running the entire runbook ansible might try to run it as root.
-This can be avoided by selecting only the required tags using `-t <tagname>`.
-
-Ideally the root user should be disabled after succesfully creating user accounts.
-
-#### Roles layout
-
-Ansible playbooks use multiple roles (see
-[example](https://github.com/ooni/sysadmin/blob/master/ansible/deploy-backend.yml#L46))
-to deploy various components.
-
-Few roles use the `meta/main.yml` file to depend on other roles. See
-[example](https://github.com/ooni/sysadmin/blob/master/ansible/roles/ooni-backend/meta/main.yml)
-
-> **note**
-> The latter method should be used sparingly because ansible does not
-> indicate where each task in a playbook is coming from.
-
-A diagram of the role dependencies for the deploy-backend.yml playbook:
-
-```mermaid
-
-flowchart LR
-        A(deploy-backend.yml) --> B(base-bullseye)
-        B -- meta --> G(adm)
-        A --> F(nftables)
-        A --> C(nginx-buster)
-        A --> D(dehydrated)
-        D -- meta --> C
-        E -- meta --> F
-        A --> E(ooni-backend)
-        style B fill:#eeffee
-        style C fill:#eeffee
-        style D fill:#eeffee
-        style E fill:#eeffee
-        style F fill:#eeffee
-        style G fill:#eeffee
-```
-
-A similar diagram for deploy-monitoring.yml:
-
-```mermaid
-
-flowchart LR
-        B -- meta --> G(adm)
-        M(deploy-monitoring.yml) --> B(base-bookworm)
-        M --> O(ooca-cert)
-        M --> F(nftables)
-        M --> D(dehydrated) -- meta --> N(nginx-buster)
-        M --> P(prometheus)
-        M --> X(blackbox-exporter)
-        M --> T(alertmanager)
-        style B fill:#eeffee
-        style D fill:#eeffee
-        style F fill:#eeffee
-        style G fill:#eeffee
-        style N fill:#eeffee
-        style O fill:#eeffee
-        style P fill:#eeffee
-        style T fill:#eeffee
-        style X fill:#eeffee
-```
-
-> **note**
-> When deploying files or updating files already existing on the hosts it can be useful to add a note e.g. "Deployed by ansible, see <role_name>".
-> This helps track down how files on the host were modified and why.
-
-### Etckeeper
+## Etckeeper
 
 Etckeeper <https://etckeeper.branchable.com/> is deployed on backend
 hosts and keeps the `/etc` directory under git version control. It
@@ -259,102 +105,101 @@ Use `etckeeper commit <message>` to commit changes.
 Etckeeper commits changes automatically when APT is used or on daily basis, whichever comes first.
 :::
 
-### Team credential repository
+## Devops credentials
 
-A private repository <https://github.com/ooni/private> contains team
-credentials, including username/password tuples, GPG keys and more.
+Credentials necessary for the deployment of backend infrastructure components should be stored inside of [AWS Systems Manager Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html). The same key name should be used in both production and development environment, but a different value shall be used across environments.
 
-> **warning**
-> The credential file is GPG-encrypted as `credentials.json.gpg`. Do not
-> commit the cleartext `credentials.json` file.
+:::note
+We previously were using secrets manager, but are in the process of moving over all secerets to parameter store, see: https://github.com/ooni/devops/issues/114.
 
-> **note**
-> The credentials are stored in a JSON file to allow a flexible,
-> hierarchical layout. This allow storing metadata like descriptions on
-> account usage, dates of account creations, expiry, and credential
-> rotation time.
+Once this is complete this note can be removed.
+:::
 
-The tool checks JSON syntax and sorts keys automatically.
+## DNS and Domains
 
-#### Listing file contents
+The primary domains used by the backend are:
+- `ooni.org`
+- `ooni.io`
+- `ooni.nu`
 
-    git pull
-    make show
+DNS is managed inside of route53. Where a static configuration is needed, this is added to the terraform `tf/environments/prod/dns_records.tf` file. For records that are being populated as part of IaC deployments, those can be registerred and written directly using terraform itself.
 
-#### Editing contents
+For the `ooni.io` and `ooni.nu` zones, we also have delegated two sub zones each one for the `dev` and one for the `prod` environment. This allows the dev environment to manage it's own zone, like the production environment would, but also properly compatmentalize it.
 
-    git pull
-    make edit
-    git commit credentials.json.gpg -m "<message>"
-    git push
+This leads us to having the following zones:
+* `ooni.org` root zone, managed in the prod environment
+* `ooni.io` root zone, managed in the prod environment
+* `ooni.nu` root zone, managed in the prod environment
+* `prod.ooni.io` delegated zone, managed in the prod environment
+* `prod.ooni.nu` delegated zone, managed in the prod environment
+* `dev.ooni.io` delegated zone, managed in the dev environment
+* `dev.ooni.nu` delegated zone, managed in the dev environment
 
-#### Extracting a credential programmatically:
+### DNS naming policy
 
-    git pull
-    ./extract 'grafana.username'
+The public facing name of services, follows this format:
 
-> **note**
-> this can be used to automate credential retrieval from other tools, e.g.
-> [Ansible](#ansible)&thinsp;🔧
+- `<service>.ooni.org`
 
-#### Updating users allowed to decrypt the credentials file
+Examples:
 
-Edit `makefile` to add or remove recipients (see `--recipient`)
+- `explorer.ooni.org`
+- `run.ooni.org`
 
-Then run:
+Public-facing means the FQDNs are used directly by external users, services, or
+embedded in the probes. They cannot be changed or retired without causing
+outages.
 
-    git pull
-    make decrypt encrypt
-    git commit makefile credentials.json.gpg
-    git push
+Use public facing names sparingly and when possible start off by creating a
+private name first.
+Not every host needs to have a public facing name. For example staging and
+testing environments might not have a public facing name.
 
-### DNS diagrams
+Each service also has public name which points to the specific host running that
+service, and these are hosted in the `.io` zone.
+This is helpful because sometimes you might have the same host running multiple
+services or you might also have multiple services behind the same public service
+endpoint (eg. in the case of an API gateway setup).
 
-#### A:
+Name in the `.io` zone should always include also the environment name they are
+related to:
 
-See
-<https://raw.githubusercontent.com/ooni/sysadmin/master/ext/dnsgraph.A.svg>
+- `<service>.prod.ooni.io` for production services
+- `<service>.test.ooni.io` for test services
 
-The image is not included here due to space constraints.
+When there may be multiple instances of a service running, you can append a
+number to the service name. Otherwise the service name should be only alphabetic
+characters.
 
-#### CNAME:
+Examples:
 
-![CNAME](https://raw.githubusercontent.com/ooni/sysadmin/master/ext/dnsgraph.CNAME.svg)
+- `clickhouse.prod.ooni.io`
+- `postgres0.prod.ooni.io`
+- `postgres1.prod.ooni.io`
+- `prometheus.prod.ooni.io`
+- `grafana.prod.ooni.io`
 
-#### MX:
+Finally, the actual host which runs the service, should have a FQDN defined
+inside of the `.nu` zone.
 
-![MX](https://raw.githubusercontent.com/ooni/sysadmin/master/ext/dnsgraph.MX.svg)
+This might not apply to every host, especially in a cloud environment. The FQDN
+in the `.nu` are the ones which are going to be stored in the ansible inventory
+file and will be used as targets for configuration management.
 
-#### NS:
+The structure of these domains is:
 
-![NS](https://raw.githubusercontent.com/ooni/sysadmin/master/ext/dnsgraph.NS.svg)
+- `<name>.<location>.[prod|test].ooni.nu`
 
-#### TXT:
+The location tag can be either just the provider name or provider name `-` the location.
 
-![TXT](https://raw.githubusercontent.com/ooni/sysadmin/master/ext/dnsgraph.TXT.svg)
+Here is a list of location tags:
 
-#### HTTP Moved Permanently (HTTP code 301):
+- `htz-fsn`: Hetzner on Falkenstein
+- `htz-hel`: Hetzner in Helsinki
+- `grh-ams`: Greenhost in Amsterdam
+- `grh-mia`: Greenhost in Miami
+- `aws-fra`: AWS in Europe (Frankfurt)
 
-![URL301](https://raw.githubusercontent.com/ooni/sysadmin/master/ext/dnsgraph.URL301.svg)
+Examples:
 
-#### HTTP Redirects:
-
-![URL](https://raw.githubusercontent.com/ooni/sysadmin/master/ext/dnsgraph.URL.svg)
-
-#### Updating DNS diagrams
-
-To update the diagrams use the sysadmin repository:
-
-Update the `./ext/dns.json` file:
-
-    cd ansible
-    ./play ext-inventory.yml -t namecheap
-    cd ..
-
-Then run <https://github.com/ooni/sysadmin/blob/master/scripts/dnsgraph>
-to generate the charts:
-
-    ./scripts/dnsgraph
-
-It will generate SVG files under the `./ext/` directory. Finally, commit
-and push the dns.json and SVG files.
+- `monitoring.htz-fsn.prod.ooni.nu`

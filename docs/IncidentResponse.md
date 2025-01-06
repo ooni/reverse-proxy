@@ -12,9 +12,7 @@ On Android devices the following apps can be used:
  * [Grafana](#grafana)&thinsp;🔧 viewer
     <https://play.google.com/store/apps/details?id=it.ksol.grafanaview>
 
-## Tiers and severities
-
-**TODO** Consolidate the tiers outlined here with the other tiers listed in the top level readme.
+## Severities
 
 When designing architecture of backend components or handling incidents it can be useful to have
 defined severities and tiers.
@@ -27,17 +25,12 @@ In this case there is no distinction between severity and priority. Impact and r
 Incidents and alarms from monitoring can be classified by severity levels based on their impact:
 
  - 1: Serious security breach or data loss; serious loss of privacy impacting users or team members; legal risks.
- - 2: Downtime impacting service usability for a significant fraction of users; Serious security vulnerability.
+ - 2: Downtime impacting service usability for a significant fraction of users or a tier 0 component; Serious security vulnerability.
       Examples: probes being unable to submit measurements
- - 3: Downtime or poor performance impacting secondary services; anything that can cause a level 2 event if not addressed within 24h; outages of monitoring infrastructure
+ - 3: Downtime or poor performance impacting secondary services (tier 1 or above); anything that can cause a level 2 event if not addressed within 24h; outages of monitoring infrastructure
  - 4: Every other event that requires attention within 7 days
 
-Based on the set of severities, components can be classified in tier as follows:
-
- - tier 1: Anything that can cause a severity 1 (or less severe) event.
- - tier 2: Anything that can cause a severity 2 (or less severe) event but not a severity 1.
- - tier 3: Anything that can cause a severity 3 (or less severe) event but not a severity 1 or 2.
- - ...and so on
+For an outline of infrastructure tiers see [infrastructure tiers](devops/infrastructure).
 
 ### Relations and dependencies between services
 
@@ -69,7 +62,6 @@ and with no significant downtime.
 
 Example: An active/standby database pair provides a tier 2 service. An automatic failover tool is triggered by a simple monitoring script.
 Both have to be labeled tier 2.
-
 
 ### Handling incidents
 

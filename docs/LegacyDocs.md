@@ -180,3 +180,53 @@ LIMIT 10
 
 
 See [Selecting test helper for rotation](#selecting-test-helper-for-rotation)&thinsp;🐞
+
+## Legacy credentials store
+
+A private repository <https://github.com/ooni/private> contains team
+credentials, including username/password tuples, GPG keys and more.
+
+> **warning**
+> The credential file is GPG-encrypted as `credentials.json.gpg`. Do not
+> commit the cleartext `credentials.json` file.
+
+> **note**
+> The credentials are stored in a JSON file to allow a flexible,
+> hierarchical layout. This allow storing metadata like descriptions on
+> account usage, dates of account creations, expiry, and credential
+> rotation time.
+
+The tool checks JSON syntax and sorts keys automatically.
+
+
+#### Listing file contents
+
+    git pull
+    make show
+
+#### Editing contents
+
+    git pull
+    make edit
+    git commit credentials.json.gpg -m "<message>"
+    git push
+
+#### Extracting a credential programmatically:
+
+    git pull
+    ./extract 'grafana.username'
+
+> **note**
+> this can be used to automate credential retrieval from other tools, e.g.
+> [Ansible](#ansible)&thinsp;🔧
+
+#### Updating users allowed to decrypt the credentials file
+
+Edit `makefile` to add or remove recipients (see `--recipient`)
+
+Then run:
+
+    git pull
+    make decrypt encrypt
+    git commit makefile credentials.json.gpg
+    git push
