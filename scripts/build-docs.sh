@@ -14,11 +14,12 @@ strip_title() {
 }
 
 generate_doc() {
-    local output_file="$1"
-    local title="$2"
-    local description="$3"
-    local slug="$4"
-    local input_file="$5"
+    local slug="$1"
+    local order="$2"
+    local input_file="$3"
+    local output_file="$4"
+    local title="$5"
+    local description="$6"
 
     cat <<EOF>"$DOCS_ROOT/$output_file"
 ---
@@ -27,20 +28,21 @@ generate_doc() {
 title: $title
 description: $description
 slug: $slug
+sidebar:
+    order: $order
 ---
 EOF
     echo "[edit file](https://github.com/$REPO_NAME/edit/$MAIN_BRANCH/$input_file)" >> "$DOCS_ROOT/$output_file"
     strip_title "$input_file" >> "$DOCS_ROOT/$output_file"
 }
 
-
-generate_doc "00-index.md" "OONI Devops" "OONI OONI Devops" "devops" "README.md"
-generate_doc "01-infrastructure.md" "Infrastructure" "Infrastructure documentation" "devops/infrastructure" "docs/Infrastructure.md"
-generate_doc "02-monitoring-alerts.md" "Monitoring" "Monitoring and Alerts documentation" "devops/monitoring" "docs/MonitoringAlerts.md"
-generate_doc "03-runbooks.md" "Runbooks" "Runbooks docs" "devops/runbooks" "docs/Runbooks.md"
-generate_doc "04-incident-response.md" "Incident response" "Incident response handling guidelines" "devops/incident-response" "docs/IncidentResponse.md"
-generate_doc "05-terraform.md" "Terraform setup" "Terraform setup" "devops/terraform" "tf/README.md"
-generate_doc "06-ansible.md" "Ansible setup" "Ansible setup" "devops/ansible" "ansible/README.md"
-generate_doc "07-tools.md" "Misc Tools" "Misc Tools" "devops/tools" "docs/Tools.md"
-generate_doc "08-debian-packages.md" "Debian Packages" "Debian Packages" "devops/debian-packages" "docs/DebianPackages.md"
-generate_doc "09-legacy-docs.md" "Legacy Documentation" "Legacy Documentation" "devops/legacy-docs" "docs/LegacyDocs.md"
+generate_doc 0 "README.md" "00-index.md" "OONI Devops" "OONI OONI Devops" "devops"
+generate_doc 1  "docs/Infrastructure.md" "01-infrastructure.md" "Infrastructure" "Infrastructure documentation" "devops/infrastructure"
+generate_doc 2 "docs/MonitoringAlerts.md" "02-monitoring-alerts.md" "Monitoring" "Monitoring and Alerts documentation" "devops/monitoring"
+generate_doc 3 "docs/Runbooks.md" "03-runbooks.md" "Runbooks" "Runbooks docs" "devops/runbooks"
+generate_doc 4 "docs/IncidentResponse.md" "04-incident-response.md" "Incident response" "Incident response handling guidelines" "devops/incident-response"
+generate_doc 5 "tf/README.md" "05-terraform.md" "Terraform setup" "Terraform setup" "devops/terraform"
+generate_doc 6 "ansible/README.md" "06-ansible.md" "Ansible setup" "Ansible setup" "devops/ansible"
+generate_doc 7 "docs/Tools.md" "07-tools.md" "Misc Tools" "Misc Tools" "devops/tools"
+generate_doc 8 "docs/DebianPackages.md" "08-debian-packages.md" "Debian Packages" "Debian Packages" "devops/debian-packages"
+generate_doc 9 "docs/LegacyDocs.md" "09-legacy-docs.md" "Legacy Documentation" "Legacy Documentation" "devops/legacy-docs"
