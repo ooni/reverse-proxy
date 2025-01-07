@@ -13,6 +13,11 @@ ssh_users:
       [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJsibU0nsQFFIdolD1POzXOws4VetV0ZNByINRzY8Hx0 arturo@ooni.org",
       ]
+  hynnot:
+    login: hynnot
+    comment: Tony Morella
+    keys:
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBTiOgr4PenzkF03NqFTGgacZ1BUWLkdCS1xNba4iLfP hynnot"
   majakomel:
     login: majakomel
     comment: Maja Komel
