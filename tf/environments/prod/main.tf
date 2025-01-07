@@ -86,8 +86,9 @@ module "adm_iam_roles" {
 
   authorized_accounts = [
     "arn:aws:iam::${local.ooni_main_org_id}:user/art",
-    "arn:aws:iam::${local.ooni_main_org_id}:user/tony",
-    "arn:aws:iam::${local.ooni_main_org_id}:user/mehul"
+    "arn:aws:iam::${local.ooni_main_org_id}:user/luis",
+    "arn:aws:iam::${local.ooni_main_org_id}:user/mehul",
+    "arn:aws:iam::${local.ooni_main_org_id}:user/tony"
   ]
 }
 
