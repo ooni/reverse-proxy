@@ -13,6 +13,11 @@ ssh_users:
       [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJsibU0nsQFFIdolD1POzXOws4VetV0ZNByINRzY8Hx0 arturo@ooni.org",
       ]
+  hynnot:
+    login: hynnot
+    comment: Tony Morella
+    keys:
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBTiOgr4PenzkF03NqFTGgacZ1BUWLkdCS1xNba4iLfP hynnot"
   majakomel:
     login: majakomel
     comment: Maja Komel
@@ -28,6 +33,11 @@ ssh_users:
     comment: Norbel Ambanumben
     keys:
       - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDBXprrutdT6AhrV9hWBKjyzq6RqGmCBWpWxi3qwJyRcBJfkiEYKV9QWl3H0g/Sg9JzLd9lWG2yfAai7cyBAT4Ih0+OhwQ0V7wkhBn4YkNjs7d4BGPHjuLIywS9VtmiyH7VafikMjmqPLL/uPBIbRrx9RuSfLkAuN9XFZpVmqzWY8ePpcRCvnG6ucPxEY8o+4j5nfTrgxSaIT31kH16/PFJe07tn1SZjxZE4sZTz/p9xKt6s8HXmlP3RdnXSpXWmH8ZwYDrNhkcH8m6mC3giiqSKThFdwvQVflRRvn9pAlUOhy6KIBtAt1KobVJtOCPrrkcLhQ1C+2P9wKhfYspCGrScFGnrUqumLxPpwlqILxJvmgqGAtkm8Ela9f2D9sEv8CUv5x9XptZKlyRhtOLixvLYoJlwfXXnmXa8T1pg8+4063BhHUOu/bg0InpSp3hdscOfk0R8FtDlXnn6COwbPXynIt4PxzIxD/WQhP0ymgH3ky6ClB5wRBVhOqYvxQw32n2QFS9A5ocga+nATiOE7BTOufgmDCA/OIXfJ/GukXRaMCBsvlx7tObHS1LOMt0I+WdoOEjI0ARUrFzwoiTrs9QYmd922e7S35EnheT3JjnCTjebJrCNtwritUy8vjsN/M27wJs7MAXleT7drwXXnm+3xYrH+4KQ+ru0dxMe1zfBw== aanorbel@gmail.com"
+  luis:
+    login: luis
+    comment: Luis Diaz
+    keys:
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHc04zv+G8vGOS/znLy6xd3lB0/B07uaFjgyh4UgqUMA luis@openobservatory.org"
 
 admin_usernames: [art, mehul]
 root_usernames: [art, mehul]
