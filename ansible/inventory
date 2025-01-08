@@ -22,8 +22,6 @@ data3.htz-fsn.prod.ooni.nu
 
 [ghs_ams]
 openvpn-server1.ooni.io
-amsmatomo.ooni.nu
-db-1.proteus.ooni.io
 ams-slack-1.ooni.org
 #mia-echoth.ooni.nu
 #mia-httpth.ooni.nu
