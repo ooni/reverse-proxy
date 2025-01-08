@@ -982,14 +982,6 @@ resource "aws_route53_record" "data1-htz-fsn-prod-ooni-nu-_a_" {
   zone_id = local.dns_zone_ooni_nu
 }
 
-resource "aws_route53_record" "data2-htz-fsn-prod-ooni-nu-_A_" {
-  name    = "data2.htz-fsn.prod.ooni.nu"
-  records = ["88.198.54.12"]
-  ttl     = "60"
-  type    = "A"
-  zone_id = local.dns_zone_ooni_nu
-}
-
 resource "aws_route53_record" "data3-htz-fsn-prod-ooni-nu-_A_" {
   name    = "data3.htz-fsn.prod.ooni.nu"
   records = ["168.119.7.188"]

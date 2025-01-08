@@ -7,7 +7,6 @@ ghs_ams
 [clickhouse]
 notebook.ooni.org
 data1.htz-fsn.prod.ooni.nu
-data2.htz-fsn.prod.ooni.nu
 data3.htz-fsn.prod.ooni.nu
 
 [airflow]
@@ -20,7 +19,6 @@ data.ooni.org
 monitoring.ooni.org
 notebook.ooni.org
 data1.htz-fsn.prod.ooni.nu
-data2.htz-fsn.prod.ooni.nu
 data3.htz-fsn.prod.ooni.nu
 
 [ghs_ams]
