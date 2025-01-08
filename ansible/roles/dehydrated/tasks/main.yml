@@ -45,15 +45,9 @@
   notify: 
     - reload nginx
 
-- name: allow incoming TCP connections to Nginx on port 80
+- name: reload nftables service
   tags: dehydrated
-  blockinfile:
-    path: /etc/ooni/nftables/tcp/80.nft
-    create: yes
-    block: |
-      add rule inet filter input tcp dport 80 counter accept comment "incoming HTTP"
-  notify:
-    - reload nftables
+  shell: systemctl reload nftables.service
 
 - name: Configure domains {{ ssl_domains }}
   # https://github.com/dehydrated-io/dehydrated/blob/master/docs/domains_txt.md

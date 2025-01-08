@@ -979,15 +979,7 @@ resource "aws_route53_record" "data1-htz-fsn-prod-ooni-nu-_a_" {
   records = ["142.132.254.225"]
   ttl     = "60"
   type    = "A"
-  zone_id = local.dns_root_zone_ooni_nu
-}
-
-resource "aws_route53_record" "data2-htz-fsn-prod-ooni-nu-_A_" {
-  name    = "data2.htz-fsn.prod.ooni.nu"
-  records = ["88.198.54.12"]
-  ttl     = "60"
-  type    = "A"
-  zone_id = local.dns_root_zone_ooni_nu
+  zone_id = local.dns_zone_ooni_nu
 }
 
 resource "aws_route53_record" "data3-htz-fsn-prod-ooni-nu-_A_" {
@@ -995,7 +987,7 @@ resource "aws_route53_record" "data3-htz-fsn-prod-ooni-nu-_A_" {
   records = ["168.119.7.188"]
   ttl     = "60"
   type    = "A"
-  zone_id = local.dns_root_zone_ooni_nu
+  zone_id = local.dns_zone_ooni_nu
 }
 
 resource "aws_route53_record" "clickhouse1-prod-ooni-io-_a_" {
@@ -1003,7 +995,7 @@ resource "aws_route53_record" "clickhouse1-prod-ooni-io-_a_" {
   records = ["142.132.254.225"]
   ttl     = "60"
   type    = "A"
-  zone_id = local.dns_root_zone_ooni_io
+  zone_id = local.dns_zone_ooni_io
 }
 
 resource "aws_route53_record" "clickhouse2-prod-ooni-io-_A_" {
@@ -1011,7 +1003,7 @@ resource "aws_route53_record" "clickhouse2-prod-ooni-io-_A_" {
   records = ["88.198.54.12"]
   ttl     = "60"
   type    = "A"
-  zone_id = local.dns_root_zone_ooni_io
+  zone_id = local.dns_zone_ooni_io
 }
 
 resource "aws_route53_record" "clickhouse3-prod-ooni-io-_A_" {
@@ -1019,5 +1011,13 @@ resource "aws_route53_record" "clickhouse3-prod-ooni-io-_A_" {
   records = ["168.119.7.188"]
   ttl     = "60"
   type    = "A"
-  zone_id = local.dns_root_zone_ooni_io
+  zone_id = local.dns_zone_ooni_io
+}
+
+resource "aws_route53_record" "airflow-prod-ooni-io-_a_" {
+  name    = "airflow.prod.ooni.io"
+  records = ["142.132.254.225"]
+  ttl     = "60"
+  type    = "A"
+  zone_id = local.dns_zone_ooni_io
 }
