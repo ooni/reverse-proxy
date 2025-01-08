@@ -1,0 +1,25 @@
+---
+- name: Setup OpenVPN server
+  hosts: openvpn-server1.ooni.io
+  become: true
+  remote_user: root
+  roles:
+    - ssh_users
+
+- name: Deploy notebook host
+  hosts: notebook.ooni.org
+  become: true
+  tags:
+    - notebook
+  vars:
+    enable_oonipipeline_worker: false
+  roles:
+    - oonidata
+
+# commented out due to the fact it requires manual config of ~/.ssh/config
+#- name: Setup codesign box
+#  hosts: codesign-box
+#  become: true
+#  remote_user: ubuntu
+#  roles:
+#    - codesign_box

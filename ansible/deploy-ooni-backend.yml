@@ -1,0 +1,21 @@
+---
+- hosts: backend-hel.ooni.org
+  roles:
+    - role: bootstrap
+    - role: base-backend
+    - role: nftables
+    - role: nginx
+      tags: nginx
+      vars:
+        nginx_user: "www-data"
+    - role: dehydrated
+      tags: dehydrated
+      expand: yes
+      vars: 
+        ssl_domains:
+          # with dehydrated the first entry is the cert FQDN
+          # and the other ones are alternative names
+          - "backend-hel.ooni.org"
+    - role: ooni-backend
+      vars: 
+        ssl_domain: backend-hel.ooni.org

@@ -1,22 +1,32 @@
-[all]
-# This requires manual setup of ~/.ssh/config
-#codesign-box
+[all:children]
+htz_fsn
+ghs_ams
 
-[prod]
-data.ooni.org
-oonidata.ooni.org
-monitoring.ooni.org
-openvpn-server1.ooni.io
-notebook.ooni.org
-data1.htz-fsn.prod.ooni.nu
-data2.htz-fsn.prod.ooni.nu
-data3.htz-fsn.prod.ooni.nu
-
-[dev]
-oonidatatest.ooni.nu
+## Role tags
 
 [clickhouse]
 notebook.ooni.org
 data1.htz-fsn.prod.ooni.nu
 data2.htz-fsn.prod.ooni.nu
 data3.htz-fsn.prod.ooni.nu
+
+[airflow]
+data1.htz-fsn.prod.ooni.nu
+
+## Location tags
+
+[htz_fsn]
+data.ooni.org
+monitoring.ooni.org
+notebook.ooni.org
+data1.htz-fsn.prod.ooni.nu
+data2.htz-fsn.prod.ooni.nu
+data3.htz-fsn.prod.ooni.nu
+
+[ghs_ams]
+openvpn-server1.ooni.io
+amsmatomo.ooni.nu
+db-1.proteus.ooni.io
+ams-slack-1.ooni.org
+#mia-echoth.ooni.nu
+#mia-httpth.ooni.nu

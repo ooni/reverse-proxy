@@ -55,11 +55,6 @@
   tags:
     - nftables
 
-- ansible.builtin.include_role:
-    name: prometheus_node_exporter
-  tags:
-    - node_exporter
-
 - name: Configure journald
   tags:
     - journald

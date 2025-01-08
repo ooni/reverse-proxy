@@ -1,24 +1,20 @@
 dom0_hosts:
   - ams-ps.ooni.nu
   - ams-slack-1.ooni.org
-  - ams-wcth2.ooni.nu
-  - ams-wcth3.ooni.nu
-  - amsmatomo.ooni.nu
-  - db-1.proteus.ooni.io
   - doams1-countly.ooni.nu
   - mia-echoth.ooni.nu
   - mia-httpth.ooni.nu
 
 blackbox_jobs:
-  - name: "ooni web_connectivity test helpers"
-    module: "ooni_web_connectivity_ok"
-    targets:
-      # - "https://a.web-connectivity.th.ooni.io/status"
-      - "https://wcth.ooni.io/status"
-      - "https://ams-wcth2.ooni.nu/status"
-      - "https://a.web-connectivity.th.ooni.io/status" # "https://ams-wcth3.ooni.nu/status"
-      # cloudfront
-      - "https://d33d1gs9kpq1c5.cloudfront.net/status"
+  # TODO add these records to the ALB config
+  #- name: "ooni web_connectivity test helpers"
+  #  module: "ooni_web_connectivity_ok"
+  #  targets:
+  #    # - "https://a.web-connectivity.th.ooni.io/status"
+  #    #- "https://wcth.ooni.io/status"
+  #    #- "https://ams-wcth2.ooni.nu/status"
+  #    #- "https://a.web-connectivity.th.ooni.io/status" # "https://ams-wcth3.ooni.nu/status"
+  #    # cloudfront
 
   - name: "new test helpers"
     module: "new_test_helper_health"
@@ -30,6 +26,7 @@ blackbox_jobs:
       - "https://4.th.ooni.org/"
       - "https://5.th.ooni.org/"
       - "https://6.th.ooni.org/"
+      - "https://d33d1gs9kpq1c5.cloudfront.net/status"
 
   - name: "ooni collector"
     module: "ooni_collector_ok"

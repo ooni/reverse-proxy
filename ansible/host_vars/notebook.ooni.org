@@ -69,6 +69,11 @@ ssh_users:
     comment: "Felix Hoffmann"
     keys:
         - "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIHsT7RNb3xSc4jseb6vPPvC2ORWQHQr66AQR54Vikt/cAAAAB3NzaDpocGk= ssh:hpi"
+  agix:
+    login: agix
+    comment: "Armin Huremagic"
+    keys: ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOzCkhJ4DgtReYaR4MVh+FzDw7s2j3v4qBmE+Mpk+igc agix@riseup.net"]
+ 
 admin_usernames: [ art, agrabeli, majakomel, mehul, norbel ]
 non_admin_usernames: [ ain, siti, ingrid, joss, vasilis, michael, benginoe, felixhoffmnn ]
 jupyterhub_allowed_users: "{{ ssh_users }}"
