@@ -103,7 +103,9 @@ write_files:
     content: |
       {
         "ipv6": true,
-        "fixed-cidr-v6": "2001:db8:1::/64"
+        "fixed-cidr-v6": "2001:db8:1::/64",
+        "log-driver": "json-file",
+        "log-opts": {"max-size": "100m", "max-file": "3"}
       }
 
   - path: /etc/nginx/sites-available/default

@@ -42,6 +42,18 @@ provider "aws" {
 
 data "aws_availability_zones" "available" {}
 
+data "aws_secretsmanager_secret" "do_token" {
+  name = "oonidevops/digitalocean_access_token"
+}
+
+data "aws_secretsmanager_secret_version" "do_token_version" {
+  secret_id = data.aws_secretsmanager_secret.do_token.id
+}
+
+provider "digitalocean" {
+  token = data.aws_secretsmanager_secret_version.do_token_version.secret_string
+}
+
 ### !!! IMPORTANT !!!
 # The first time you run terraform for a new environment you have to setup the
 # required roles in AWS.
@@ -74,7 +86,9 @@ module "adm_iam_roles" {
 
   authorized_accounts = [
     "arn:aws:iam::${local.ooni_main_org_id}:user/art",
-    "arn:aws:iam::${local.ooni_main_org_id}:user/mehul"
+    "arn:aws:iam::${local.ooni_main_org_id}:user/luis",
+    "arn:aws:iam::${local.ooni_main_org_id}:user/mehul",
+    "arn:aws:iam::${local.ooni_main_org_id}:user/tony"
   ]
 }
 
@@ -147,8 +161,8 @@ module "oonipg" {
   vpc_id                   = module.network.vpc_id
   subnet_ids               = module.network.vpc_subnet_public[*].id
   db_instance_class        = "db.t3.micro"
-  db_storage_type          = "standard"
-  db_allocated_storage     = "5"
+  db_storage_type          = "gp3"
+  db_allocated_storage     = "50"
   db_max_allocated_storage = null
   tags = merge(
     local.tags,
@@ -275,6 +289,7 @@ module "ooni_th_droplet" {
     "3d:81:99:17:b5:d1:20:a5:fe:2b:14:96:67:93:d6:34",
     "f6:4b:8b:e2:0e:d2:97:c5:45:5c:07:a6:fe:54:60:0e"
   ]
+
   dns_zone_ooni_io = local.dns_zone_ooni_io
 }
 
@@ -303,6 +318,58 @@ module "ooni_backendproxy" {
   )
 }
 
+module "ooniapi_reverseproxy_deployer" {
+  source = "../../modules/ooniapi_service_deployer"
+
+  service_name            = "reverseproxy"
+  repo                    = "ooni/backend"
+  branch_name             = "master"
+  buildspec_path          = "ooniapi/services/reverseproxy/buildspec.yml"
+  codestar_connection_arn = aws_codestarconnections_connection.oonidevops.arn
+
+  codepipeline_bucket = aws_s3_bucket.ooniapi_codepipeline_bucket.bucket
+
+  ecs_service_name = module.ooniapi_reverseproxy.ecs_service_name
+  ecs_cluster_name = module.ooniapi_cluster.cluster_name
+}
+
+module "ooniapi_reverseproxy" {
+  source = "../../modules/ooniapi_service"
+
+  task_memory = 64
+
+  # First run should be set on first run to bootstrap the task definition
+  # first_run = true
+
+  vpc_id             = module.network.vpc_id
+  public_subnet_ids  = module.network.vpc_subnet_public[*].id
+  private_subnet_ids = module.network.vpc_subnet_private[*].id
+
+  service_name             = "reverseproxy"
+  default_docker_image_url = "ooni/api-reverseproxy:latest"
+  stage                    = local.environment
+  dns_zone_ooni_io         = local.dns_zone_ooni_io
+  key_name                 = module.adm_iam_roles.oonidevops_key_name
+  ecs_cluster_id           = module.ooniapi_cluster.cluster_id
+
+  task_secrets = {
+    PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
+  }
+
+  task_environment = {
+    TARGET_URL               = "https://backend-fsn.ooni.org/"
+  }
+
+  ooniapi_service_security_groups = [
+    module.ooniapi_cluster.web_security_group_id
+  ]
+
+  tags = merge(
+    local.tags,
+    { Name = "ooni-tier0-reverseproxy" }
+  )
+}
+
 ### OONI Services Clusters
 
 module "ooniapi_cluster" {
@@ -314,11 +381,11 @@ module "ooniapi_cluster" {
   subnet_ids = module.network.vpc_subnet_public[*].id
 
   # You need be careful how these are tweaked.
-  asg_min     = 3
+  asg_min     = 2
   asg_max     = 8
-  asg_desired = 3
+  asg_desired = 2
 
-  instance_type = "t3.micro"
+  instance_type = "t3a.medium"
 
   tags = merge(
     local.tags,
@@ -451,7 +518,7 @@ module "ooniapi_oonifindings_deployer" {
 module "ooniapi_oonifindings" {
   source = "../../modules/ooniapi_service"
 
-  first_run          = true
+  # first_run          = true
   vpc_id             = module.network.vpc_id
   public_subnet_ids  = module.network.vpc_subnet_public[*].id
   private_subnet_ids = module.network.vpc_subnet_private[*].id
@@ -499,7 +566,7 @@ module "ooniapi_ooniauth_deployer" {
 
 module "ooniapi_ooniauth" {
   source = "../../modules/ooniapi_service"
-  #first_run = true
+  # first_run = true
 
   vpc_id             = module.network.vpc_id
   private_subnet_ids = module.network.vpc_subnet_private[*].id
@@ -557,7 +624,7 @@ module "ooniapi_frontend" {
   vpc_id     = module.network.vpc_id
   subnet_ids = module.network.vpc_subnet_public[*].id
 
-  oonibackend_proxy_target_group_arn    = module.ooni_backendproxy.alb_target_group_id
+  oonibackend_proxy_target_group_arn    = module.ooniapi_reverseproxy.alb_target_group_id
   ooniapi_oonirun_target_group_arn      = module.ooniapi_oonirun.alb_target_group_id
   ooniapi_ooniauth_target_group_arn     = module.ooniapi_ooniauth.alb_target_group_id
   ooniapi_ooniprobe_target_group_arn    = module.ooniapi_ooniprobe.alb_target_group_id
@@ -598,6 +665,7 @@ locals {
     "ooniauth.${local.environment}.ooni.io" : local.dns_zone_ooni_io,
     "ooniprobe.${local.environment}.ooni.io" : local.dns_zone_ooni_io,
     "oonirun.${local.environment}.ooni.io" : local.dns_zone_ooni_io,
+    "oonifindings.${local.environment}.ooni.io" : local.dns_zone_ooni_io,
   }
   ooniapi_frontend_main_domain_name         = "api.${local.environment}.ooni.io"
   ooniapi_frontend_main_domain_name_zone_id = local.dns_zone_ooni_io

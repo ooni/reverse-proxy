@@ -1,4 +1,18 @@
 ---
+- ansible.builtin.include_role:
+    name: nftables
+  vars:
+    nft_rules_tcp:
+      - name: 80
+        rules:
+          - add rule inet filter input tcp dport 80 counter accept comment "incoming HTTP"
+      - name: 443
+        rules:
+          - add rule inet filter input tcp dport 443 counter accept comment "incoming HTTPS"
+  tags:
+    - nginx
+    - nftables
+
 - name: install nginx
   include_role:
     name: nginxinc.nginx

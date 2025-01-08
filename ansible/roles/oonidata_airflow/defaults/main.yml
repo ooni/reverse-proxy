@@ -1,0 +1,2 @@
+tls_cert_dir: /var/lib/dehydrated/certs
+certbot_domains_extra: []

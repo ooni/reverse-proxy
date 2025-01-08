@@ -6,54 +6,64 @@
     shell: /bin/false
     createhome: no
   tags:
+    - oonidata
     - oonipipeline
     - jupyterhub
 
 - ansible.builtin.include_role:
     name: miniconda
   tags:
+    - oonidata
     - conda
 
 - ansible.builtin.import_tasks: jupyterhub.yml
   when: enable_jupyterhub
   tags:
+    - oonidata
     - jupyterhub
 
-- ansible.builtin.include_role:
-    name: nginx
-  tags:
-    - nginx
-
-- ansible.builtin.include_role:
-    name: geerlingguy.certbot
-  tags:
-    - certbot
-  vars:
-    certbot_admin_email: admin@ooni.org
-    certbot_create_extra_args: ""
-    certbot_create_if_missing: true
-    certbot_create_standalone_stop_services:
-      - nginx
-    certbot_certs:
-      - domains:
-          - "{{ inventory_hostname }}"
-
-- name: Install oonipipeline requirements
+- name: Install apt packages
   ansible.builtin.apt:
-    name:
-      - net-tools
-      - curl
-      - git
+    name: "{{ apt_packages }}"
   tags:
+    - oonidata
     - oonipipeline
+    - packages
 
-- name: Install OONI pipeline from pip
+- name: "install conda packages"
   ansible.builtin.shell:
-    cmd: "{{ miniconda_install_dir }}/bin/pip install -e 'git+https://github.com/ooni/data#egg=oonipipeline&subdirectory=oonipipeline'"
+    cmd: "{{ miniconda_install_dir }}/bin/conda install -y {{ item }}"
+    chdir: "{{ miniconda_install_dir }}"
+  loop: "{{ conda_packages }}"
+  become_user: miniconda
   tags:
+    - oonidata
     - oonipipeline
+    - packages
+
+- name: Install conda-forge packages
+  ansible.builtin.shell:
+    cmd: "{{ miniconda_install_dir }}/bin/conda install -c conda-forge -y {{ item }}"
+    chdir: "{{ miniconda_install_dir }}"
+  loop: "{{ conda_forge_packages }}"
+  become_user: miniconda
+  tags:
+    - oonidata
+    - packages
+
+- name: "Install pip packages"
+  ansible.builtin.shell:
+    cmd: "{{ miniconda_install_dir }}/bin/pip install {{ item }}"
+    chdir: "{{ miniconda_install_dir }}"
+  loop: "{{ pip_packages }}"
+  become_user: miniconda
+  tags:
+    - oonidata
+    - oonipipeline
+    - packages
 
 - ansible.builtin.import_tasks: oonipipeline-worker.yml
   when: enable_oonipipeline_worker
   tags:
+    - oonidata
     - oonipipeline

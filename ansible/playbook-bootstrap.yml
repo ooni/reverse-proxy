@@ -4,5 +4,4 @@
   hosts: all
   remote_user: root
   roles:
-    - ssh_users
     - bootstrap

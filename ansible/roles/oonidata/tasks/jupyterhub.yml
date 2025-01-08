@@ -2,13 +2,17 @@
 - name: Install jupyterhub
   ansible.builtin.shell:
     cmd: "{{ miniconda_install_dir }}/bin/conda install -c conda-forge -y jupyterhub"
+  become_user: miniconda
   tags:
+    - oonidata
     - jupyterhub
 
 - name: Install jupyterlab and notebook
   ansible.builtin.shell:
     cmd: "{{ miniconda_install_dir }}/bin/conda install -y jupyterlab notebook"
+  become_user: miniconda
   tags:
+    - oonidata
     - jupyterhub
 
 - name: Install jupyterhub packages
@@ -16,12 +20,14 @@
     name:
       - npm
   tags:
+    - oonidata
     - jupyterhub
 
 - name: Install configurable-http-proxy
   ansible.builtin.shell:
     cmd: "npm install -g configurable-http-proxy"
   tags:
+    - oonidata
     - jupyterhub
 
 - name: Create jupyterhub directories
@@ -33,6 +39,7 @@
     - "{{ jupyterhub_runtime_dir }}"
     - "{{ jupyterhub_runtime_dir }}/state"
   tags:
+    - oonidata
     - jupyterhub
 
 - name: Write jupyterhub config
@@ -44,6 +51,7 @@
   notify:
     - Restart jupyterhub
   tags:
+    - oonidata
     - jupyterhub
     - config
 
@@ -57,6 +65,7 @@
   notify:
     - Restart jupyterhub
   tags:
+    - oonidata
     - jupyterhub
 
 - name: Ensure the JupyterHub service is started with daemon-reload
@@ -66,6 +75,7 @@
     enabled: true
     daemon_reload: true
   tags:
+    - oonidata
     - jupyterhub
     - config
 
@@ -78,5 +88,26 @@
   notify:
     - Reload nginx
   tags:
+    - oonidata
     - jupyterhub
     - config
+
+- ansible.builtin.include_role:
+    name: nginx
+  tags:
+    - oonidata
+    - nginx
+
+- ansible.builtin.include_role:
+    name: geerlingguy.certbot
+  tags:
+    - oonidata
+    - certbot
+  vars:
+    certbot_admin_email: admin@ooni.org
+    certbot_create_extra_args: ""
+    certbot_create_if_missing: true
+    certbot_create_standalone_stop_services:
+      - nginx
+    certbot_certs:
+      - domains: "{{ certbot_domains }}"

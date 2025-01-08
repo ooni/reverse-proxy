@@ -6,3 +6,25 @@ tls_cert_dir: /etc/letsencrypt/live
 admin_group_name: admin
 enable_oonipipeline_worker: true
 enable_jupyterhub: true
+clickhouse_url: "clickhouse://localhost"
+certbot_domains:
+  - "{{ inventory_hostname }}"
+conda_forge_packages:
+  - seaborn
+  - dask
+  - statsmodels
+conda_packages:
+  - pandas
+  - numpy
+  - altair
+  - bokeh
+pip_packages:
+  - "-e 'git+https://github.com/ooni/data#egg=oonipipeline&subdirectory=oonipipeline'"
+  - "clickhouse-driver"
+  - pomegranate
+  - pgmpy
+apt_packages:
+  - net-tools
+  - curl
+  - git
+  - socat

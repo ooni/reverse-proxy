@@ -12,16 +12,16 @@ resource "aws_security_group" "nginx_sg" {
 
   ingress {
     protocol    = "tcp"
-    from_port   = 80
-    to_port     = 80
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 9000
+    to_port     = 9000
+    cidr_blocks = var.private_subnet_cidr
   }
 
   ingress {
     protocol    = "tcp"
-    from_port   = 9000
-    to_port     = 9000
-    cidr_blocks = var.private_subnet_cidr
+    from_port   = 80
+    to_port     = 80
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
@@ -132,7 +132,7 @@ resource "aws_lb_target_group_attachment" "oonibackend_proxy" {
 
 resource "aws_route53_record" "clickhouse_proxy_alias" {
   zone_id = var.dns_zone_ooni_io
-  name    = "clickhouse.${var.stage}.ooni.io"
+  name    = "clickhouseproxy.${var.stage}.ooni.io"
   type    = "CNAME"
   ttl     = 300
 

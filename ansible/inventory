@@ -1,13 +1,33 @@
-[all]
-# This requires manual setup of ~/.ssh/config
-#codesign-box
+[all:children]
+htz_fsn
+ghs_ams
 
-[prod]
-data.ooni.org
-oonidata.ooni.org
-monitoring.ooni.org
-openvpn-server1.ooni.io
+## Role tags
+
+[clickhouse]
 notebook.ooni.org
+data1.htz-fsn.prod.ooni.nu
+data3.htz-fsn.prod.ooni.nu
 
-[dev]
-oonidatatest.ooni.nu
+[airflow]
+data1.htz-fsn.prod.ooni.nu
+
+## Location tags
+
+[htz_fsn]
+monitoring.ooni.org
+notebook.ooni.org
+data1.htz-fsn.prod.ooni.nu
+data3.htz-fsn.prod.ooni.nu
+#backend-fsn.ooni.org
+
+[htz_hel]
+backend-hel.ooni.org
+
+[ghs_ams]
+openvpn-server1.ooni.io
+ams-slack-1.ooni.org
+ams-ps.ooni.nu
+# currently disabled due to them not supporting ed25519 keys
+#mia-echoth.ooni.nu
+#mia-httpth.ooni.nu

@@ -51,20 +51,20 @@
     mode: 0400
   with_items: "{{ admin_usernames | union(non_admin_usernames) }}"
 
+- name: configure sshd
+  include_role:
+    name: willshersystems.sshd
+  vars:
+    sshd_skip_defaults: false
+    sshd:
+      AllowUsers: "{{ admin_usernames | union(non_admin_usernames) | sort | join(' ') }}"
 
-- name: kill processes running as deactivated users
-  ansible.builtin.shell:
-    cmd: "pkill -U {{ item }}"
-  ignore_errors: true
-  with_items: "{{ deactivated_usernames }}"
-
-- name: remove any stale users
-  user:
-    name: "{{ item }}"
-    state: "absent"
-    remove: yes
-    force: yes
-  with_items: "{{ deactivated_usernames }}"
+- name: Enesure sudoers dir exists
+  ansible.builtin.file:
+    path: /etc/sudoers.d
+    state: directory
+    owner: root
+    group: root
 
 - name: sudoers.d/80-admins
   template:
@@ -80,10 +80,7 @@
     path: /etc/sudoers.d/adm
     state: absent
 
-- name: configure sshd
-  include_role:
-    name: willshersystems.sshd
-  vars:
-    sshd_skip_defaults: false
-    sshd:
-      AllowUsers: "{{ admin_usernames | union(non_admin_usernames) | sort | join(' ') }}"
+- name: reload sshd
+  ansible.builtin.systemd_service:
+    name: sshd
+    state: reloaded
