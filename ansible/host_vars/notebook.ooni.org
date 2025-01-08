@@ -73,8 +73,18 @@ ssh_users:
     login: agix
     comment: "Armin Huremagic"
     keys: ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOzCkhJ4DgtReYaR4MVh+FzDw7s2j3v4qBmE+Mpk+igc agix@riseup.net"]
- 
-admin_usernames: [ art, agrabeli, majakomel, mehul, norbel ]
+  luis:
+    login: luis
+    comment: Luis Diaz
+    keys:
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHc04zv+G8vGOS/znLy6xd3lB0/B07uaFjgyh4UgqUMA luis@openobservatory.org"
+  hynnot:
+    login: hynnot
+    comment: Tony Morella
+    keys:
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBTiOgr4PenzkF03NqFTGgacZ1BUWLkdCS1xNba4iLfP hynnot"
+
+admin_usernames: [ art, agrabeli, majakomel, mehul, norbel, luis, hynnot ]
 non_admin_usernames: [ ain, siti, ingrid, joss, vasilis, michael, benginoe, felixhoffmnn ]
 jupyterhub_allowed_users: "{{ ssh_users }}"
 admin_group_name: admin
