@@ -34,21 +34,7 @@ ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_ooni
 
 ### AWS configuration
 
-You should then setup AWS credentials, by adding 2 profiles called `oonidevops_user_dev` and `oonidevops_user_prod` which have access to the development and production environment respectively.
-
-To this end edit your `~/.aws/credentials` file to contain:
-
-```
-[oonidevops_user]
-aws_access_key_id = YYYY
-aws_secret_access_key = ZZZ
-[oonidevops_user_dev]
-role_arn = arn:aws:iam::905418398257:role/oonidevops
-source_profile = oonidevops_user
-[oonidevops_user_prod]
-role_arn = arn:aws:iam::471112720364:role/oonidevops
-source_profile = oonidevops_user
-```
+Refer to the [terraform docs](devops/terraform/) for setting up your AWS configuration.
 
 ### SSH configuration
 
