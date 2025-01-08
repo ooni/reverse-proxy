@@ -623,11 +623,11 @@ module "ooniapi_oonimeasurements_deployer" {
 
   codepipeline_bucket = aws_s3_bucket.ooniapi_codepipeline_bucket.bucket
 
-  ecs_service_name = module.ooniapi_oonifindings.ecs_service_name
+  ecs_service_name = module.ooniapi_oonimeasurements.ecs_service_name
   ecs_cluster_name = module.ooniapi_cluster.cluster_name
 }
 
-module "ooniapi_oonifindings" {
+module "ooniapi_oonimeasurements" {
   source = "../../modules/ooniapi_service"
 
   task_memory = 64
