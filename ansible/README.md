@@ -39,21 +39,15 @@ You should then setup AWS credentials, by adding 2 profiles called `oonidevops_u
 To this end edit your `~/.aws/credentials` file to contain:
 
 ```
+[oonidevops_user]
+aws_access_key_id = YYYY
+aws_secret_access_key = ZZZ
 [oonidevops_user_dev]
-aws_access_key_id = XXX
-aws_secret_access_key = YYY
-source_profile = default
-region = eu-central-1
-# ARN of the dev role
 role_arn = arn:aws:iam::905418398257:role/oonidevops
-
+source_profile = oonidevops_user
 [oonidevops_user_prod]
-aws_access_key_id = XXX
-aws_secret_access_key = YYY
-source_profile = default
-region = eu-central-1
-# ARN of the prod role
 role_arn = arn:aws:iam::471112720364:role/oonidevops
+source_profile = oonidevops_user
 ```
 
 ### SSH configuration
