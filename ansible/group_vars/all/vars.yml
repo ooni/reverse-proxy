@@ -39,8 +39,8 @@ ssh_users:
     keys:
       - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHc04zv+G8vGOS/znLy6xd3lB0/B07uaFjgyh4UgqUMA luis@openobservatory.org"
 
-admin_usernames: [art, mehul, luis, tony]
-root_usernames: [art, mehul, luis, tony]
+admin_usernames: [art, mehul, luis, hynnot]
+root_usernames: [art, mehul, luis, hynnot]
 non_admin_usernames: []
 
 prometheus_metrics_password: "{{ lookup('amazon.aws.aws_secret', 'oonidevops/ooni_services/prometheus_metrics_password', profile='oonidevops_user_prod') }}"
