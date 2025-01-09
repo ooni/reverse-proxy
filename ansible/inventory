@@ -31,3 +31,6 @@ ams-ps.ooni.nu
 # currently disabled due to them not supporting ed25519 keys
 #mia-echoth.ooni.nu
 #mia-httpth.ooni.nu
+
+[aws-proxy]
+clickhouseproxy.dev.ooni.io
