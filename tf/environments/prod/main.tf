@@ -422,7 +422,7 @@ module "ooniapi_ooniprobe" {
 
   task_secrets = {
     POSTGRESQL_URL              = aws_secretsmanager_secret_version.oonipg_url.arn
-    JWT_ENCRYPTION_KEY          = data.aws_ssm_parameter.jwt_secret
+    JWT_ENCRYPTION_KEY          = data.aws_ssm_parameter.jwt_secret.arn
     PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
   }
 
@@ -473,7 +473,7 @@ module "ooniapi_oonirun" {
 
   task_secrets = {
     POSTGRESQL_URL              = aws_secretsmanager_secret_version.oonipg_url.arn
-    JWT_ENCRYPTION_KEY          = data.aws_ssm_parameter.jwt_secret
+    JWT_ENCRYPTION_KEY          = data.aws_ssm_parameter.jwt_secret.arn
     PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
   }
 
@@ -521,7 +521,7 @@ module "ooniapi_oonifindings" {
 
   task_secrets = {
     POSTGRESQL_URL              = aws_secretsmanager_secret_version.oonipg_url.arn
-    JWT_ENCRYPTION_KEY          = data.aws_ssm_parameter.jwt_secret
+    JWT_ENCRYPTION_KEY          = data.aws_ssm_parameter.jwt_secret.arn
     PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
   }
 
@@ -572,7 +572,7 @@ module "ooniapi_ooniauth" {
 
   task_secrets = {
     POSTGRESQL_URL              = aws_secretsmanager_secret_version.oonipg_url.arn
-    JWT_ENCRYPTION_KEY          = data.aws_ssm_parameter.jwt_secret
+    JWT_ENCRYPTION_KEY          = data.aws_ssm_parameter.jwt_secret.arn
     PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
 
     AWS_SECRET_ACCESS_KEY = module.ooniapi_user.aws_secret_access_key_arn
