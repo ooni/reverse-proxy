@@ -5,10 +5,11 @@ resource "aws_security_group" "pg" {
   name_prefix = "oonipg"
 
   ingress {
-    protocol    = "tcp"
-    from_port   = 5432
-    to_port     = 5432
-    cidr_blocks = var.allow_cidr_blocks
+    protocol        = "tcp"
+    from_port       = 5432
+    to_port         = 5432
+    security_groups = var.allow_security_groups
+    cidr_blocks     = var.allow_cidr_blocks
   }
 
   egress {
@@ -51,12 +52,12 @@ resource "aws_db_instance" "pg" {
   db_name                     = var.pg_db_name
   username                    = var.pg_username
   manage_master_user_password = true
-  parameter_group_name    = var.db_parameter_group
-  db_subnet_group_name    = aws_db_subnet_group.pg.name
-  vpc_security_group_ids  = [aws_security_group.pg.id]
-  skip_final_snapshot     = true
-  backup_retention_period = 7
-  publicly_accessible     = true
+  parameter_group_name        = var.db_parameter_group
+  db_subnet_group_name        = aws_db_subnet_group.pg.name
+  vpc_security_group_ids      = [aws_security_group.pg.id]
+  skip_final_snapshot         = true
+  backup_retention_period     = 7
+  publicly_accessible         = true
 
   # Enable deletion protection in production
   deletion_protection = true
