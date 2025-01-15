@@ -38,34 +38,19 @@ resource "aws_db_subnet_group" "pg" {
   )
 }
 
-resource "random_password" "pg_password" {
-  length  = 32
-  special = false
-}
-
-resource "aws_secretsmanager_secret" "pg_password" {
-  name = "oonidevops/${var.name}/pg_password"
-  tags = var.tags
-}
-
-resource "aws_secretsmanager_secret_version" "pg_password" {
-  secret_id     = aws_secretsmanager_secret.pg_password.id
-  secret_string = random_password.pg_password.result
-}
-
 ### PostgreSQL database
 resource "aws_db_instance" "pg" {
-  allocated_storage       = var.db_allocated_storage
-  max_allocated_storage   = var.db_max_allocated_storage
-  storage_type            = var.db_storage_type
-  engine                  = "postgres"
-  engine_version          = var.db_engine_version
-  instance_class          = var.db_instance_class
-  identifier              = var.name
-  multi_az                = var.db_multi_az
-  db_name                 = var.pg_db_name
-  username                = var.pg_username
-  password                = aws_secretsmanager_secret_version.pg_password.secret_string
+  allocated_storage           = var.db_allocated_storage
+  max_allocated_storage       = var.db_max_allocated_storage
+  storage_type                = var.db_storage_type
+  engine                      = "postgres"
+  engine_version              = var.db_engine_version
+  instance_class              = var.db_instance_class
+  identifier                  = var.name
+  multi_az                    = var.db_multi_az
+  db_name                     = var.pg_db_name
+  username                    = var.pg_username
+  manage_master_user_password = true
   parameter_group_name    = var.db_parameter_group
   db_subnet_group_name    = aws_db_subnet_group.pg.name
   vpc_security_group_ids  = [aws_security_group.pg.id]
