@@ -152,6 +152,10 @@ module "oonipg" {
   db_storage_type          = "standard"
   db_allocated_storage     = "5"
   db_max_allocated_storage = null
+
+  allow_cidr_blocks     = module.network.vpc_subnet_private[*].cidr_block
+  allow_security_groups = []
+
   tags = merge(
     local.tags,
     { Name = "ooni-tier0-postgres" }
@@ -326,9 +330,7 @@ module "ooniapi_ooniprobe" {
   # First run should be set on first run to bootstrap the task definition
   # first_run = true
 
-  vpc_id             = module.network.vpc_id
-  public_subnet_ids  = module.network.vpc_subnet_public[*].id
-  private_subnet_ids = module.network.vpc_subnet_private[*].id
+  vpc_id = module.network.vpc_id
 
   service_name             = "ooniprobe"
   default_docker_image_url = "ooni/api-ooniprobe:latest"
@@ -378,9 +380,7 @@ module "ooniapi_reverseproxy" {
   # First run should be set on first run to bootstrap the task definition
   # first_run = true
 
-  vpc_id             = module.network.vpc_id
-  public_subnet_ids  = module.network.vpc_subnet_public[*].id
-  private_subnet_ids = module.network.vpc_subnet_private[*].id
+  vpc_id = module.network.vpc_id
 
   service_name             = "reverseproxy"
   default_docker_image_url = "ooni/api-reverseproxy:latest"
@@ -394,7 +394,7 @@ module "ooniapi_reverseproxy" {
   }
 
   task_environment = {
-    TARGET_URL               = "https://backend-hel.ooni.org/"
+    TARGET_URL = "https://backend-hel.ooni.org/"
   }
 
   ooniapi_service_security_groups = [
@@ -456,9 +456,7 @@ module "ooniapi_oonirun" {
 
   task_memory = 64
 
-  vpc_id             = module.network.vpc_id
-  public_subnet_ids  = module.network.vpc_subnet_public[*].id
-  private_subnet_ids = module.network.vpc_subnet_private[*].id
+  vpc_id = module.network.vpc_id
 
   service_name             = "oonirun"
   default_docker_image_url = "ooni/api-oonirun:latest"
@@ -506,9 +504,7 @@ module "ooniapi_oonifindings" {
 
   task_memory = 64
 
-  vpc_id             = module.network.vpc_id
-  public_subnet_ids  = module.network.vpc_subnet_public[*].id
-  private_subnet_ids = module.network.vpc_subnet_private[*].id
+  vpc_id = module.network.vpc_id
 
   service_name             = "oonifindings"
   default_docker_image_url = "ooni/api-oonifindings:latest"
@@ -557,9 +553,7 @@ module "ooniapi_ooniauth" {
 
   task_memory = 64
 
-  vpc_id             = module.network.vpc_id
-  public_subnet_ids  = module.network.vpc_subnet_public[*].id
-  private_subnet_ids = module.network.vpc_subnet_private[*].id
+  vpc_id = module.network.vpc_id
 
   service_name             = "ooniauth"
   default_docker_image_url = "ooni/api-ooniauth:latest"

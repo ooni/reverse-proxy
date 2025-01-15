@@ -23,16 +23,6 @@ variable "vpc_id" {
   description = "the id of the VPC to deploy the instance into"
 }
 
-variable "public_subnet_ids" {
-  description = "the ids of the subnet of the subnets to deploy the instance into"
-  type        = list(string)
-}
-
-variable "private_subnet_ids" {
-  description = "the ids of the subnet of the subnets to deploy the instance into"
-  type        = list(string)
-}
-
 variable "tags" {
   description = "tags to apply to the resources"
   default     = {}

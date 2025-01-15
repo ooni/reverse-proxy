@@ -55,9 +55,12 @@ variable "db_parameter_group" {
   default = "default.postgres16"
 }
 
-
 variable "allow_cidr_blocks" {
-  default = ["0.0.0.0/0"]
+  default = []
+}
+
+variable "allow_security_groups" {
+  default = []
 }
 
 variable "db_multi_az" {
