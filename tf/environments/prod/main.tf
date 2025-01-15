@@ -165,7 +165,11 @@ module "oonipg" {
   db_allocated_storage     = "50"
   db_max_allocated_storage = null
 
-  allow_cidr_blocks     = module.network.vpc_subnet_private[*].cidr_block
+  # TODO: fix this to further restrict to only our subnets
+  # In order to do this we need to change the launch template of the ECS service
+  # to deploy them specifically inside of the two allocated subnets as opposed
+  # to picking a random IP in side of the full /8
+  allow_cidr_blocks     = ["10.0.0.0/8"]
   allow_security_groups = []
 
   tags = merge(
