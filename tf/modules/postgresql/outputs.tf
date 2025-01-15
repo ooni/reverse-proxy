@@ -13,12 +13,7 @@ output "pg_db_name" {
   value       = aws_db_instance.pg.db_name
 }
 
-output "pg_username" {
-  description = "The postgres username"
-  value       = aws_db_instance.pg.db_name
-}
-
-output "secrets_manager_pg_password_id" {
+output "secrets_manager_pg_login_id" {
   description = "The postgres password to login as pg_username into pg_db_name as a secrets_manager_id"
   # Due to: https://github.com/hashicorp/terraform-provider-aws/issues/34094
   # If changing this on an old instance you have to run it manually
