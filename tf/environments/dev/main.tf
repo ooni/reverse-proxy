@@ -208,11 +208,15 @@ resource "aws_secretsmanager_secret" "oonipg_url" {
   tags = local.tags
 }
 
+data "aws_secretsmanager_secret_version" "pg_password" {
+  secret_id = module.oonipg.secrets_manager_pg_password_id
+}
+
 resource "aws_secretsmanager_secret_version" "oonipg_url" {
   secret_id = aws_secretsmanager_secret.oonipg_url.id
   secret_string = format("postgresql://%s:%s@%s/%s",
     module.oonipg.pg_username,
-    module.oonipg.pg_password,
+    data.aws_secretsmanager_secret_version.pg_password.secret_string,
     module.oonipg.pg_endpoint,
     module.oonipg.pg_db_name
   )
