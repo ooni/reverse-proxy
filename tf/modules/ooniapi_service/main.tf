@@ -55,12 +55,12 @@ resource "aws_ecs_task_definition" "ooniapi_service" {
   container_definitions = jsonencode([
     {
       memoryReservation = var.task_memory,
-      essential = true,
+      essential         = true,
       image = try(
         data.aws_ecs_container_definition.ooniapi_service_current[0].image,
         var.default_docker_image_url
       ),
-      name   = local.name,
+      name = local.name,
 
       portMappings = [
         {

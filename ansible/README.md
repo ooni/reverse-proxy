@@ -32,6 +32,14 @@ It's recommended you generate an `ed25519` key using the following command:
 ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_ooni
 ```
 
+**Attention** Be sure to set a strong password on your ssh key and to never store it on disk in plaintext.
+
+You can check to see if your ssh key is being stored encrypted by running:
+```
+ssh-keygen -yf ~/.ssh/id_ed25519_ooni
+```
+and checking you get back an `Enter passphrase` prompt
+
 ### AWS configuration
 
 Refer to the [terraform docs](devops/terraform/) for setting up your AWS configuration.
