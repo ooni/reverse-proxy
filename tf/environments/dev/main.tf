@@ -425,12 +425,12 @@ module "ooni_clickhouse_proxy" {
     from_port = 22,
     to_port = 22,
     protocol = "tcp",
-    cidr_blocks = module.network.vpc_subnet_private[*].cidr_block,
+    cidr_blocks = ["0.0.0.0/0"],
   }, {
     from_port = 80,
     to_port = 80,
     protocol = "tcp",
-    cidr_blocks = module.network.vpc_subnet_private[*].cidr_block,
+    cidr_blocks = ["0.0.0.0/0"],
   }, {
     from_port = 9000,
     to_port = 9000,
