@@ -152,6 +152,10 @@ module "oonipg" {
   db_storage_type          = "standard"
   db_allocated_storage     = "5"
   db_max_allocated_storage = null
+
+  allow_cidr_blocks     = module.network.vpc_subnet_private[*].cidr_block
+  allow_security_groups = []
+
   tags = merge(
     local.tags,
     { Name = "ooni-tier0-postgres" }
@@ -180,19 +184,8 @@ module "ooniapi_user" {
 
 ### Configuration common to all services
 
-resource "random_password" "jwt_secret" {
-  length  = 32
-  special = false
-}
-
-resource "aws_secretsmanager_secret" "jwt_secret" {
-  name = "oonidevops/ooni_services/jwt_secret"
-  tags = local.tags
-}
-
-resource "aws_secretsmanager_secret_version" "jwt_secret" {
-  secret_id     = aws_secretsmanager_secret.jwt_secret.id
-  secret_string = random_password.jwt_secret.result
+data "aws_ssm_parameter" "jwt_secret" {
+  name = "/oonidevops/secrets/ooni_services/jwt_secret"
 }
 
 resource "random_password" "prometheus_metrics_password" {
@@ -219,11 +212,15 @@ resource "aws_secretsmanager_secret" "oonipg_url" {
   tags = local.tags
 }
 
+data "aws_secretsmanager_secret_version" "pg_login" {
+  secret_id = module.oonipg.secrets_manager_pg_login_id
+}
+
 resource "aws_secretsmanager_secret_version" "oonipg_url" {
   secret_id = aws_secretsmanager_secret.oonipg_url.id
   secret_string = format("postgresql://%s:%s@%s/%s",
-    module.oonipg.pg_username,
-    module.oonipg.pg_password,
+    jsondecode(data.aws_secretsmanager_secret_version.pg_login.secret_string)["username"],
+    jsondecode(data.aws_secretsmanager_secret_version.pg_login.secret_string)["password"],
     module.oonipg.pg_endpoint,
     module.oonipg.pg_db_name
   )
@@ -333,9 +330,7 @@ module "ooniapi_ooniprobe" {
   # First run should be set on first run to bootstrap the task definition
   # first_run = true
 
-  vpc_id             = module.network.vpc_id
-  public_subnet_ids  = module.network.vpc_subnet_public[*].id
-  private_subnet_ids = module.network.vpc_subnet_private[*].id
+  vpc_id = module.network.vpc_id
 
   service_name             = "ooniprobe"
   default_docker_image_url = "ooni/api-ooniprobe:latest"
@@ -346,7 +341,7 @@ module "ooniapi_ooniprobe" {
 
   task_secrets = {
     POSTGRESQL_URL              = aws_secretsmanager_secret_version.oonipg_url.arn
-    JWT_ENCRYPTION_KEY          = aws_secretsmanager_secret_version.jwt_secret.arn
+    JWT_ENCRYPTION_KEY          = data.aws_ssm_parameter.jwt_secret.arn
     PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
   }
 
@@ -385,9 +380,7 @@ module "ooniapi_reverseproxy" {
   # First run should be set on first run to bootstrap the task definition
   # first_run = true
 
-  vpc_id             = module.network.vpc_id
-  public_subnet_ids  = module.network.vpc_subnet_public[*].id
-  private_subnet_ids = module.network.vpc_subnet_private[*].id
+  vpc_id = module.network.vpc_id
 
   service_name             = "reverseproxy"
   default_docker_image_url = "ooni/api-reverseproxy:latest"
@@ -401,7 +394,7 @@ module "ooniapi_reverseproxy" {
   }
 
   task_environment = {
-    TARGET_URL               = "https://backend-hel.ooni.org/"
+    TARGET_URL = "https://backend-hel.ooni.org/"
   }
 
   ooniapi_service_security_groups = [
@@ -463,9 +456,7 @@ module "ooniapi_oonirun" {
 
   task_memory = 64
 
-  vpc_id             = module.network.vpc_id
-  public_subnet_ids  = module.network.vpc_subnet_public[*].id
-  private_subnet_ids = module.network.vpc_subnet_private[*].id
+  vpc_id = module.network.vpc_id
 
   service_name             = "oonirun"
   default_docker_image_url = "ooni/api-oonirun:latest"
@@ -476,7 +467,7 @@ module "ooniapi_oonirun" {
 
   task_secrets = {
     POSTGRESQL_URL              = aws_secretsmanager_secret_version.oonipg_url.arn
-    JWT_ENCRYPTION_KEY          = aws_secretsmanager_secret_version.jwt_secret.arn
+    JWT_ENCRYPTION_KEY          = data.aws_ssm_parameter.jwt_secret.arn
     PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
   }
 
@@ -513,9 +504,7 @@ module "ooniapi_oonifindings" {
 
   task_memory = 64
 
-  vpc_id             = module.network.vpc_id
-  public_subnet_ids  = module.network.vpc_subnet_public[*].id
-  private_subnet_ids = module.network.vpc_subnet_private[*].id
+  vpc_id = module.network.vpc_id
 
   service_name             = "oonifindings"
   default_docker_image_url = "ooni/api-oonifindings:latest"
@@ -526,7 +515,7 @@ module "ooniapi_oonifindings" {
 
   task_secrets = {
     POSTGRESQL_URL              = aws_secretsmanager_secret_version.oonipg_url.arn
-    JWT_ENCRYPTION_KEY          = aws_secretsmanager_secret_version.jwt_secret.arn
+    JWT_ENCRYPTION_KEY          = data.aws_ssm_parameter.jwt_secret.arn
     PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
     CLICKHOUSE_URL              = data.aws_ssm_parameter.clickhouse_readonly_url.arn
   }
@@ -564,9 +553,7 @@ module "ooniapi_ooniauth" {
 
   task_memory = 64
 
-  vpc_id             = module.network.vpc_id
-  public_subnet_ids  = module.network.vpc_subnet_public[*].id
-  private_subnet_ids = module.network.vpc_subnet_private[*].id
+  vpc_id = module.network.vpc_id
 
   service_name             = "ooniauth"
   default_docker_image_url = "ooni/api-ooniauth:latest"
@@ -577,7 +564,7 @@ module "ooniapi_ooniauth" {
 
   task_secrets = {
     POSTGRESQL_URL              = aws_secretsmanager_secret_version.oonipg_url.arn
-    JWT_ENCRYPTION_KEY          = aws_secretsmanager_secret_version.jwt_secret.arn
+    JWT_ENCRYPTION_KEY          = data.aws_ssm_parameter.jwt_secret.arn
     PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
 
     AWS_SECRET_ACCESS_KEY = module.ooniapi_user.aws_secret_access_key_arn
@@ -586,8 +573,8 @@ module "ooniapi_ooniauth" {
   task_environment = {
     AWS_REGION           = var.aws_region
     EMAIL_SOURCE_ADDRESS = module.ooniapi_user.email_address
-    SESSION_EXPIRY_DAYS  = 180
-    LOGIN_EXPIRY_DAYS    = 365
+    SESSION_EXPIRY_DAYS  = 2
+    LOGIN_EXPIRY_DAYS    = 7
     ADMIN_EMAILS = jsonencode([
       "maja@ooni.org",
       "arturo@ooni.org",
