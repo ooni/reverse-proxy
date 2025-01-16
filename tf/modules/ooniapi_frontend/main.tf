@@ -190,6 +190,8 @@ resource "aws_lb_listener_rule" "ooniapi_oonifindings_rule" {
 }
 
 resource "aws_lb_listener_rule" "ooniapi_oonifindings_rule_host" {
+  count = var.ooniapi_oonimeasurements_target_group_arn != null ? 1 : 0
+
   listener_arn = aws_alb_listener.ooniapi_listener_https.arn
   priority     = 131
 
@@ -227,6 +229,8 @@ resource "aws_lb_listener_rule" "ooniapi_oonimeasurements_rule_1" {
 }
 
 resource "aws_lb_listener_rule" "ooniapi_oonimeasurements_rule_2" {
+  count = var.ooniapi_oonimeasurements_target_group_arn != null ? 1 : 0
+
   listener_arn = aws_alb_listener.ooniapi_listener_https.arn
   priority     = 142
 
@@ -248,6 +252,8 @@ resource "aws_lb_listener_rule" "ooniapi_oonimeasurements_rule_2" {
 }
 
 resource "aws_lb_listener_rule" "ooniapi_oonimeasurements_rule_host" {
+  count = var.ooniapi_oonimeasurements_target_group_arn != null ? 1 : 0
+
   listener_arn = aws_alb_listener.ooniapi_listener_https.arn
   priority     = 141
 
