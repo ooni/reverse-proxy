@@ -250,7 +250,7 @@ data "aws_secretsmanager_secret_version" "deploy_key" {
 # The aws_codestarconnections_connection resource is created in the state
 # PENDING. Authentication with the connection provider must be completed in the
 # AWS Console.
-# See: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/codestarconnections_connection 
+# See: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/codestarconnections_connection
 resource "aws_codestarconnections_connection" "oonidevops" {
   name          = "ooniapi"
   provider_type = "GitHub"
@@ -312,7 +312,7 @@ module "ooniapi_ooniprobe_deployer" {
 
   service_name            = "ooniprobe"
   repo                    = "ooni/backend"
-  branch_name             = "master"
+  branch_name             = "luis/ams-probe-services-port"
   buildspec_path          = "ooniapi/services/ooniprobe/buildspec.yml"
   codestar_connection_arn = aws_codestarconnections_connection.oonidevops.arn
 
