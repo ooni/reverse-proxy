@@ -604,7 +604,7 @@ module "ooniapi_oonimeasurements_deployer" {
 
   service_name            = "oonimeasurements"
   repo                    = "ooni/backend"
-  branch_name             = "master"
+  branch_name             = "richer-analysis"
   buildspec_path          = "ooniapi/services/oonimeasurements/buildspec.yml"
   codestar_connection_arn = aws_codestarconnections_connection.oonidevops.arn
 
@@ -619,7 +619,8 @@ module "ooniapi_oonimeasurements" {
 
   task_memory = 64
 
-  vpc_id = module.network.vpc_id
+  first_run = true
+  vpc_id    = module.network.vpc_id
 
   service_name             = "oonimeasurements"
   default_docker_image_url = "ooni/api-oonimeasurements:latest"

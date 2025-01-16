@@ -204,7 +204,7 @@ resource "aws_lb_listener_rule" "ooniapi_oonifindings_rule_host" {
   }
 }
 
-resource "aws_lb_listener_rule" "ooniapi_oonimeasurements_rule" {
+resource "aws_lb_listener_rule" "ooniapi_oonimeasurements_rule_1" {
   listener_arn = aws_alb_listener.ooniapi_listener_https.arn
   priority     = 140
 
@@ -220,7 +220,24 @@ resource "aws_lb_listener_rule" "ooniapi_oonimeasurements_rule" {
         "/api/v1/raw_measurement",
         "/api/v1/measurement_meta",
         "/api/v1/measurements",
-        "/api/v1/torsf_stats",
+        "/api/v1/torsf_stats"
+      ]
+    }
+  }
+}
+
+resource "aws_lb_listener_rule" "ooniapi_oonimeasurements_rule_2" {
+  listener_arn = aws_alb_listener.ooniapi_listener_https.arn
+  priority     = 142
+
+  action {
+    type             = "forward"
+    target_group_arn = var.ooniapi_oonimeasurements_target_group_arn
+  }
+
+  condition {
+    path_pattern {
+      values = [
         "/api/v1/aggregation",
         "/api/v1/aggregation/*",
         "/api/v1/observations",
