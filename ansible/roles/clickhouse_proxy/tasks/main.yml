@@ -1,4 +1,14 @@
 ---
+- name: Allow traffic on port 9000
+  tags: clickhouse-proxy
+  blockinfile:
+    path: /etc/ooni/nftables/tcp/9000.nft
+    create: yes
+    block: |
+      add rule inet filter input tcp dport 9000 counter accept comment "clickhouse"
+  notify:
+    - reload nftables  
+
 - name: Create the modules-enabled directory if not exists
   tags: webserv
   ansible.builtin.file:
