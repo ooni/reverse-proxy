@@ -164,6 +164,14 @@ module "oonipg" {
   db_storage_type          = "gp3"
   db_allocated_storage     = "50"
   db_max_allocated_storage = null
+
+  # TODO: fix this to further restrict to only our subnets
+  # In order to do this we need to change the launch template of the ECS service
+  # to deploy them specifically inside of the two allocated subnets as opposed
+  # to picking a random IP in side of the full /8
+  allow_cidr_blocks     = ["10.0.0.0/8"]
+  allow_security_groups = []
+
   tags = merge(
     local.tags,
     { Name = "ooni-tier0-postgres" }
@@ -220,11 +228,15 @@ resource "aws_secretsmanager_secret" "oonipg_url" {
   tags = local.tags
 }
 
+data "aws_secretsmanager_secret_version" "pg_login" {
+  secret_id = module.oonipg.secrets_manager_pg_login_id
+}
+
 resource "aws_secretsmanager_secret_version" "oonipg_url" {
   secret_id = aws_secretsmanager_secret.oonipg_url.id
   secret_string = format("postgresql://%s:%s@%s/%s",
-    module.oonipg.pg_username,
-    module.oonipg.pg_password,
+    jsondecode(data.aws_secretsmanager_secret_version.pg_login.secret_string)["username"],
+    jsondecode(data.aws_secretsmanager_secret_version.pg_login.secret_string)["password"],
     module.oonipg.pg_endpoint,
     module.oonipg.pg_db_name
   )
@@ -330,9 +342,7 @@ module "ooniapi_reverseproxy" {
   # First run should be set on first run to bootstrap the task definition
   # first_run = true
 
-  vpc_id             = module.network.vpc_id
-  public_subnet_ids  = module.network.vpc_subnet_public[*].id
-  private_subnet_ids = module.network.vpc_subnet_private[*].id
+  vpc_id = module.network.vpc_id
 
   service_name             = "reverseproxy"
   default_docker_image_url = "ooni/api-reverseproxy:latest"
@@ -346,7 +356,7 @@ module "ooniapi_reverseproxy" {
   }
 
   task_environment = {
-    TARGET_URL               = "https://backend-fsn.ooni.org/"
+    TARGET_URL = "https://backend-fsn.ooni.org/"
   }
 
   ooniapi_service_security_groups = [
@@ -407,9 +417,7 @@ module "ooniapi_ooniprobe" {
   # First run should be set on first run to bootstrap the task definition
   #first_run = true
 
-  vpc_id             = module.network.vpc_id
-  private_subnet_ids = module.network.vpc_subnet_private[*].id
-  public_subnet_ids  = module.network.vpc_subnet_public[*].id
+  vpc_id = module.network.vpc_id
 
   service_name             = "ooniprobe"
   default_docker_image_url = "ooni/api-ooniprobe:latest"
@@ -458,9 +466,7 @@ module "ooniapi_oonirun" {
   source = "../../modules/ooniapi_service"
   #first_run = true
 
-  vpc_id             = module.network.vpc_id
-  private_subnet_ids = module.network.vpc_subnet_private[*].id
-  public_subnet_ids  = module.network.vpc_subnet_public[*].id
+  vpc_id = module.network.vpc_id
 
   service_name             = "oonirun"
   default_docker_image_url = "ooni/api-oonirun:latest"
@@ -508,9 +514,7 @@ module "ooniapi_oonifindings" {
   source = "../../modules/ooniapi_service"
 
   # first_run          = true
-  vpc_id             = module.network.vpc_id
-  public_subnet_ids  = module.network.vpc_subnet_public[*].id
-  private_subnet_ids = module.network.vpc_subnet_private[*].id
+  vpc_id = module.network.vpc_id
 
   service_name             = "oonifindings"
   default_docker_image_url = "ooni/api-oonifindings:latest"
@@ -557,9 +561,7 @@ module "ooniapi_ooniauth" {
   source = "../../modules/ooniapi_service"
   # first_run = true
 
-  vpc_id             = module.network.vpc_id
-  private_subnet_ids = module.network.vpc_subnet_private[*].id
-  public_subnet_ids  = module.network.vpc_subnet_public[*].id
+  vpc_id = module.network.vpc_id
 
   service_name             = "ooniauth"
   default_docker_image_url = "ooni/api-ooniauth:latest"
@@ -662,7 +664,7 @@ locals {
 }
 
 resource "aws_route53_record" "ooniapi_frontend_main" {
-  name    = local.ooniapi_frontend_main_domain_name
+  name = local.ooniapi_frontend_main_domain_name
 
   zone_id = local.ooniapi_frontend_main_domain_name_zone_id
   type    = "A"

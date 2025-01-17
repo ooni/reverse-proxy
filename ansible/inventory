@@ -34,6 +34,3 @@ ams-ps.ooni.nu
 
 [aws-proxy]
 clickhouseproxy.dev.ooni.io
-
-[backend]
-backend-hel.ooni.org

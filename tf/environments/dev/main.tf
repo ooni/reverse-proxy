@@ -152,6 +152,10 @@ module "oonipg" {
   db_storage_type          = "standard"
   db_allocated_storage     = "5"
   db_max_allocated_storage = null
+
+  allow_cidr_blocks     = module.network.vpc_subnet_private[*].cidr_block
+  allow_security_groups = []
+
   tags = merge(
     local.tags,
     { Name = "ooni-tier0-postgres" }
@@ -208,11 +212,15 @@ resource "aws_secretsmanager_secret" "oonipg_url" {
   tags = local.tags
 }
 
+data "aws_secretsmanager_secret_version" "pg_login" {
+  secret_id = module.oonipg.secrets_manager_pg_login_id
+}
+
 resource "aws_secretsmanager_secret_version" "oonipg_url" {
   secret_id = aws_secretsmanager_secret.oonipg_url.id
   secret_string = format("postgresql://%s:%s@%s/%s",
-    module.oonipg.pg_username,
-    module.oonipg.pg_password,
+    jsondecode(data.aws_secretsmanager_secret_version.pg_login.secret_string)["username"],
+    jsondecode(data.aws_secretsmanager_secret_version.pg_login.secret_string)["password"],
     module.oonipg.pg_endpoint,
     module.oonipg.pg_db_name
   )
@@ -242,7 +250,7 @@ data "aws_secretsmanager_secret_version" "deploy_key" {
 # The aws_codestarconnections_connection resource is created in the state
 # PENDING. Authentication with the connection provider must be completed in the
 # AWS Console.
-# See: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/codestarconnections_connection 
+# See: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/codestarconnections_connection
 resource "aws_codestarconnections_connection" "oonidevops" {
   name          = "ooniapi"
   provider_type = "GitHub"
@@ -304,7 +312,7 @@ module "ooniapi_ooniprobe_deployer" {
 
   service_name            = "ooniprobe"
   repo                    = "ooni/backend"
-  branch_name             = "master"
+  branch_name             = "luis/ams-probe-services-port"
   buildspec_path          = "ooniapi/services/ooniprobe/buildspec.yml"
   codestar_connection_arn = aws_codestarconnections_connection.oonidevops.arn
 
@@ -322,9 +330,7 @@ module "ooniapi_ooniprobe" {
   # First run should be set on first run to bootstrap the task definition
   # first_run = true
 
-  vpc_id             = module.network.vpc_id
-  public_subnet_ids  = module.network.vpc_subnet_public[*].id
-  private_subnet_ids = module.network.vpc_subnet_private[*].id
+  vpc_id = module.network.vpc_id
 
   service_name             = "ooniprobe"
   default_docker_image_url = "ooni/api-ooniprobe:latest"
@@ -374,9 +380,7 @@ module "ooniapi_reverseproxy" {
   # First run should be set on first run to bootstrap the task definition
   # first_run = true
 
-  vpc_id             = module.network.vpc_id
-  public_subnet_ids  = module.network.vpc_subnet_public[*].id
-  private_subnet_ids = module.network.vpc_subnet_private[*].id
+  vpc_id = module.network.vpc_id
 
   service_name             = "reverseproxy"
   default_docker_image_url = "ooni/api-reverseproxy:latest"
@@ -390,7 +394,7 @@ module "ooniapi_reverseproxy" {
   }
 
   task_environment = {
-    TARGET_URL               = "https://backend-hel.ooni.org/"
+    TARGET_URL = "https://backend-hel.ooni.org/"
   }
 
   ooniapi_service_security_groups = [
@@ -431,7 +435,7 @@ module "ooni_clickhouse_proxy" {
     from_port = 9000,
     to_port = 9000,
     protocol = "tcp",
-    cidr_blocks = ["0.0.0.0/0"],
+    cidr_blocks = module.network.vpc_subnet_private[*].cidr_block,
   }]
 
   egress_rules = [{
@@ -488,9 +492,7 @@ module "ooniapi_oonirun" {
 
   task_memory = 64
 
-  vpc_id             = module.network.vpc_id
-  public_subnet_ids  = module.network.vpc_subnet_public[*].id
-  private_subnet_ids = module.network.vpc_subnet_private[*].id
+  vpc_id = module.network.vpc_id
 
   service_name             = "oonirun"
   default_docker_image_url = "ooni/api-oonirun:latest"
@@ -523,7 +525,7 @@ module "ooniapi_oonifindings_deployer" {
 
   service_name            = "oonifindings"
   repo                    = "ooni/backend"
-  branch_name             = "oonidata"
+  branch_name             = "master"
   buildspec_path          = "ooniapi/services/oonifindings/buildspec.yml"
   codestar_connection_arn = aws_codestarconnections_connection.oonidevops.arn
 
@@ -538,9 +540,7 @@ module "ooniapi_oonifindings" {
 
   task_memory = 64
 
-  vpc_id             = module.network.vpc_id
-  public_subnet_ids  = module.network.vpc_subnet_public[*].id
-  private_subnet_ids = module.network.vpc_subnet_private[*].id
+  vpc_id = module.network.vpc_id
 
   service_name             = "oonifindings"
   default_docker_image_url = "ooni/api-oonifindings:latest"
@@ -589,9 +589,7 @@ module "ooniapi_ooniauth" {
 
   task_memory = 64
 
-  vpc_id             = module.network.vpc_id
-  public_subnet_ids  = module.network.vpc_subnet_public[*].id
-  private_subnet_ids = module.network.vpc_subnet_private[*].id
+  vpc_id = module.network.vpc_id
 
   service_name             = "ooniauth"
   default_docker_image_url = "ooni/api-ooniauth:latest"
@@ -635,6 +633,55 @@ module "ooniapi_ooniauth" {
   )
 }
 
+### OONI Measurements service
+
+module "ooniapi_oonimeasurements_deployer" {
+  source = "../../modules/ooniapi_service_deployer"
+
+  service_name            = "oonimeasurements"
+  repo                    = "ooni/backend"
+  branch_name             = "richer-analysis"
+  buildspec_path          = "ooniapi/services/oonimeasurements/buildspec.yml"
+  codestar_connection_arn = aws_codestarconnections_connection.oonidevops.arn
+
+  codepipeline_bucket = aws_s3_bucket.ooniapi_codepipeline_bucket.bucket
+
+  ecs_service_name = module.ooniapi_oonimeasurements.ecs_service_name
+  ecs_cluster_name = module.ooniapi_cluster.cluster_name
+}
+
+module "ooniapi_oonimeasurements" {
+  source = "../../modules/ooniapi_service"
+
+  task_memory = 64
+
+  first_run = true
+  vpc_id    = module.network.vpc_id
+
+  service_name             = "oonimeasurements"
+  default_docker_image_url = "ooni/api-oonimeasurements:latest"
+  stage                    = local.environment
+  dns_zone_ooni_io         = local.dns_zone_ooni_io
+  key_name                 = module.adm_iam_roles.oonidevops_key_name
+  ecs_cluster_id           = module.ooniapi_cluster.cluster_id
+
+  task_secrets = {
+    POSTGRESQL_URL              = aws_secretsmanager_secret_version.oonipg_url.arn
+    JWT_ENCRYPTION_KEY          = data.aws_ssm_parameter.jwt_secret.arn
+    PROMETHEUS_METRICS_PASSWORD = aws_secretsmanager_secret_version.prometheus_metrics_password.arn
+    CLICKHOUSE_URL              = data.aws_ssm_parameter.clickhouse_readonly_url.arn
+  }
+
+  ooniapi_service_security_groups = [
+    module.ooniapi_cluster.web_security_group_id
+  ]
+
+  tags = merge(
+    local.tags,
+    { Name = "ooni-tier0-oonimeasurements" }
+  )
+}
+
 #### OONI Tier0 API Frontend
 
 module "ooniapi_frontend" {
@@ -643,11 +690,12 @@ module "ooniapi_frontend" {
   vpc_id     = module.network.vpc_id
   subnet_ids = module.network.vpc_subnet_public[*].id
 
-  oonibackend_proxy_target_group_arn    = module.ooniapi_reverseproxy.alb_target_group_id
-  ooniapi_oonirun_target_group_arn      = module.ooniapi_oonirun.alb_target_group_id
-  ooniapi_ooniauth_target_group_arn     = module.ooniapi_ooniauth.alb_target_group_id
-  ooniapi_ooniprobe_target_group_arn    = module.ooniapi_ooniprobe.alb_target_group_id
-  ooniapi_oonifindings_target_group_arn = module.ooniapi_oonifindings.alb_target_group_id
+  oonibackend_proxy_target_group_arn        = module.ooniapi_reverseproxy.alb_target_group_id
+  ooniapi_oonirun_target_group_arn          = module.ooniapi_oonirun.alb_target_group_id
+  ooniapi_ooniauth_target_group_arn         = module.ooniapi_ooniauth.alb_target_group_id
+  ooniapi_ooniprobe_target_group_arn        = module.ooniapi_ooniprobe.alb_target_group_id
+  ooniapi_oonifindings_target_group_arn     = module.ooniapi_oonifindings.alb_target_group_id
+  ooniapi_oonimeasurements_target_group_arn = module.ooniapi_oonimeasurements.alb_target_group_id
 
   ooniapi_service_security_groups = [
     module.ooniapi_cluster.web_security_group_id
